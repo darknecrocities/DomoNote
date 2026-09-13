@@ -17,6 +17,7 @@ import {
   Feather,
   Calendar,
   GitCommit,
+  X,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
@@ -24,10 +25,10 @@ import { useAI } from '../../context/ai-context';
 import logoImg from '../../assets/domodomo.png';
 
 export const Sidebar: React.FC = () => {
-  const { activeView, setActiveView } = useWorkspace();
+  const { activeView, setActiveView, isMobileSidebarOpen, setIsMobileSidebarOpen } = useWorkspace();
   const { isConnected, isChecking, selectedModel, checkConnection, startOllamaService } = useAI();
 
-  // Collapsible state persisted to localStorage
+  // Collapsible state persisted to localStorage for desktop
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('domonote_sidebar_collapsed') === 'true';
   });
@@ -56,45 +57,16 @@ export const Sidebar: React.FC = () => {
     { id: 'privacy', label: 'Privacy', icon: Shield },
   ];
 
-  return (
-    <aside
-      className={`${
-        isCollapsed ? 'w-16' : 'w-64'
-      } bg-[#0A0A0A] border-r border-zinc-850 flex flex-col h-screen select-none shrink-0 transition-all duration-200 z-30`}
-    >
-      {/* Brand Header */}
-      <div className="p-3 border-b border-zinc-850 flex items-center justify-between">
-        <div
-          onClick={() => setActiveView('landing')}
-          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
-          title="DomoNote Landing Page"
-        >
-          <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
-          {!isCollapsed && (
-            <div className="truncate">
-              <div className="font-bold text-xs text-white tracking-tight leading-none truncate">
-                DomoNote
-              </div>
-              <div className="text-[10px] font-mono text-zinc-500 mt-1 tracking-tight truncate">
-                LOCAL AI
-              </div>
-            </div>
-          )}
-        </div>
+  const handleNavClick = (viewId: ViewType) => {
+    setActiveView(viewId);
+    setIsMobileSidebarOpen(false);
+  };
 
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Main Navigation */}
+  const renderNavContent = (collapsed: boolean) => (
+    <>
+      {/* Navigation List */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-none">
-        {!isCollapsed && (
+        {!collapsed && (
           <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
             Workspace
           </div>
@@ -105,24 +77,24 @@ export const Sidebar: React.FC = () => {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
-              title={isCollapsed ? item.label : undefined}
+              onClick={() => handleNavClick(item.id)}
+              title={collapsed ? item.label : undefined}
               className={`w-full flex items-center ${
-                isCollapsed ? 'justify-center px-2' : 'px-2.5'
+                collapsed ? 'justify-center px-2' : 'px-2.5'
               } py-2 rounded-lg text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-zinc-800 text-white font-semibold shadow-sm border border-zinc-700'
+                  ? 'bg-zinc-850 text-white font-semibold shadow-sm border border-zinc-700'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span className="ml-2.5 truncate">{item.label}</span>}
+              {!collapsed && <span className="ml-2.5 truncate">{item.label}</span>}
             </button>
           );
         })}
 
         <div className="pt-4" />
-        {!isCollapsed && (
+        {!collapsed && (
           <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
             System
           </div>
@@ -133,26 +105,26 @@ export const Sidebar: React.FC = () => {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
-              title={isCollapsed ? item.label : undefined}
+              onClick={() => handleNavClick(item.id)}
+              title={collapsed ? item.label : undefined}
               className={`w-full flex items-center ${
-                isCollapsed ? 'justify-center px-2' : 'px-2.5'
+                collapsed ? 'justify-center px-2' : 'px-2.5'
               } py-2 rounded-lg text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-zinc-800 text-white font-semibold shadow-sm border border-zinc-700'
+                  ? 'bg-zinc-850 text-white font-semibold shadow-sm border border-zinc-700'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span className="ml-2.5 truncate">{item.label}</span>}
+              {!collapsed && <span className="ml-2.5 truncate">{item.label}</span>}
             </button>
           );
         })}
       </nav>
 
       {/* Local AI Status Hardware Card */}
-      <div className="p-2 border-t border-zinc-850 bg-[#070707]">
-        {isCollapsed ? (
+      <div className="p-2.5 border-t border-zinc-850 bg-[#070707]">
+        {collapsed ? (
           <div className="flex flex-col items-center gap-2 py-2">
             <span
               className={`w-2 h-2 rounded-full ${
@@ -169,7 +141,7 @@ export const Sidebar: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="p-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800">
+          <div className="p-2.5 rounded-lg bg-zinc-900/90 border border-zinc-850">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span
@@ -177,7 +149,7 @@ export const Sidebar: React.FC = () => {
                     isConnected ? 'bg-emerald-400 ring-2 ring-emerald-400/20' : 'bg-red-500 animate-pulse'
                   }`}
                 />
-                <span className="text-[11px] font-semibold text-zinc-200 truncate">
+                <span className="text-xs font-semibold text-zinc-200 truncate">
                   {isConnected ? 'Local AI Active' : 'AI Offline'}
                 </span>
               </div>
@@ -207,7 +179,7 @@ export const Sidebar: React.FC = () => {
         )}
 
         {/* Footer Meta */}
-        {!isCollapsed && (
+        {!collapsed && (
           <div className="flex items-center justify-between mt-2.5 px-1 text-[10px] font-mono text-zinc-500">
             <span>Local Workspace</span>
             <a
@@ -222,6 +194,89 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar (hidden on mobile) */}
+      <aside
+        className={`hidden md:flex flex-col h-screen select-none shrink-0 transition-all duration-200 z-30 ${
+          isCollapsed ? 'w-16' : 'w-64'
+        } bg-[#0A0A0A] border-r border-zinc-850`}
+      >
+        {/* Brand Header */}
+        <div className="p-3 border-b border-zinc-850 flex items-center justify-between">
+          <div
+            onClick={() => setActiveView('landing')}
+            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
+            title="DomoNote Landing Page"
+          >
+            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
+            {!isCollapsed && (
+              <div className="truncate">
+                <div className="font-bold text-xs text-white tracking-tight leading-none truncate">
+                  DomoNote
+                </div>
+                <div className="text-[10px] font-mono text-zinc-500 mt-1 tracking-tight truncate">
+                  LOCAL AI
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {renderNavContent(isCollapsed)}
+      </aside>
+
+      {/* Mobile Drawer Overlay & Sidebar (visible on mobile when open) */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex select-none">
+          {/* Backdrop */}
+          <div
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+          />
+
+          {/* Drawer Body */}
+          <div className="relative w-72 max-w-[80vw] bg-[#0A0A0A] border-r border-zinc-850 flex flex-col h-full z-10 shadow-2xl animate-fade-in">
+            <div className="p-3.5 border-b border-zinc-850 flex items-center justify-between">
+              <div
+                onClick={() => {
+                  setActiveView('landing');
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="flex items-center gap-2.5 cursor-pointer"
+              >
+                <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
+                <div>
+                  <div className="font-bold text-xs text-white tracking-tight">DomoNote</div>
+                  <div className="text-[10px] font-mono text-zinc-500">LOCAL AI</div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                title="Close menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {renderNavContent(false)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };

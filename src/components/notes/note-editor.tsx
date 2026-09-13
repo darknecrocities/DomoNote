@@ -28,14 +28,16 @@ import {
   Columns,
   Tag as TagIcon,
   X,
+  ChevronLeft,
 } from 'lucide-react';
 
 interface NoteEditorProps {
   noteId: string;
   onDeleted?: () => void;
+  onBackToList?: () => void;
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted }) => {
+export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBackToList }) => {
   const { addToast } = useWorkspace();
   const [note, setNote] = useState<Note | null>(null);
   const [title, setTitle] = useState('');
@@ -223,14 +225,24 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted }) => 
   return (
     <div className="flex-1 flex flex-col h-full bg-black">
       {/* Editor Header */}
-      <div className="border-b border-zinc-850 px-8 py-3 flex items-center justify-between gap-4 shrink-0 bg-zinc-950/40">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="border-b border-zinc-850 px-4 sm:px-8 py-3 flex items-center justify-between gap-3 sm:gap-4 shrink-0 bg-zinc-950/40">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          {onBackToList && (
+            <button
+              onClick={onBackToList}
+              className="md:hidden flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-900 border border-zinc-800 shrink-0"
+              title="Back to notes list"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Notes</span>
+            </button>
+          )}
           <input
             type="text"
             placeholder="Untitled Note"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            className="w-full bg-transparent text-lg font-semibold text-white placeholder-zinc-600 focus:outline-none tracking-tight"
+            className="w-full bg-transparent text-base sm:text-lg font-semibold text-white placeholder-zinc-600 focus:outline-none tracking-tight"
           />
         </div>
 

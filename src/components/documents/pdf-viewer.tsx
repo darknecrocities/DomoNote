@@ -28,14 +28,25 @@ import {
   Save,
   Trash2,
   CheckCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 
 interface PDFViewerProps {
   document: DocumentEntity;
   onDeleted?: () => void;
+  onToggleList?: () => void;
+  isListOpen?: boolean;
 }
 
-export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDeleted }) => {
+export const PDFViewer: React.FC<PDFViewerProps> = ({
+  document: docEntity,
+  onDeleted,
+  onToggleList,
+  isListOpen,
+}) => {
   const { selectedModel, isConnected } = useAI();
   const { addToast, setActiveView, setActiveNoteId } = useWorkspace();
 
@@ -44,6 +55,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
   const [scale, setScale] = useState<number>(1.2);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [activeTool, setActiveTool] = useState<AnnotationType | null>(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.innerWidth >= 1280;
+  });
 
   // Text selection floating toolbar state
   const [selectedText, setSelectedText] = useState('');
@@ -345,26 +359,44 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
       {/* Center Main: Document Canvas & Controls */}
       <div className="flex-1 flex flex-col h-full min-w-0 border-r border-zinc-850">
         {/* Top Viewer Controls */}
-        <div className="h-12 border-b border-zinc-850 px-4 flex items-center justify-between shrink-0 bg-zinc-950/60">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-zinc-200 truncate max-w-[200px]">
+        <div className="h-12 border-b border-zinc-850 px-3 sm:px-4 flex items-center justify-between shrink-0 bg-zinc-950/60 gap-2 overflow-x-auto">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {onToggleList && (
+              <button
+                onClick={onToggleList}
+                className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                title={isListOpen ? 'Hide document list' : 'Show document list'}
+                aria-label={isListOpen ? 'Hide document list' : 'Show document list'}
+              >
+                {isListOpen ? (
+                  <PanelLeftClose className="w-3.5 h-3.5" />
+                ) : (
+                  <PanelLeftOpen className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
+
+            <span className="text-xs font-semibold text-zinc-200 truncate max-w-[120px] sm:max-w-[200px]">
               {docEntity.title}
             </span>
-            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 text-xs font-mono text-zinc-400">
+
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-850 rounded px-1.5 py-0.5 text-xs font-mono text-zinc-400">
               <button
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className="p-1 hover:text-white disabled:opacity-30"
+                title="Previous page"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <span>
+              <span className="text-[11px]">
                 {currentPage} / {docEntity.pageCount}
               </span>
               <button
                 disabled={currentPage >= docEntity.pageCount}
                 onClick={() => setCurrentPage((p) => Math.min(docEntity.pageCount, p + 1))}
                 className="p-1 hover:text-white disabled:opacity-30"
+                title="Next page"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -372,8 +404,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
           </div>
 
           {/* Zoom and Annotation Tools */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded px-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="hidden sm:flex items-center bg-zinc-900 border border-zinc-800 rounded px-1">
               <button
                 onClick={() => setScale((s) => Math.max(0.6, s - 0.2))}
                 className="p-1 text-zinc-400 hover:text-white"
@@ -393,7 +425,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               </button>
             </div>
 
-            <div className="w-px h-4 bg-zinc-800 mx-1" />
+            <div className="hidden md:block w-px h-4 bg-zinc-800 mx-0.5" />
 
             {/* Quick manual annotation buttons */}
             <Button
@@ -401,9 +433,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               variant="outline"
               onClick={() => addAnnotationAtCoords('highlight')}
               title="Add Highlight Box"
+              className="px-2"
             >
               <Highlighter className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Highlight</span>
+              <span className="hidden xl:inline">Highlight</span>
             </Button>
 
             <Button
@@ -411,9 +444,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               variant="outline"
               onClick={() => addAnnotationAtCoords('rectangle', 'Caution')}
               title="Add Warning Box"
+              className="px-2"
             >
               <Square className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Box</span>
+              <span className="hidden xl:inline">Box</span>
             </Button>
 
             <Button
@@ -421,12 +455,13 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               variant="outline"
               onClick={() => addAnnotationAtCoords('marker')}
               title="Add Numbered Step Badge"
+              className="px-2"
             >
               <Hash className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Step Badge</span>
+              <span className="hidden xl:inline">Step Badge</span>
             </Button>
 
-            <div className="w-px h-4 bg-zinc-800 mx-1" />
+            <div className="w-px h-4 bg-zinc-800 mx-0.5" />
 
             {/* AI Action Modals */}
             <Button
@@ -434,9 +469,10 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               variant="secondary"
               onClick={() => setIsSuggestionsModalOpen(true)}
               title="Analyze Page for Suggestions"
+              className="px-2"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Suggest Callouts</span>
+              <span className="hidden lg:inline">Callouts</span>
             </Button>
 
             <Button
@@ -444,9 +480,22 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
               variant="secondary"
               onClick={() => setIsStepsModalOpen(true)}
               title="Transform Section into Numbered Steps"
+              className="px-2"
             >
               <ListOrdered className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Turn into Steps</span>
+              <span className="hidden lg:inline">Steps</span>
+            </Button>
+
+            {/* AI Assistant Panel Toggle */}
+            <Button
+              size="sm"
+              variant={isAssistantOpen ? 'primary' : 'outline'}
+              onClick={() => setIsAssistantOpen((prev) => !prev)}
+              title={isAssistantOpen ? 'Hide Assistant Panel' : 'Show Assistant Panel'}
+              className="px-2.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
+              <span className="hidden sm:inline">AI Assistant</span>
             </Button>
 
             <Button size="icon" variant="ghost" onClick={handleDeleteDocument} title="Delete PDF">
@@ -509,129 +558,148 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
       </div>
 
       {/* Right Panel: AI Document Intelligence Assistant */}
-      <div className="w-96 bg-zinc-950 flex flex-col h-full shrink-0 select-none">
-        <div className="p-4 border-b border-zinc-850 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-zinc-300" />
-            <span className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
-              Document Assistant
-            </span>
-          </div>
-          <span className="text-[10px] text-zinc-500 font-mono">Page {currentPage} Focus</span>
-        </div>
-
-        {/* Quick Question Chips */}
-        <div className="p-3 border-b border-zinc-850 flex flex-wrap gap-1.5 bg-zinc-950/60">
-          <button
-            onClick={() => askDocumentAI('Summarize this page in 3 concise bullet points.')}
-            className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-          >
-            Summarize Page
-          </button>
-          <button
-            onClick={() => askDocumentAI('What are the main procedural steps or actions required?')}
-            className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-          >
-            Main Steps
-          </button>
-          <button
-            onClick={() => askDocumentAI('What are the critical requirements, warnings, or prerequisites?')}
-            className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-          >
-            Requirements
-          </button>
-        </div>
-
-        {/* AI Conversation View */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {aiResponse ? (
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-zinc-900/70 border border-zinc-850 text-xs text-zinc-200 space-y-2 leading-relaxed">
-                <div className="font-semibold text-zinc-100 flex items-center justify-between">
-                  <span>AI Response</span>
-                  {aiSources.length > 0 && (
-                    <span className="text-[10px] text-zinc-400 font-mono">
-                      Sources: {aiSources.map((s) => `p.${s.pageNumber}`).join(', ')}
-                    </span>
-                  )}
-                </div>
-                <div className="prose prose-invert max-w-none text-xs">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {DOMPurify.sanitize(aiResponse)}
-                  </ReactMarkdown>
-                </div>
-              </div>
-
-              {/* Source Page Badges */}
-              {aiSources.length > 0 && (
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-                    Citations
-                  </span>
-                  {aiSources.map((source, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setCurrentPage(source.pageNumber)}
-                      className="p-2 rounded bg-zinc-900/40 border border-zinc-850 text-[11px] cursor-pointer hover:border-zinc-700 transition-colors"
-                    >
-                      <div className="flex items-center justify-between text-zinc-400 font-mono text-[10px] mb-0.5">
-                        <span>Page {source.pageNumber}</span>
-                        <span>Click to navigate</span>
-                      </div>
-                      <p className="text-zinc-300 line-clamp-2 italic">"{source.text}"</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSaveAiAnswerAsNote}
-                className="w-full"
+      {isAssistantOpen && (
+        <div className="w-80 lg:w-96 bg-zinc-950 flex flex-col h-full shrink-0 select-none border-l border-zinc-850 animate-fade-in">
+          <div className="p-3.5 border-b border-zinc-850 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-zinc-300" />
+              <span className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+                Document Assistant
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-zinc-500 font-mono">Page {currentPage}</span>
+              <button
+                onClick={() => setIsAssistantOpen(false)}
+                className="p-1 text-zinc-500 hover:text-white rounded transition-colors"
+                title="Close assistant panel"
+                aria-label="Close assistant panel"
               >
-                <Save className="w-3.5 h-3.5" />
-                <span>Save Response to Notes</span>
-              </Button>
+                <PanelRightClose className="w-3.5 h-3.5" />
+              </button>
             </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-500 text-xs">
-              <MessageSquare className="w-6 h-6 mb-2 text-zinc-600" />
-              <span>Ask questions about this PDF or highlight any text to explain or annotate.</span>
-            </div>
-          )}
-        </div>
+          </div>
 
-        {/* Ask Input */}
-        <div className="p-3 border-t border-zinc-850 bg-zinc-950">
-          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5">
-            <input
-              type="text"
-              placeholder="Ask document question..."
-              value={aiQuestion}
-              onChange={(e) => setAiQuestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !isAiLoading) {
-                  askDocumentAI(aiQuestion);
-                  setAiQuestion('');
-                }
-              }}
-              disabled={isAiLoading}
-              className="flex-1 bg-transparent text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
-            />
+          {/* Quick Question Chips */}
+          <div className="p-3 border-b border-zinc-850 flex flex-wrap gap-1.5 bg-zinc-950/60">
             <button
-              onClick={() => {
-                askDocumentAI(aiQuestion);
-                setAiQuestion('');
-              }}
-              disabled={isAiLoading || !aiQuestion.trim()}
-              className="p-1 rounded text-zinc-400 hover:text-white disabled:opacity-30 transition-colors"
+              onClick={() => askDocumentAI('Summarize this page in 3 concise bullet points.')}
+              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
             >
-              <Send className="w-3.5 h-3.5" />
+              Summarize Page
+            </button>
+            <button
+              onClick={() => askDocumentAI('What are the main procedural steps or actions required?')}
+              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+            >
+              Main Steps
+            </button>
+            <button
+              onClick={() => askDocumentAI('What are the critical requirements, warnings, or prerequisites?')}
+              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+            >
+              Requirements
             </button>
           </div>
+
+          {/* AI Conversation View */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {aiResponse ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-zinc-900/70 border border-zinc-850 text-xs text-zinc-200 space-y-2 leading-relaxed">
+                  <div className="font-semibold text-zinc-100 flex items-center justify-between">
+                    <span>AI Response</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      Sources: p.{currentPage}
+                    </span>
+                  </div>
+                  <div className="markdown-content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {DOMPurify.sanitize(aiResponse)}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Save as Note Action */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSaveAiAnswerAsNote}
+                  className="w-full flex items-center justify-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Analysis as Note</span>
+                </Button>
+              </div>
+            ) : isAiLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-zinc-500 space-y-3 text-xs">
+                <Sparkles className="w-5 h-5 text-zinc-400 animate-spin" />
+                <span>Reading document chunks and querying local Ollama...</span>
+              </div>
+            ) : (
+              <div className="py-12 text-center text-zinc-500 space-y-2 text-xs">
+                <MessageSquare className="w-6 h-6 mx-auto text-zinc-600" />
+                <p>Ask any question about this document or click the chips above.</p>
+                <p className="text-[10px] text-zinc-600">
+                  Queries stay strictly local against client-side chunks.
+                </p>
+              </div>
+            )}
+
+            {/* Citations Card */}
+            {aiSources.length > 0 && (
+              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-850 space-y-2 text-[11px]">
+                <span className="font-semibold text-zinc-400 uppercase tracking-wider text-[10px]">
+                  Citations
+                </span>
+                {aiSources.map((src, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setCurrentPage(src.pageNumber)}
+                    className="p-2 rounded bg-zinc-900/60 border border-zinc-800/80 cursor-pointer hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex items-center justify-between font-mono text-[10px] text-zinc-400 mb-1">
+                      <span>Page {src.pageNumber}</span>
+                      <span className="text-emerald-400">Click to navigate</span>
+                    </div>
+                    <p className="text-zinc-300 line-clamp-2 italic text-[11px]">"{src.text}"</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* AI Question Prompt Input */}
+          <div className="p-3 border-t border-zinc-850 bg-zinc-950/80">
+            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 focus-within:border-zinc-700">
+              <input
+                type="text"
+                placeholder="Ask document question..."
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isAiLoading) {
+                    askDocumentAI(aiQuestion);
+                    setAiQuestion('');
+                  }
+                }}
+                disabled={isAiLoading}
+                className="flex-1 bg-transparent text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  askDocumentAI(aiQuestion);
+                  setAiQuestion('');
+                }}
+                disabled={isAiLoading || !aiQuestion.trim()}
+                className="p-1 rounded text-zinc-400 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Floating Selection Contextual Toolbar */}
       {selectionToolbarPos && (

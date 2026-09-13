@@ -38,6 +38,8 @@ interface WorkspaceContextType {
   setIsSearchOpen: (open: boolean) => void;
   isCommandPaletteOpen: boolean;
   setIsCommandPaletteOpen: (open: boolean) => void;
+  isMobileSidebarOpen: boolean;
+  setIsMobileSidebarOpen: (open: boolean) => void;
   toasts: ToastItem[];
   addToast: (message: string, type?: ToastItem['type']) => void;
   removeToast: (id: string) => void;
@@ -82,6 +84,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeManualId, setActiveManualId] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const addToast = useCallback((message: string, type: ToastItem['type'] = 'info') => {
@@ -98,6 +101,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const setActiveView = useCallback((view: ViewType) => {
     setActiveViewState(view);
+    setIsMobileSidebarOpen(false);
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       if (view === 'landing') {
@@ -155,6 +159,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsSearchOpen,
         isCommandPaletteOpen,
         setIsCommandPaletteOpen,
+        isMobileSidebarOpen,
+        setIsMobileSidebarOpen,
         toasts,
         addToast,
         removeToast,
