@@ -9,14 +9,14 @@ import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { activeView, toasts, removeToast } = useWorkspace();
 
-  const isLanding = activeView === 'landing';
+  const isFullWidthPage = activeView === 'landing' || activeView === 'download';
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-black text-zinc-100 antialiased font-sans">
-      {!isLanding && <Sidebar />}
+      {!isFullWidthPage && <Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {!isLanding && <Topbar />}
+        {!isFullWidthPage && <Topbar />}
         <main className="flex-1 overflow-y-auto relative">{children}</main>
       </div>
 

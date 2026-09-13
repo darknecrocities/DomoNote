@@ -18,6 +18,7 @@ import {
   Play,
   RotateCcw,
   Sparkles,
+  Download,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { NoiseTexture } from '../components/ui/noise-texture';
@@ -216,11 +217,19 @@ const MASCOT_MESSAGES = [
 ];
 
 export const LandingPage: React.FC = () => {
-  const { setActiveView } = useWorkspace();
+  const { setActiveView, isCloudHost, setIsCloudModalOpen } = useWorkspace();
   const { playPop, playThock } = useSound();
   const mascotRef = React.useRef<HTMLDivElement>(null);
   const [mascotMsgIdx, setMascotMsgIdx] = useState(0);
   const [showMascotBubble, setShowMascotBubble] = useState(false);
+
+  const handleOpenWorkspace = () => {
+    if (isCloudHost) {
+      setIsCloudModalOpen(true);
+    } else {
+      setActiveView('dashboard');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white relative overflow-x-hidden">
@@ -241,6 +250,14 @@ export const LandingPage: React.FC = () => {
               <span>100% Private & Offline</span>
             </div>
 
+            <button
+              onClick={() => setActiveView('download')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-300 hover:text-white transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Download</span>
+            </button>
+
             <a
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
@@ -251,8 +268,8 @@ export const LandingPage: React.FC = () => {
               <span className="hidden sm:inline">GitHub</span>
             </a>
 
-            <Button variant="primary" size="sm" onClick={() => setActiveView('dashboard')}>
-              <span>Open Workspace</span>
+            <Button variant="primary" size="sm" onClick={handleOpenWorkspace}>
+              <span>{isCloudHost ? 'Download App' : 'Open Workspace'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -303,9 +320,19 @@ export const LandingPage: React.FC = () => {
 
               {/* Primary Hero Actions */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Button variant="primary" size="lg" onClick={() => setActiveView('dashboard')}>
-                  <span>Open Workspace</span>
-                  <ArrowRight className="w-4 h-4" />
+                <Button variant="primary" size="lg" onClick={handleOpenWorkspace}>
+                  <span>{isCloudHost ? 'Download Desktop App' : 'Open Workspace'}</span>
+                  {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-zinc-800 hover:border-white/40 text-white"
+                  onClick={() => setActiveView('download')}
+                >
+                  <Download className="w-4 h-4 text-zinc-300" />
+                  <span>Download (Mac / Win / Linux)</span>
                 </Button>
 
                 <Button variant="outline" size="lg" onClick={() => setActiveView('studio')}>
@@ -699,10 +726,19 @@ cd DomoNote
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <Button variant="primary" size="lg" onClick={() => setActiveView('dashboard')}>
-                <span>Open DomoNote</span>
-                <ArrowRight className="w-4 h-4" />
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <Button variant="primary" size="lg" onClick={handleOpenWorkspace}>
+                <span>{isCloudHost ? 'Download Desktop App' : 'Open DomoNote'}</span>
+                {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-zinc-800 text-zinc-200 hover:border-white/40 hover:text-white"
+                onClick={() => setActiveView('download')}
+              >
+                <Download className="w-4 h-4 text-zinc-300" />
+                <span>Download App</span>
               </Button>
             </div>
           </div>
@@ -725,7 +761,13 @@ cd DomoNote
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-400">
             <button
-              onClick={() => setActiveView('dashboard')}
+              onClick={() => setActiveView('download')}
+              className="text-white font-semibold hover:text-zinc-200 transition-colors"
+            >
+              Download
+            </button>
+            <button
+              onClick={handleOpenWorkspace}
               className="hover:text-white transition-colors"
             >
               Workspace

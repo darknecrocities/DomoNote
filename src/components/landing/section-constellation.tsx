@@ -19,21 +19,27 @@ interface SectionConstellationProps {
 interface Particle {
   x: number;
   y: number;
-  z?: number;
   vx: number;
   vy: number;
-  vz?: number;
   radius: number;
   baseAlpha: number;
   phase: number;
   color: string;
+  glowColor: string;
   clusterId?: number;
+}
+
+interface SignalPulse {
+  fromIdx: number;
+  toIdx: number;
+  progress: number; // 0 to 1
+  speed: number;
 }
 
 export const SectionConstellation: React.FC<SectionConstellationProps> = ({
   variant,
   className = '',
-  opacity = 0.85,
+  opacity = 1.0,
   mascotExclusionRef,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -64,128 +70,167 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
     window.addEventListener('resize', resize);
 
     const particles: Particle[] = [];
+    const pulses: SignalPulse[] = [];
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-    // Helper palette generator
-    const getPalette = () => {
+    // Pure brilliant white palette across all variants with tailored topologies
+    const getThemeConfig = () => {
+      const whiteColors = ['255, 255, 255', '248, 250, 252', '241, 245, 249', '255, 255, 255'];
       switch (variant) {
         case 'neural-clusters':
-          return ['255, 255, 255', '228, 228, 231', '52, 211, 153', '161, 161, 170'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 120 : 160,
+            count: isMobile ? 36 : 68,
+          };
         case 'quantum-lattice':
-          return ['56, 189, 248', '147, 197, 253', '255, 255, 255', '96, 165, 250'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 110 : 145,
+            count: isMobile ? 38 : 70,
+          };
         case 'synaptic-flow':
-          return ['52, 211, 153', '110, 231, 183', '255, 255, 255', '16, 185, 129'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 115 : 155,
+            count: isMobile ? 36 : 64,
+          };
         case 'harmonic-wave':
-          return ['168, 85, 247', '192, 132, 252', '255, 255, 255', '216, 180, 254'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 125 : 165,
+            count: isMobile ? 40 : 72,
+          };
         case 'audio-nodes':
-          return ['16, 185, 129', '52, 211, 153', '255, 255, 255', '110, 231, 183'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 120 : 160,
+            count: isMobile ? 38 : 68,
+          };
         case 'stellar-vortex':
-          return ['251, 191, 36', '253, 230, 138', '255, 255, 255', '245, 158, 11'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 115 : 155,
+            count: isMobile ? 40 : 70,
+          };
         case 'crystalline-polyhedra':
         default:
-          return ['228, 228, 231', '255, 255, 255', '161, 161, 170', '52, 211, 153'];
+          return {
+            colors: whiteColors,
+            lineDist: isMobile ? 120 : 160,
+            count: isMobile ? 36 : 65,
+          };
       }
     };
 
-    const palette = getPalette();
+    const theme = getThemeConfig();
 
-    // Initialize particles based on variant
-    const initParticles = () => {
+    // Initialize particles with slightly smaller, delicate star nodes
+    const init = () => {
       particles.length = 0;
-      const count = isMobile ? 26 : 54;
+      pulses.length = 0;
 
       if (variant === 'neural-clusters') {
         const clusterCenters = [
-          { x: width * 0.25, y: height * 0.35 },
-          { x: width * 0.75, y: height * 0.4 },
-          { x: width * 0.5, y: height * 0.75 },
+          { x: width * 0.22, y: height * 0.3 },
+          { x: width * 0.8, y: height * 0.35 },
+          { x: width * 0.5, y: height * 0.72 },
         ];
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < theme.count; i++) {
           const cIdx = i % clusterCenters.length;
           const center = clusterCenters[cIdx];
-          const dist = Math.random() * (width * 0.22);
+          const dist = Math.random() * (width * 0.28);
           const angle = Math.random() * Math.PI * 2;
+          const col = theme.colors[i % theme.colors.length];
           particles.push({
             x: center.x + Math.cos(angle) * dist,
             y: center.y + Math.sin(angle) * dist,
-            z: (Math.random() - 0.5) * 200,
             vx: (Math.random() - 0.5) * 0.4,
             vy: (Math.random() - 0.5) * 0.4,
-            radius: Math.random() * 2 + 1,
-            baseAlpha: Math.random() * 0.5 + 0.3,
+            radius: Math.random() * 1.3 + 1.2, // Delicate star size (1.2 - 2.5px)
+            baseAlpha: Math.random() * 0.35 + 0.65, // Bright white
             phase: Math.random() * Math.PI * 2,
-            color: palette[i % palette.length],
+            color: col,
+            glowColor: 'rgba(255, 255, 255, 0.75)',
             clusterId: cIdx,
           });
         }
       } else if (variant === 'quantum-lattice') {
-        const cols = isMobile ? 6 : 10;
-        const rows = isMobile ? 4 : 6;
+        const cols = isMobile ? 7 : 12;
+        const rows = isMobile ? 5 : 7;
         const xStep = width / (cols + 1);
         const yStep = height / (rows + 1);
         for (let r = 1; r <= rows; r++) {
           for (let c = 1; c <= cols; c++) {
+            const col = theme.colors[Math.floor(Math.random() * theme.colors.length)];
             particles.push({
-              x: c * xStep + (Math.random() - 0.5) * 20,
-              y: r * yStep + (Math.random() - 0.5) * 20,
+              x: c * xStep + (Math.random() - 0.5) * 22,
+              y: r * yStep + (Math.random() - 0.5) * 22,
               vx: (Math.random() - 0.5) * 0.25,
               vy: (Math.random() - 0.5) * 0.25,
-              radius: Math.random() * 1.8 + 1.2,
-              baseAlpha: Math.random() * 0.4 + 0.3,
+              radius: Math.random() * 1.2 + 1.2, // 1.2 - 2.4px
+              baseAlpha: Math.random() * 0.3 + 0.7,
               phase: Math.random() * Math.PI * 2,
-              color: palette[Math.floor(Math.random() * palette.length)],
+              color: col,
+              glowColor: 'rgba(255, 255, 255, 0.75)',
             });
           }
         }
       } else if (variant === 'harmonic-wave' || variant === 'audio-nodes') {
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < theme.count; i++) {
+          const col = theme.colors[i % theme.colors.length];
           particles.push({
-            x: (i / count) * width + (Math.random() - 0.5) * 30,
-            y: height * 0.5 + (Math.random() - 0.5) * (height * 0.4),
-            vx: 0.3 + Math.random() * 0.3,
+            x: (i / theme.count) * width + (Math.random() - 0.5) * 40,
+            y: height * 0.5 + (Math.random() - 0.5) * (height * 0.45),
+            vx: 0.35 + Math.random() * 0.25,
             vy: (Math.random() - 0.5) * 0.3,
-            radius: Math.random() * 2.2 + 1,
-            baseAlpha: Math.random() * 0.5 + 0.35,
-            phase: (i / count) * Math.PI * 4,
-            color: palette[i % palette.length],
+            radius: Math.random() * 1.3 + 1.2,
+            baseAlpha: Math.random() * 0.35 + 0.65,
+            phase: (i / theme.count) * Math.PI * 4,
+            color: col,
+            glowColor: 'rgba(255, 255, 255, 0.75)',
           });
         }
       } else if (variant === 'stellar-vortex') {
         const cx = width * 0.5;
         const cy = height * 0.5;
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < theme.count; i++) {
           const arm = i % 3;
-          const dist = Math.pow(Math.random(), 0.7) * (width * 0.45);
-          const angle = arm * ((Math.PI * 2) / 3) + dist * 0.005 + Math.random() * 0.4;
+          const dist = Math.pow(Math.random(), 0.75) * (width * 0.5);
+          const angle = arm * ((Math.PI * 2) / 3) + dist * 0.006 + Math.random() * 0.5;
+          const col = theme.colors[Math.floor(Math.random() * theme.colors.length)];
           particles.push({
             x: cx + Math.cos(angle) * dist,
             y: cy + Math.sin(angle) * dist,
             vx: 0,
             vy: 0,
-            radius: Math.random() * 1.8 + 0.8,
-            baseAlpha: Math.random() * 0.5 + 0.3,
+            radius: Math.random() * 1.3 + 1.1,
+            baseAlpha: Math.random() * 0.3 + 0.7,
             phase: angle,
-            color: palette[Math.floor(Math.random() * palette.length)],
+            color: col,
+            glowColor: 'rgba(255, 255, 255, 0.75)',
           });
         }
       } else {
         // crystalline-polyhedra or synaptic-flow
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < theme.count; i++) {
+          const col = theme.colors[i % theme.colors.length];
           particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            vx: (Math.random() - 0.5) * 0.5,
-            vy: (Math.random() - 0.5) * 0.5,
-            radius: Math.random() * 2 + 1,
-            baseAlpha: Math.random() * 0.5 + 0.3,
+            vx: (Math.random() - 0.5) * 0.45,
+            vy: (Math.random() - 0.5) * 0.45,
+            radius: Math.random() * 1.3 + 1.2,
+            baseAlpha: Math.random() * 0.35 + 0.65,
             phase: Math.random() * Math.PI * 2,
-            color: palette[i % palette.length],
+            color: col,
+            glowColor: 'rgba(255, 255, 255, 0.75)',
           });
         }
       }
     };
 
-    initParticles();
+    init();
 
     // Check mascot exclusion zone
     const getMascotExclusion = () => {
@@ -212,13 +257,13 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
         return;
       }
 
-      time += 0.015;
+      time += 0.016;
       ctx.clearRect(0, 0, width, height);
 
       const mascotEx = getMascotExclusion();
-      const connectionDist = isMobile ? 85 : 120;
+      const connectionDist = theme.lineDist;
 
-      // Update and draw particles according to constellation rules
+      // Update positions
       if (variant === 'stellar-vortex') {
         const cx = width * 0.5;
         const cy = height * 0.5;
@@ -236,26 +281,27 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
           const p = particles[i];
           p.x += p.vx;
           if (p.x > width + 40) p.x = -40;
-          // Undulate in harmonic sine waves
-          const waveHeight = height * 0.28;
+          const waveHeight = height * 0.32;
           p.y =
             height * 0.5 +
-            Math.sin(p.x * 0.008 + time * 1.2 + p.phase) * waveHeight +
-            Math.cos(p.x * 0.014 - time * 0.8) * (waveHeight * 0.4);
+            Math.sin(p.x * 0.007 + time * 1.3 + p.phase) * waveHeight +
+            Math.cos(p.x * 0.012 - time * 0.85) * (waveHeight * 0.45);
         }
       } else {
         for (let i = 0; i < particles.length; i++) {
           const p = particles[i];
           p.x += p.vx;
           p.y += p.vy;
-          if (p.x < 0) { p.x = 0; p.vx *= -1; }
-          if (p.x > width) { p.x = width; p.vx *= -1; }
-          if (p.y < 0) { p.y = 0; p.vy *= -1; }
-          if (p.y > height) { p.y = height; p.vy *= -1; }
+          if (p.x < 10) { p.x = 10; p.vx *= -1; }
+          if (p.x > width - 10) { p.x = width - 10; p.vx *= -1; }
+          if (p.y < 10) { p.y = 10; p.vy *= -1; }
+          if (p.y > height - 10) { p.y = height - 10; p.vy *= -1; }
         }
       }
 
-      // Draw constellation lines
+      // Collect connected pairs for lines and pulses
+      const activePairs: Array<{ p1: Particle; p2: Particle; idx1: number; idx2: number; factor: number }> = [];
+
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
@@ -266,36 +312,78 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
 
           if (dist < connectionDist) {
             const factor = 1 - dist / connectionDist;
-            let lineAlpha = factor * 0.3 * Math.min(p1.baseAlpha, p2.baseAlpha);
+            let lineAlpha = factor * 0.45; // Crisp luminous white lines
 
-            // Mascot face protection
+            // Protect mascot face
             if (mascotEx) {
               const midX = (p1.x + p2.x) / 2;
               const midY = (p1.y + p2.y) / 2;
               const dToMascot = Math.sqrt(
                 Math.pow(midX - mascotEx.cx, 2) + Math.pow(midY - mascotEx.cy, 2)
               );
-              if (dToMascot < mascotEx.radius * 0.8) {
+              if (dToMascot < mascotEx.radius * 0.75) {
                 lineAlpha *= 0.05;
               }
             }
 
-            if (lineAlpha > 0.01) {
+            if (lineAlpha > 0.04) {
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
-              ctx.strokeStyle = `rgba(${p1.color}, ${lineAlpha})`;
-              ctx.lineWidth = Math.max(0.4, factor * 1.1);
+              ctx.strokeStyle = `rgba(255, 255, 255, ${lineAlpha})`;
+              ctx.lineWidth = Math.max(0.7, factor * 1.5);
               ctx.stroke();
+
+              activePairs.push({ p1, p2, idx1: i, idx2: j, factor });
             }
           }
         }
       }
 
-      // Draw particle nodes
+      // Occasional traveling bright white photon pulses
+      if (Math.random() < 0.07 && activePairs.length > 0 && pulses.length < 10) {
+        const pair = activePairs[Math.floor(Math.random() * activePairs.length)];
+        pulses.push({
+          fromIdx: pair.idx1,
+          toIdx: pair.idx2,
+          progress: 0,
+          speed: 0.018 + Math.random() * 0.02,
+        });
+      }
+
+      // Draw white signal pulses
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const pulse = pulses[i];
+        pulse.progress += pulse.speed;
+        if (pulse.progress >= 1) {
+          pulses.splice(i, 1);
+          continue;
+        }
+
+        const pA = particles[pulse.fromIdx];
+        const pB = particles[pulse.toIdx];
+        if (!pA || !pB) {
+          pulses.splice(i, 1);
+          continue;
+        }
+
+        const px = pA.x + (pB.x - pA.x) * pulse.progress;
+        const py = pA.y + (pB.y - pA.y) * pulse.progress;
+
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw all white constellation stars & nodes (refined, slightly smaller, radiant)
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        let alpha = p.baseAlpha * (0.8 + Math.sin(time * 2 + p.phase) * 0.2);
+        const pulseFactor = 0.88 + Math.sin(time * 2.2 + p.phase) * 0.12;
+        let alpha = p.baseAlpha * pulseFactor;
 
         if (mascotEx) {
           const dToMascot = Math.sqrt(
@@ -306,17 +394,22 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
           }
         }
 
-        // Ambient glow
+        const curRadius = p.radius * pulseFactor;
+
+        // 1. Soft Pure White Outer Halo
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color}, ${alpha * 0.15})`;
+        ctx.arc(p.x, p.y, curRadius * 2.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.22})`;
         ctx.fill();
 
-        // Node core
+        // 2. Pure White Star Core (Bright, Sharp, Crisp)
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color}, ${alpha})`;
+        ctx.arc(p.x, p.y, curRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 8;
         ctx.fill();
+        ctx.shadowBlur = 0;
       }
 
       animIdRef.current = requestAnimationFrame(render);
@@ -337,10 +430,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
       className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}
       style={{
         opacity,
-        maskImage:
-          'radial-gradient(circle at center, black 60%, transparent 100%)',
-        WebkitMaskImage:
-          'radial-gradient(circle at center, black 60%, transparent 100%)',
+        zIndex: 0,
       }}
     />
   );

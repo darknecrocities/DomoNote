@@ -1,10 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAI } from '../context/ai-context';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useAI, type PullProgressUpdate } from '../context/ai-context';
 import { useWorkspace } from '../context/workspace-context';
 import { db, exportWorkspaceToJson, importWorkspaceFromJson } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button } from '../components/ui/button';
 import { downloadJsonFile } from '../services/export/json';
+import {
+  COMPATIBLE_MODELS,
+  MODEL_TIERS,
+  type ModelTier,
+  type CompatibleModel,
+  detectSystemHardware,
+  isModelInstalled,
+  getInstalledOllamaModel,
+  findMatchingCompatibleModel,
+} from '../services/ai/compatible-models';
 import {
   Cpu,
   Database,
@@ -17,6 +27,17 @@ import {
   AlertCircle,
   Server,
   Trash2,
+  Puzzle,
+  Copy,
+  Check,
+  Zap,
+  Sparkles,
+  Layers,
+  ArrowDownCircle,
+  XCircle,
+  CheckCheck,
+  Loader2,
+  HardDrive,
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -30,12 +51,117 @@ export const SettingsView: React.FC = () => {
     setBaseUrl,
     checkConnection,
     startOllamaService,
+    pullModel,
   } = useAI();
   const { addToast } = useWorkspace();
 
   const [inputUrl, setInputUrl] = useState(baseUrl);
   const [companionStatus, setCompanionStatus] = useState<string>('checking');
   const importFileRef = useRef<HTMLInputElement>(null);
+
+  // System Hardware Detection & Model Recommendation
+  const hardwareProfile = useMemo(() => detectSystemHardware(), []);
+  const [activeTierFilter, setActiveTierFilter] = useState<ModelTier | 'all'>('all');
+  const [pullingModelId, setPullingModelId] = useState<string | null>(null);
+  const [pullProgress, setPullProgress] = useState<PullProgressUpdate | null>(null);
+  const [customModelTag, setCustomModelTag] = useState<string>('');
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handlePullModel = async (modelTag: string, modelDisplayName?: string) => {
+    if (!isConnected) {
+      addToast('Ollama is offline. Please start the Ollama service before pulling models.', 'warning');
+      return;
+    }
+
+    const tag = modelTag.trim();
+    if (!tag) return;
+
+    const displayName = modelDisplayName || tag;
+    setPullingModelId(tag);
+    setPullProgress({ status: 'Connecting to Ollama model registry...' });
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const result = await pullModel(
+        tag,
+        (progress) => {
+          setPullProgress(progress);
+        },
+        controller.signal
+      );
+
+      if (result.success) {
+        addToast(`Model "${displayName}" is ready! Selected as active model.`, 'success');
+        await setSelectedModel(tag);
+      } else {
+        addToast(result.message, 'error');
+      }
+    } catch (err: any) {
+      addToast(`Download failed: ${err?.message || 'Network error'}`, 'error');
+    } finally {
+      setPullingModelId(null);
+      setPullProgress(null);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleCancelPull = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setPullingModelId(null);
+      setPullProgress(null);
+      addToast('Model download cancelled.', 'info');
+    }
+  };
+
+  // Find current model details
+  const activeCompatible = useMemo(() => {
+    return findMatchingCompatibleModel(selectedModel);
+  }, [selectedModel]);
+
+  const isActiveModelInstalled = useMemo(() => {
+    if (!selectedModel) return false;
+    const direct = models.some((m) => m.name === selectedModel || m.model === selectedModel);
+    if (direct) return true;
+    if (activeCompatible) {
+      return isModelInstalled(activeCompatible, models);
+    }
+    return false;
+  }, [selectedModel, models, activeCompatible]);
+
+  const recommendedModel = useMemo(() => {
+    return (
+      COMPATIBLE_MODELS.find((m) => m.id === hardwareProfile.recommendedModelId) ||
+      COMPATIBLE_MODELS.find((m) => m.isAppDefault) ||
+      COMPATIBLE_MODELS[3]
+    );
+  }, [hardwareProfile.recommendedModelId]);
+
+  const isRecommendedInstalled = useMemo(() => {
+    return isModelInstalled(recommendedModel, models);
+  }, [recommendedModel, models]);
+
+  const resolvedSelectedValue = useMemo(() => {
+    if (!selectedModel) return hardwareProfile.recommendedModelId;
+    if (COMPATIBLE_MODELS.some((m) => m.id === selectedModel)) return selectedModel;
+    const match = findMatchingCompatibleModel(selectedModel);
+    if (match) return match.id;
+    return selectedModel;
+  }, [selectedModel, hardwareProfile.recommendedModelId]);
+
+  const handleSelectModel = async (modelId: string) => {
+    const targetComp = COMPATIBLE_MODELS.find((m) => m.id === modelId);
+    if (targetComp) {
+      const installedMatch = getInstalledOllamaModel(targetComp, models);
+      if (installedMatch) {
+        await setSelectedModel(installedMatch.name || installedMatch.model);
+        return;
+      }
+    }
+    await setSelectedModel(modelId);
+  };
 
   // Storage metrics
   const notesCount = useLiveQuery(() => db.notes.count(), []) ?? 0;
@@ -98,12 +224,28 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedPath, setCopiedPath] = useState(false);
+
+  const copyToClipboard = (text: string, type: 'url' | 'path') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'url') {
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+      addToast('Copied "chrome://extensions" to clipboard.', 'info');
+    } else {
+      setCopiedPath(true);
+      setTimeout(() => setCopiedPath(false), 2000);
+      addToast('Copied extension folder path to clipboard.', 'info');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-black p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none">
       <div className="border-b border-zinc-850 pb-5 mb-8">
         <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
         <p className="text-xs text-zinc-400 mt-1">
-          Configure local AI connectivity, review client-side storage, and manage workspace archives.
+          Configure local AI connectivity, install browser companions, review client-side storage, and manage workspace archives.
         </p>
       </div>
 
@@ -140,7 +282,7 @@ export const SettingsView: React.FC = () => {
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 placeholder="http://localhost:11434"
-                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:border-zinc-700"
+                className="flex-1 bg-zinc-900 border border-zinc-850 rounded-md px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:border-zinc-700"
               />
               <Button size="sm" variant="secondary" onClick={handleSaveUrl}>
                 Save URL
@@ -183,31 +325,441 @@ export const SettingsView: React.FC = () => {
             </div>
           )}
 
-          {/* Installed Models Selector */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-zinc-300">Active Model</label>
-              <span className="text-[11px] text-zinc-500">{models.length} model(s) installed</span>
+          {/* Hardware Diagnostic & Smart Recommendation Banner */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-zinc-900 via-zinc-900 to-indigo-950/30 border border-indigo-500/30 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                  <Cpu className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
+                    <span>System Hardware Profile</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono">
+                      {hardwareProfile.cpuCores} Cores • ~{hardwareProfile.memoryEstimateGb}GB Profile
+                    </span>
+                    {hardwareProfile.isAppleSilicon && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-900/60 border border-indigo-700/50 text-indigo-300">
+                        Apple Silicon
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    GPU/Engine: <span className="font-mono text-zinc-300">{hardwareProfile.gpuRenderer}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                <div className="px-2.5 py-1 rounded-full bg-indigo-950 border border-indigo-500/40 text-indigo-300 text-[11px] font-medium flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{hardwareProfile.recommendationTitle}</span>
+                </div>
+              </div>
             </div>
 
-            {models.length === 0 ? (
-              <div className="p-3 bg-zinc-900/40 border border-zinc-850 rounded-md text-xs text-zinc-500">
-                No models detected. Pull a model via Ollama (e.g. <code>ollama pull llama3.2</code>)
-                and click "Test Connection".
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-300">
+              <p className="leading-relaxed text-zinc-400 max-w-2xl">
+                {hardwareProfile.recommendationReason}
+              </p>
+              <div className="shrink-0 flex items-center gap-2">
+                {!isRecommendedInstalled ? (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-950/50"
+                    onClick={() => handlePullModel(recommendedModel.id, recommendedModel.name)}
+                    disabled={pullingModelId !== null}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Pull Recommended ({recommendedModel.downloadSize})</span>
+                  </Button>
+                ) : selectedModel !== recommendedModel.id ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/30"
+                    onClick={() => setSelectedModel(recommendedModel.id)}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Activate Recommendation</span>
+                  </Button>
+                ) : (
+                  <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Recommended Model Active
+                  </span>
+                )}
               </div>
-            ) : (
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-zinc-700"
-              >
-                {models.map((m) => (
-                  <option key={m.name} value={m.name}>
-                    {m.name} ({(m.size / 1024 / 1024 / 1024).toFixed(1)} GB)
+            </div>
+          </div>
+
+          {/* Active Model Selection (Compatible Models Only, Ranked from Min to Higher) */}
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-zinc-200">
+                Active Model (Compatible with DomoNote)
+              </label>
+              <span className="text-[11px] text-zinc-400">
+                {models.length} model(s) installed on Ollama
+              </span>
+            </div>
+
+            <select
+              value={resolvedSelectedValue}
+              onChange={(e) => handleSelectModel(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-100 font-medium focus:outline-none focus:border-indigo-500 transition-colors"
+            >
+              {!COMPATIBLE_MODELS.some((m) => m.id === resolvedSelectedValue) && selectedModel && (
+                <optgroup label="─── Currently Active Model ───">
+                  <option value={selectedModel}>
+                    {selectedModel} — ● Currently Active in Ollama
                   </option>
-                ))}
-              </select>
+                </optgroup>
+              )}
+
+              <optgroup label="─── Tier 1: Minimal / Ultra-Light (1B – 2B) • Low RAM ───">
+                {COMPATIBLE_MODELS.filter((m) => m.tier === 'minimum').map((m) => {
+                  const isInst = isModelInstalled(m, models);
+                  const isRec = m.id === hardwareProfile.recommendedModelId;
+                  return (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.downloadSize}, {m.parameterSize}) — {isInst ? '● Installed' : '○ Available to pull'}{isRec ? ' ⭐ Best For System' : ''}
+                    </option>
+                  );
+                })}
+              </optgroup>
+
+              <optgroup label="─── Tier 2: Balanced / Standard (3B – 4B) • DomoNote Recommended ───">
+                {COMPATIBLE_MODELS.filter((m) => m.tier === 'standard').map((m) => {
+                  const isInst = isModelInstalled(m, models);
+                  const isRec = m.id === hardwareProfile.recommendedModelId;
+                  return (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.downloadSize}, {m.parameterSize}) — {isInst ? '● Installed' : '○ Available to pull'}{isRec ? ' ⭐ Best For System' : ''}
+                    </option>
+                  );
+                })}
+              </optgroup>
+
+              <optgroup label="─── Tier 3: High Performance / Pro (7B – 8B) • Deep RAG & Transcripts ───">
+                {COMPATIBLE_MODELS.filter((m) => m.tier === 'pro').map((m) => {
+                  const isInst = isModelInstalled(m, models);
+                  const isRec = m.id === hardwareProfile.recommendedModelId;
+                  return (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.downloadSize}, {m.parameterSize}) — {isInst ? '● Installed' : '○ Available to pull'}{isRec ? ' ⭐ Best For System' : ''}
+                    </option>
+                  );
+                })}
+              </optgroup>
+
+              <optgroup label="─── Tier 4: Advanced / Power (14B) • High-Memory Workstations ───">
+                {COMPATIBLE_MODELS.filter((m) => m.tier === 'advanced').map((m) => {
+                  const isInst = isModelInstalled(m, models);
+                  const isRec = m.id === hardwareProfile.recommendedModelId;
+                  return (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.downloadSize}, {m.parameterSize}) — {isInst ? '● Installed' : '○ Available to pull'}{isRec ? ' ⭐ Best For System' : ''}
+                    </option>
+                  );
+                })}
+              </optgroup>
+            </select>
+
+            {/* Status of Selected Model */}
+            {selectedModel && (
+              <div className="flex items-center justify-between text-xs px-1">
+                {isActiveModelInstalled ? (
+                  <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>
+                      Ready: <strong className="text-zinc-200">{activeCompatible?.name || selectedModel}</strong> is installed and powering workspace notes, meetings, and documents.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-amber-400">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>
+                      <strong className="text-zinc-200">{activeCompatible?.name || selectedModel}</strong> is selected but not yet downloaded locally.
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
+
+            {/* Prompt to pull if currently selected model is not installed */}
+            {!isActiveModelInstalled && selectedModel && (
+              <div className="p-3.5 rounded-lg bg-amber-950/40 border border-amber-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-semibold text-amber-200 flex items-center gap-1.5">
+                    <ArrowDownCircle className="w-4 h-4 text-amber-400" />
+                    <span>Download Required: {activeCompatible?.name || selectedModel}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400">
+                    Download size: <strong className="text-zinc-300">{activeCompatible?.downloadSize || 'Standard'}</strong> • Requires ~{activeCompatible?.ramRequiredGb || 4} GB RAM
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  className="bg-amber-600 hover:bg-amber-500 text-white shrink-0"
+                  onClick={() => handlePullModel(selectedModel, activeCompatible?.name)}
+                  disabled={pullingModelId !== null}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Pull {activeCompatible?.name || selectedModel}</span>
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Live Pull Progress Display */}
+          {pullingModelId && (
+            <div className="p-4 rounded-xl bg-zinc-900/90 border border-indigo-500/50 shadow-lg shadow-indigo-950/30 space-y-3 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-indigo-300 font-medium">
+                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                  <span>
+                    Pulling Model: <strong className="text-white font-mono">{pullingModelId}</strong>
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {pullProgress?.percent !== undefined && (
+                    <span className="font-mono text-indigo-400 font-bold">{pullProgress.percent}%</span>
+                  )}
+                  <button
+                    onClick={handleCancelPull}
+                    className="text-[11px] text-zinc-400 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${Math.max(5, pullProgress?.percent || 20)}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+                <span>{pullProgress?.status || 'Downloading model layers from Ollama...'}</span>
+                {pullProgress?.completed && pullProgress?.total ? (
+                  <span>
+                    {(pullProgress.completed / 1024 / 1024).toFixed(1)} MB / {(pullProgress.total / 1024 / 1024).toFixed(1)} MB
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* Compatible Models Hub (Ranked From Min to Higher) */}
+          <div className="space-y-4 pt-3 border-t border-zinc-850">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-indigo-400" />
+                  <span>Compatible Models Catalog (Min to Higher Tiers)</span>
+                </h4>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Pre-screened models optimized for DomoNote. Click "Pull Model" on any tier to install directly.
+                </p>
+              </div>
+
+              {/* Tier Filter Pills */}
+              <div className="flex items-center gap-1 bg-zinc-900/80 p-1 rounded-lg border border-zinc-800 self-start sm:self-auto">
+                <button
+                  onClick={() => setActiveTierFilter('all')}
+                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                    activeTierFilter === 'all'
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  All ({COMPATIBLE_MODELS.length})
+                </button>
+                <button
+                  onClick={() => setActiveTierFilter('minimum')}
+                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                    activeTierFilter === 'minimum'
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Minimal (1B–2B)
+                </button>
+                <button
+                  onClick={() => setActiveTierFilter('standard')}
+                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                    activeTierFilter === 'standard'
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Standard (3B–4B)
+                </button>
+                <button
+                  onClick={() => setActiveTierFilter('pro')}
+                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                    activeTierFilter === 'pro'
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Pro (7B–8B)
+                </button>
+                <button
+                  onClick={() => setActiveTierFilter('advanced')}
+                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                    activeTierFilter === 'advanced'
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Advanced (14B)
+                </button>
+              </div>
+            </div>
+
+            {/* Model Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {COMPATIBLE_MODELS.filter((m) => activeTierFilter === 'all' || m.tier === activeTierFilter).map(
+                (model) => {
+                  const isInstalled = isModelInstalled(model, models);
+                  const isCurrentlySelected = selectedModel === model.id;
+                  const isRec = model.id === hardwareProfile.recommendedModelId;
+                  const isPullingThis = pullingModelId === model.id;
+                  const tierInfo = MODEL_TIERS[model.tier];
+
+                  return (
+                    <div
+                      key={model.id}
+                      className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+                        isCurrentlySelected
+                          ? 'bg-emerald-950/20 border-emerald-500/50 shadow-sm shadow-emerald-950/20'
+                          : isRec
+                          ? 'bg-zinc-900/60 border-indigo-500/40'
+                          : 'bg-zinc-900/30 border-zinc-800/80 hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        {/* Title & Badges */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-semibold text-zinc-100">{model.name}</span>
+                              {isRec && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 border border-indigo-500/40 text-indigo-300 font-medium flex items-center gap-1">
+                                  <Sparkles className="w-2.5 h-2.5" />
+                                  Best For System
+                                </span>
+                              )}
+                              {model.isAppDefault && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-950 border border-amber-600/40 text-amber-300 font-medium">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5">
+                              <span>{model.provider}</span>
+                              <span>•</span>
+                              <span className="font-mono text-zinc-300">{model.parameterSize} params</span>
+                              <span>•</span>
+                              <span className="font-mono text-zinc-300">{model.downloadSize}</span>
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 shrink-0 font-medium">
+                            {tierInfo.minRam}
+                          </span>
+                        </div>
+
+                        {/* Summary */}
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          {model.summary}
+                        </p>
+                      </div>
+
+                      {/* Card Action Row */}
+                      <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between gap-2 text-xs">
+                        <div className="text-[10px] text-zinc-400">
+                          Speed: <strong className="text-zinc-300">{model.speedRating}</strong>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isPullingThis ? (
+                            <div className="flex items-center gap-2 text-xs text-indigo-400">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Downloading...</span>
+                            </div>
+                          ) : isCurrentlySelected && isInstalled ? (
+                            <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60">
+                              <CheckCheck className="w-3.5 h-3.5" />
+                              Active Model
+                            </span>
+                          ) : isInstalled ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 px-2.5 text-zinc-300 hover:text-white"
+                              onClick={() => setSelectedModel(model.id)}
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>Select Active</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="text-xs h-7 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700"
+                              onClick={() => handlePullModel(model.id, model.name)}
+                              disabled={pullingModelId !== null}
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Pull Model</span>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+
+            {/* Custom Model Pull Input */}
+            <div className="p-3.5 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-2">
+              <label className="block text-xs font-medium text-zinc-300">
+                Pull Custom Ollama Model (Advanced)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={customModelTag}
+                  onChange={(e) => setCustomModelTag(e.target.value)}
+                  placeholder="e.g. deepseek-r1:7b, mistral-nemo, codellama:7b"
+                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 font-mono focus:outline-none focus:border-zinc-700"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (customModelTag.trim()) {
+                      handlePullModel(customModelTag.trim());
+                      setCustomModelTag('');
+                    }
+                  }}
+                  disabled={!customModelTag.trim() || pullingModelId !== null}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Pull Tag</span>
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Optional Local Companion Status */}
@@ -223,6 +775,132 @@ export const SettingsView: React.FC = () => {
             >
               {companionStatus === 'online' ? 'Active' : 'Offline (Optional)'}
             </span>
+          </div>
+        </div>
+
+        {/* Chrome Browser Extension Companion Setup */}
+        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
+                <Puzzle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-100">Chrome Browser Extension</h3>
+                <p className="text-xs text-zinc-400">
+                  Meeting & Tab Audio Companion (Google Meet, Microsoft Teams, Browser Tabs)
+                </p>
+              </div>
+            </div>
+
+            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-md">
+              Manifest V3 • Built-in
+            </span>
+          </div>
+
+          {/* Quick Explanation Banner */}
+          <div className="p-4 rounded-lg bg-zinc-900/60 border border-zinc-800 flex items-start gap-3">
+            <Shield className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-zinc-300 leading-relaxed space-y-1">
+              <span className="font-semibold text-white">Direct Tab Audio Streaming:</span>
+              <p className="text-zinc-400">
+                The Chrome extension connects Google Meet sessions directly to your local DomoNote workspace.
+                All audio is captured via Chrome's native <code>tabCapture</code> API with zero external servers.
+              </p>
+            </div>
+          </div>
+
+          {/* Step-by-Step Installation Instructions */}
+          <div className="space-y-4">
+            <div className="text-xs font-semibold text-zinc-200 uppercase tracking-wider font-mono">
+              Installation Steps (30 Seconds)
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Step 1 */}
+              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                    1
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500">Open Extensions</span>
+                </div>
+                <h4 className="text-xs font-bold text-white">Navigate to chrome://extensions</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Paste the address into your Chrome browser address bar and press Enter:
+                </p>
+                <div className="flex items-center justify-between p-2 rounded bg-black border border-zinc-800 font-mono text-xs text-zinc-200">
+                  <span>chrome://extensions</span>
+                  <button
+                    onClick={() => copyToClipboard('chrome://extensions', 'url')}
+                    className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded bg-zinc-900 hover:bg-zinc-850 transition-colors"
+                  >
+                    {copiedUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                    2
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500">Enable Developer Mode</span>
+                </div>
+                <h4 className="text-xs font-bold text-white">Toggle Developer Mode</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  In the top-right corner of the Extensions page, switch the <strong className="text-zinc-200">Developer mode</strong> toggle to <span className="text-emerald-400 font-medium">ON</span>.
+                </p>
+                <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>Reveals the "Load unpacked" button</span>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                    3
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500">Load Unpacked</span>
+                </div>
+                <h4 className="text-xs font-bold text-white">Click "Load unpacked"</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Click the <strong className="text-zinc-200">Load unpacked</strong> button on the top-left toolbar and select this repository's extension folder:
+                </p>
+                <div className="flex items-center justify-between p-2 rounded bg-black border border-zinc-800 font-mono text-xs text-zinc-200">
+                  <span className="truncate">domonote/browser-extension</span>
+                  <button
+                    onClick={() => copyToClipboard('browser-extension', 'path')}
+                    className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded bg-zinc-900 hover:bg-zinc-850 transition-colors shrink-0 ml-2"
+                  >
+                    {copiedPath ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedPath ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                    4
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-500">Ready to Capture</span>
+                </div>
+                <h4 className="text-xs font-bold text-white">Start Meeting or Tab Audio</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Open Google Meet or any browser tab. Click the DomoNote puzzle piece icon or floating badge to stream audio directly into your Meeting Secretary note!
+                </p>
+                <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Streams audio directly to IndexedDB</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

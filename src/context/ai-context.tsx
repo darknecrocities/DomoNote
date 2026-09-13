@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { OllamaModel } from '../types';
-import { ollama } from '../services/ai/ollama';
+import { ollama, type PullProgressUpdate } from '../services/ai/ollama';
 import { db } from '../db';
+
+export type { PullProgressUpdate };
 
 interface AIContextType {
   isConnected: boolean;
@@ -13,6 +15,11 @@ interface AIContextType {
   setBaseUrl: (url: string) => Promise<void>;
   checkConnection: () => Promise<boolean>;
   startOllamaService: () => Promise<{ success: boolean; message: string }>;
+  pullModel: (
+    name: string,
+    onProgress?: (progress: PullProgressUpdate) => void,
+    signal?: AbortSignal
+  ) => Promise<{ success: boolean; message: string }>;
 }
 
 const AIContext = createContext<AIContextType | null>(null);
@@ -149,6 +156,18 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const pullModel = async (
+    name: string,
+    onProgress?: (progress: PullProgressUpdate) => void,
+    signal?: AbortSignal
+  ): Promise<{ success: boolean; message: string }> => {
+    const result = await ollama.pullModel(name, onProgress, signal);
+    if (result.success) {
+      await checkConnection();
+    }
+    return result;
+  };
+
   return (
     <AIContext.Provider
       value={{
@@ -161,6 +180,7 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
         setBaseUrl,
         checkConnection,
         startOllamaService,
+        pullModel,
       }}
     >
       {children}

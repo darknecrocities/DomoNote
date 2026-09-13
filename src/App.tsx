@@ -18,9 +18,11 @@ import { SettingsView } from './views/settings-view';
 import { AboutView } from './views/about-view';
 import { ChangelogView } from './views/changelog-view';
 import { PrivacyView } from './views/privacy-view';
+import { DownloadView } from './views/download-view';
+import { CloudEnvironmentModal } from './components/modals/cloud-environment-modal';
 
 export const App: React.FC = () => {
-  const { activeView } = useWorkspace();
+  const { activeView, isCloudModalOpen, setIsCloudModalOpen } = useWorkspace();
 
   // Initialize Dexie IndexedDB and seeds on app boot
   useEffect(() => {
@@ -33,6 +35,8 @@ export const App: React.FC = () => {
     switch (activeView) {
       case 'landing':
         return <LandingPage />;
+      case 'download':
+        return <DownloadView />;
       case 'dashboard':
         return <DashboardView />;
       case 'notes':
@@ -70,6 +74,10 @@ export const App: React.FC = () => {
     <AppLayout>
       {renderActiveView()}
       <GlobalSearchModal />
+      <CloudEnvironmentModal
+        isOpen={isCloudModalOpen}
+        onClose={() => setIsCloudModalOpen(false)}
+      />
     </AppLayout>
   );
 };

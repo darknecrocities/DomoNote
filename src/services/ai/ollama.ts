@@ -209,6 +209,87 @@ export class OllamaProvider implements AIProvider {
 
     return fullText;
   }
+
+  async pullModel(
+    name: string,
+    onProgress?: (progress: PullProgressUpdate) => void,
+    signal?: AbortSignal
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/pull`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, stream: true }),
+        signal,
+      });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        return {
+          success: false,
+          message: `Ollama pull error (${res.status}): ${errText || res.statusText}`,
+        };
+      }
+
+      if (!res.body) {
+        return { success: false, message: 'Readable stream is not supported in this browser.' };
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const data = JSON.parse(line);
+            const percent =
+              data.total && data.completed
+                ? Math.min(100, Math.round((data.completed / data.total) * 100))
+                : undefined;
+
+            onProgress?.({
+              status: data.status || 'Downloading...',
+              digest: data.digest,
+              total: data.total,
+              completed: data.completed,
+              percent,
+            });
+
+            if (data.error) {
+              return { success: false, message: data.error };
+            }
+          } catch {
+            // ignore partial JSON parse errors
+          }
+        }
+      }
+
+      return { success: true, message: `Successfully pulled model "${name}".` };
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        return { success: false, message: `Model download for "${name}" was cancelled.` };
+      }
+      return { success: false, message: err?.message || `Failed to pull model "${name}".` };
+    }
+  }
+}
+
+export interface PullProgressUpdate {
+  status: string;
+  digest?: string;
+  total?: number;
+  completed?: number;
+  percent?: number;
 }
 
 export const ollama = new OllamaProvider();
+

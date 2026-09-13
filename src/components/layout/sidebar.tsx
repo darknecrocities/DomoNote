@@ -18,6 +18,7 @@ import {
   Calendar,
   GitCommit,
   X,
+  Download,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
@@ -51,6 +52,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   const secondaryItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: 'download', label: 'Download App', icon: Download },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'about', label: 'About & Demo', icon: Info },
     { id: 'changelog', label: 'Changelog', icon: GitCommit },
