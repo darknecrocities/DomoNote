@@ -66,7 +66,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 600, height: 800 });
 
-  // Load PDF document from blob in IndexedDB
+  const [isTextDocument, setIsTextDocument] = useState<boolean>(false);
+
+  // Load document from blob in IndexedDB (PDF or Text/DOCX/PPTX)
   useEffect(() => {
     let isMounted = true;
     async function loadPdf() {
@@ -74,14 +76,34 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
         const storedBlob = await db.blobs.get(docEntity.fileBlobId);
         if (!storedBlob) throw new Error('Document binary file not found.');
 
-        const arrayBuffer = await storedBlob.data.arrayBuffer();
-        const loadedPdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const isPdf =
+          storedBlob.mimeType === 'application/pdf' ||
+          docEntity.fileName.toLowerCase().endsWith('.pdf');
+
+        if (isPdf) {
+          try {
+            const arrayBuffer = await storedBlob.data.arrayBuffer();
+            const loadedPdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            if (isMounted) {
+              setPdfDoc(loadedPdf);
+              setIsTextDocument(false);
+            }
+            return;
+          } catch (pdfErr) {
+            console.warn('[DomoNote] PDF parse fallback to digital paper:', pdfErr);
+          }
+        }
+
+        // It is a PPTX, DOCX, TXT, or MD document
         if (isMounted) {
-          setPdfDoc(loadedPdf);
+          setPdfDoc(null);
+          setIsTextDocument(true);
         }
       } catch (err: any) {
-        console.error('[DomoNote] Failed to load PDF:', err);
-        addToast('Failed to load PDF file from local storage.', 'error');
+        console.warn('[DomoNote] Document load fallback:', err);
+        if (isMounted) {
+          setIsTextDocument(true);
+        }
       }
     }
 
@@ -89,7 +111,14 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
     return () => {
       isMounted = false;
     };
-  }, [docEntity, addToast]);
+  }, [docEntity]);
+
+  // Auto-generate AI overview if not already generated
+  useEffect(() => {
+    if (docEntity && !aiResponse && !isAiLoading && isConnected && selectedModel) {
+      askDocumentAI(`Provide an executive summary and 3 key takeaways of this document: "${docEntity.title}"`);
+    }
+  }, [docEntity?.id, isConnected, selectedModel]);
 
   // Load saved annotations for document
   useEffect(() => {
@@ -426,21 +455,56 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
           </div>
         </div>
 
-        {/* Canvas Display Area */}
+        {/* Document Display Area (Canvas for PDF or Digital Reading Sheet for DOCX/PPTX/TXT) */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-auto p-8 flex items-start justify-center bg-zinc-950/40"
+          className="flex-1 overflow-auto p-8 flex items-start justify-center bg-zinc-950/40 select-text"
         >
-          <div className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm">
-            <canvas ref={canvasRef} className="block rounded-sm" />
-            <AnnotationLayer
-              annotations={annotations}
-              pageNumber={currentPage}
-              width={canvasDimensions.width}
-              height={canvasDimensions.height}
-              onRemoveAnnotation={handleRemoveAnnotation}
-            />
-          </div>
+          {isTextDocument ? (
+            <div className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm w-full max-w-2xl min-h-[720px] p-10 flex flex-col justify-between text-zinc-900 shadow-2xl select-text">
+              <div>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-zinc-200 pb-3 mb-6 text-[10px] font-mono text-zinc-500 uppercase">
+                  <span className="font-bold tracking-wider">
+                    {docEntity.fileName.toLowerCase().endsWith('.pptx') || docEntity.fileName.toLowerCase().endsWith('.ppt')
+                      ? `SLIDE ${currentPage} OF ${docEntity.pageCount}`
+                      : `PAGE ${currentPage} OF ${docEntity.pageCount}`}
+                  </span>
+                  <span>{docEntity.fileName}</span>
+                </div>
+
+                {/* Page Content */}
+                <div className="text-sm font-sans text-zinc-900 leading-relaxed space-y-4 whitespace-pre-wrap font-normal select-text">
+                  {currentPageText || 'Empty page content.'}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="pt-6 border-t border-zinc-200 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                <span>LOCAL INDEXEDDB PERSISTED</span>
+                <span>DOMONOTE INTELLIGENCE</span>
+              </div>
+
+              <AnnotationLayer
+                annotations={annotations}
+                pageNumber={currentPage}
+                width={600}
+                height={720}
+                onRemoveAnnotation={handleRemoveAnnotation}
+              />
+            </div>
+          ) : (
+            <div className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm">
+              <canvas ref={canvasRef} className="block rounded-sm" />
+              <AnnotationLayer
+                annotations={annotations}
+                pageNumber={currentPage}
+                width={canvasDimensions.width}
+                height={canvasDimensions.height}
+                onRemoveAnnotation={handleRemoveAnnotation}
+              />
+            </div>
+          )}
         </div>
       </div>
 

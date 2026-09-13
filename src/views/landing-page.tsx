@@ -18,6 +18,8 @@ import {
   Sparkles,
   Workflow,
   Download,
+  Play,
+  RotateCcw,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { NoiseTexture } from '../components/ui/noise-texture';
@@ -28,6 +30,7 @@ import { BeforeAfterSlider } from '../components/ui/before-after-slider';
 import { HorizontalCarousel } from '../components/ui/horizontal-carousel';
 import { FeatureMap } from '../components/landing/feature-map';
 import { CodeBlock } from '../components/ui/code-block';
+import { PandaMascot } from '../components/ui/panda-mascot';
 import logoImg from '../assets/domodomo.png';
 
 const CAROUSEL_PANELS = [
@@ -190,10 +193,22 @@ export const LandingPage: React.FC = () => {
         </p>
 
         {/* Primary Hero Actions */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
           <Button variant="primary" size="lg" onClick={() => setActiveView('dashboard')}>
             <span>Open Workspace</span>
             <ArrowRight className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              const el = document.getElementById('demo-video-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span>Watch Product Demo</span>
           </Button>
 
           <Button
@@ -218,6 +233,87 @@ export const LandingPage: React.FC = () => {
             <GithubIcon className="w-4 h-4" />
             <span>Source Code</span>
           </Button>
+        </div>
+
+        {/* Animated Panda Mascot Focus Companion on Landing */}
+        <div className="mb-20 flex flex-col items-center animate-fade-in">
+          <PandaMascot
+            size="md"
+            badge="LOCAL FOCUS COMPANION"
+            message="Hi! I'm your local-first companion. Everything you write stays 100% private on your machine."
+          />
+        </div>
+
+        {/* Dedicated Live Product Demo Video Showcase Section */}
+        <div id="demo-video-section" className="w-full py-12 border-t border-zinc-850 text-left mb-28 scroll-mt-20">
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                SYSTEM DEMONSTRATION // LIVE WORKSPACE CAPTURE
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
+                Watch DomoNote in Action
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-400 mt-2 max-w-2xl leading-relaxed">
+                A full screen-recorded demonstration showing real audio meeting capture, PDF & document
+                intelligence (DOCX, PPTX, TXT), screen operation manuals, Zen mode with the Panda mascot,
+                and local Ollama synthesis.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-[10px] font-mono text-emerald-400">
+                REAL BROWSER CAPTURE
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const img = document.getElementById('demo-video-img') as HTMLImageElement;
+                  if (img) img.src = `/domonote-demo.webp?t=${Date.now()}`;
+                }}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Replay Demo</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Demo Player Frame */}
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
+            <div className="p-3.5 border-b border-zinc-850 bg-zinc-900/60 flex items-center justify-between font-mono text-[11px] text-zinc-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                <span className="ml-2 text-zinc-300">DOMONOTE_LIVE_DEMO.WEBP</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-zinc-500">1470x835 DISPLAY STREAM</span>
+                <span className="text-emerald-400">● 100% LOCAL</span>
+              </div>
+            </div>
+
+            <div className="relative bg-black flex items-center justify-center p-2 min-h-[400px]">
+              <img
+                id="demo-video-img"
+                src="/domonote-demo.webp"
+                alt="DomoNote Live Product Demo Walkthrough"
+                className="w-full max-h-[640px] object-contain rounded-lg shadow-inner"
+              />
+            </div>
+
+            <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 font-mono text-[11px]">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Verified real interactions across Web Audio, PDF.js, Dexie IndexedDB, and Ollama.</span>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => setActiveView('dashboard')}>
+                <span>Launch DomoNote</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Live Miniature Interactive Hero Workspace */}
