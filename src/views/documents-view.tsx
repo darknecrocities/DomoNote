@@ -6,12 +6,25 @@ import { PDFViewer } from '../components/documents/pdf-viewer';
 import { parseDocumentFile } from '../services/documents/universal-parser';
 import { EmptyState } from '../components/ui/empty-state';
 import { Button } from '../components/ui/button';
-import { FileUp, File, Plus, UploadCloud, AlertCircle, FileText, Presentation } from 'lucide-react';
+import {
+  FileUp,
+  File,
+  Plus,
+  UploadCloud,
+  AlertCircle,
+  FileText,
+  Presentation,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 
 export const DocumentsView: React.FC = () => {
   const { activeDocumentId, setActiveDocumentId, addToast } = useWorkspace();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isListOpen, setIsListOpen] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.innerWidth >= 1024;
+  });
 
   const documents = useLiveQuery(() => db.documents.orderBy('createdAt').reverse().toArray(), []) || [];
 
@@ -128,64 +141,83 @@ export const DocumentsView: React.FC = () => {
       />
 
       {/* Left Sidebar: Document List */}
-      <div className="w-80 border-r border-zinc-850 flex flex-col h-full bg-zinc-950 shrink-0 select-none">
-        <div className="p-4 border-b border-zinc-850 flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-            Documents ({documents.length})
-          </span>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Upload</span>
-          </Button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto divide-y divide-zinc-850">
-          {documents.length === 0 ? (
-            <div className="p-8 text-center text-xs text-zinc-500">
-              No documents uploaded yet. Upload a PDF, Word (DOCX), PowerPoint (PPTX), or text file to analyze with local AI.
+      {isListOpen && (
+        <div className="w-72 lg:w-80 border-r border-zinc-850 flex flex-col h-full bg-zinc-950 shrink-0 select-none animate-fade-in z-10">
+          <div className="p-3.5 border-b border-zinc-850 flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+              Documents ({documents.length})
+            </span>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Upload</span>
+              </Button>
+              <button
+                onClick={() => setIsListOpen(false)}
+                className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+                title="Collapse document list"
+                aria-label="Collapse document list"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
             </div>
-          ) : (
-            documents.map((d) => {
-              const isSelected = activeDocumentId === d.id;
-              const isPresentation = d.fileName.toLowerCase().endsWith('.pptx') || d.fileName.toLowerCase().endsWith('.ppt');
-              return (
-                <div
-                  key={d.id}
-                  onClick={() => setActiveDocumentId(d.id)}
-                  className={`p-4 cursor-pointer transition-colors ${
-                    isSelected
-                      ? 'bg-zinc-900/90 text-white border-l-2 border-white'
-                      : 'hover:bg-zinc-900/40 text-zinc-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    {getDocIcon(d.fileName)}
-                    <h4 className="text-xs font-semibold text-zinc-100 truncate">{d.title}</h4>
+          </div>
+
+          <div className="flex-1 overflow-y-auto divide-y divide-zinc-850">
+            {documents.length === 0 ? (
+              <div className="p-8 text-center text-xs text-zinc-500">
+                No documents uploaded yet. Upload a PDF, Word (DOCX), PowerPoint (PPTX), or text file to analyze with local AI.
+              </div>
+            ) : (
+              documents.map((d) => {
+                const isSelected = activeDocumentId === d.id;
+                const isPresentation = d.fileName.toLowerCase().endsWith('.pptx') || d.fileName.toLowerCase().endsWith('.ppt');
+                return (
+                  <div
+                    key={d.id}
+                    onClick={() => {
+                      setActiveDocumentId(d.id);
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        setIsListOpen(false);
+                      }
+                    }}
+                    className={`p-4 cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-zinc-900/90 text-white border-l-2 border-white'
+                        : 'hover:bg-zinc-900/40 text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {getDocIcon(d.fileName)}
+                      <h4 className="text-xs font-semibold text-zinc-100 truncate">{d.title}</h4>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 pl-6">
+                      <span>
+                        {d.pageCount} {isPresentation ? 'slides' : 'pages'}
+                      </span>
+                      <span>•</span>
+                      <span>{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 pl-6">
-                    <span>
-                      {d.pageCount} {isPresentation ? 'slides' : 'pages'}
-                    </span>
-                    <span>•</span>
-                    <span>{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                  </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Right Area: Document Viewer or Upload Dropzone */}
       <div className="flex-1 h-full min-w-0 flex flex-col">
         {selectedDocument ? (
           <PDFViewer
             document={selectedDocument}
+            onToggleList={() => setIsListOpen((prev) => !prev)}
+            isListOpen={isListOpen}
             onDeleted={() => {
               const remaining = documents.filter((d) => d.id !== selectedDocument.id);
               setActiveDocumentId(remaining.length > 0 ? remaining[0].id : null);

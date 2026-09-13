@@ -42,16 +42,19 @@ export const NotesView: React.FC = () => {
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-black">
-      <NoteList
-        selectedNoteId={activeNoteId}
-        onSelectNote={(id) => setActiveNoteId(id)}
-        onCreateNote={handleCreateNote}
-      />
+      <div className={`${activeNoteId ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 h-full`}>
+        <NoteList
+          selectedNoteId={activeNoteId}
+          onSelectNote={(id) => setActiveNoteId(id)}
+          onCreateNote={handleCreateNote}
+        />
+      </div>
 
-      <div className="flex-1 h-full min-w-0 flex flex-col">
+      <div className={`${activeNoteId ? 'flex' : 'hidden md:flex'} flex-1 h-full min-w-0 flex-col`}>
         {activeNoteId ? (
           <NoteEditor
             noteId={activeNoteId}
+            onBackToList={() => setActiveNoteId(null)}
             onDeleted={() => {
               const remaining = notes.filter((n) => n.id !== activeNoteId);
               setActiveNoteId(remaining.length > 0 ? remaining[0].id : null);

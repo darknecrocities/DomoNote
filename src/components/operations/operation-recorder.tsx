@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import type { OperationStep, Manual } from '../../types';
+import React, { useState, useRef, useEffect } from 'react';
+import type { OperationStep, Manual, Note } from '../../types';
 import { screenCapture } from '../../services/screen/capture';
+import { screenAnnotator } from '../../services/screen/annotator';
 import { useAI } from '../../context/ai-context';
 import { useWorkspace } from '../../context/workspace-context';
 import { db } from '../../db';
@@ -16,6 +17,7 @@ import {
   Trash2,
   Sparkles,
   ArrowRight,
+  Crosshair,
 } from 'lucide-react';
 
 interface OperationRecorderProps {
@@ -31,12 +33,14 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
   const { addToast } = useWorkspace();
 
   const [isRecording, setIsRecording] = useState(false);
+  const [autoAnnotate, setAutoAnnotate] = useState(true);
   const [steps, setSteps] = useState<OperationStep[]>([]);
   const [sessionTitle, setSessionTitle] = useState('Deployment Configuration Procedure');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isGeneratingManual, setIsGeneratingManual] = useState(false);
 
   const timerRef = useRef<any>(null);
+  const autoAnnotateTimerRef = useRef<any>(null);
 
   const handleStartCapture = async () => {
     const ok = await screenCapture.startCapture();
@@ -49,18 +53,48 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
     setSteps([]);
     setElapsedSeconds(0);
     timerRef.current = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
-    addToast('Screen capture active. Click "Capture Step" at key operations.', 'info');
+    addToast('Screen capture active. Dynamic auto-annotation will record key milestones.', 'info');
   };
 
+  // Auto-annotate interval
+  useEffect(() => {
+    if (isRecording && autoAnnotate) {
+      autoAnnotateTimerRef.current = setInterval(() => {
+        handleCaptureStep();
+      }, 8000);
+    } else {
+      if (autoAnnotateTimerRef.current) clearInterval(autoAnnotateTimerRef.current);
+    }
+    return () => {
+      if (autoAnnotateTimerRef.current) clearInterval(autoAnnotateTimerRef.current);
+    };
+  }, [isRecording, autoAnnotate, steps.length]);
+
   const handleCaptureStep = async () => {
-    const snapshotDataUrl = screenCapture.takeSnapshot();
+    const videoEl = screenCapture.getVideoElement();
+    const stepNum = steps.length + 1;
+
+    let snapshotDataUrl: string | null = null;
+    let point = { x: 50, y: 50 };
+
+    if (videoEl && videoEl.videoWidth) {
+      const annotated = screenAnnotator.captureAndAnnotate(videoEl, {
+        stepNumber: stepNum,
+        timestampSeconds: elapsedSeconds,
+        label: `STEP ${stepNum}`,
+      });
+      snapshotDataUrl = annotated.dataUrl;
+      point = annotated.point;
+    } else {
+      snapshotDataUrl = screenCapture.takeSnapshot();
+    }
+
     if (!snapshotDataUrl) {
       addToast('Could not grab video frame.', 'error');
       return;
     }
 
-    const stepNum = steps.length + 1;
-    let actionDescription = `Step ${stepNum}: Perform operation action.`;
+    let actionDescription = `Step ${stepNum}: Verify interaction at focal coordinate (${Math.round(point.x)}%, ${Math.round(point.y)}%).`;
 
     // If local Ollama is connected, query for a concise instructional description
     if (isConnected && selectedModel) {
@@ -90,7 +124,7 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
           documentId: 'operation',
           pageNumber: 1,
           type: 'marker',
-          coords: { x: 50, y: 50, width: 4, height: 4 },
+          coords: { x: point.x, y: point.y, width: 4, height: 4 },
           color: '#ffffff',
           label: `Step ${stepNum}`,
           stepNumber: stepNum,
@@ -100,11 +134,12 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
     };
 
     setSteps((prev) => [...prev, newStep]);
-    addToast(`Captured Step ${stepNum}.`, 'success');
+    addToast(`Captured and annotated Step ${stepNum}.`, 'info');
   };
 
   const handleStopCapture = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (autoAnnotateTimerRef.current) clearInterval(autoAnnotateTimerRef.current);
     screenCapture.stopCapture();
     setIsRecording(false);
   };
@@ -138,8 +173,39 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
         version: 1,
       };
 
+      const md = screenAnnotator.generateSopMarkdown({
+        title: sessionTitle.trim() || 'Standard Operating Manual',
+        purpose: `Automated operation procedure manual generated from recorded session (${steps.length} steps).`,
+        requirements: ['Verified environment credentials', 'Administrative authorization'],
+        steps: steps.map((s) => ({
+          stepNumber: s.stepNumber,
+          title: `Step ${s.stepNumber}`,
+          description: s.actionDescription,
+          timestampMs: s.timestamp * 1000,
+          screenshotDataUrl: s.screenshotDataUrl,
+        })),
+      });
+
+      const newNote: Note = {
+        id: `note-sop-${Date.now()}`,
+        title: `${sessionTitle.trim() || 'Operation'} SOP Documentation`,
+        content: md,
+        tags: ['sop', 'manual', 'screen-capture'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        versions: [
+          {
+            id: `v-${Date.now()}`,
+            title: `${sessionTitle.trim() || 'Operation'} SOP Documentation`,
+            content: md,
+            timestamp: Date.now(),
+          },
+        ],
+      };
+
       await db.manuals.put(newManual);
-      addToast('Operation manual generated successfully.', 'success');
+      await db.notes.put(newNote);
+      addToast('Operation manual and SOP documentation generated.', 'success');
       onManualCreated(manualId);
     } catch {
       addToast('Failed to create manual.', 'error');
@@ -201,6 +267,17 @@ export const OperationRecorder: React.FC<OperationRecorderProps> = ({
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setAutoAnnotate(!autoAnnotate)}
+                  className={`px-3 py-1.5 rounded text-xs font-mono border transition-all flex items-center gap-1.5 ${
+                    autoAnnotate
+                      ? 'bg-zinc-900 border-zinc-700 text-emerald-400'
+                      : 'bg-zinc-950 border-zinc-850 text-zinc-500'
+                  }`}
+                >
+                  <Crosshair className="w-3.5 h-3.5" />
+                  <span>AUTO-ANNOTATE: {autoAnnotate ? 'ON' : 'OFF'}</span>
+                </button>
                 <Button variant="primary" size="md" onClick={handleCaptureStep}>
                   <Camera className="w-4 h-4" />
                   <span>Capture Step</span>

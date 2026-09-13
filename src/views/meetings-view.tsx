@@ -31,10 +31,16 @@ export const MeetingsView: React.FC = () => {
 
   const selectedMeeting = meetings.find((m) => m.id === activeMeetingId);
 
+  const isDetailOpen = Boolean(isRecordingMode || selectedMeeting);
+
   return (
     <div className="flex h-full w-full overflow-hidden bg-black">
       {/* Left Sidebar: Sessions List */}
-      <div className="w-80 border-r border-zinc-850 flex flex-col h-full bg-zinc-950 shrink-0 select-none">
+      <div
+        className={`${
+          isDetailOpen ? 'hidden md:flex' : 'flex'
+        } w-full md:w-80 border-r border-zinc-850 flex-col h-full bg-zinc-950 shrink-0 select-none`}
+      >
         <div className="p-4 border-b border-zinc-850 flex items-center justify-between">
           <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
             Meetings ({meetings.length})
@@ -78,11 +84,11 @@ export const MeetingsView: React.FC = () => {
                     <h4 className="text-xs font-semibold text-zinc-100 truncate pr-2">
                       {m.title}
                     </h4>
-                    <span className="text-[10px] text-zinc-500 font-mono">
+                    <span className="text-[10px] font-mono text-zinc-500 font-mono">
                       {formatSecondsToTime(m.durationSeconds)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 mb-1.5">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 mb-1.5">
                     <span>{new Date(m.startTime).toLocaleDateString()}</span>
                     <span>•</span>
                     <span>{m.transcript.length} transcript segments</span>
@@ -100,7 +106,7 @@ export const MeetingsView: React.FC = () => {
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 h-full min-w-0 flex flex-col">
+      <div className={`${isDetailOpen ? 'flex' : 'hidden md:flex'} flex-1 h-full min-w-0 flex-col`}>
         {isRecordingMode ? (
           <MeetingRecorder
             onMeetingSaved={(savedMeeting) => {
@@ -115,6 +121,10 @@ export const MeetingsView: React.FC = () => {
         ) : selectedMeeting ? (
           <MeetingSummaryView
             meeting={selectedMeeting}
+            onBackToList={() => {
+              setActiveMeetingId(null);
+              setIsRecordingMode(false);
+            }}
             onDeleted={() => {
               const remaining = meetings.filter((m) => m.id !== selectedMeeting.id);
               setActiveMeetingId(remaining.length > 0 ? remaining[0].id : null);

@@ -44,6 +44,10 @@ export class ScreenCaptureService {
     return canvas.toDataURL('image/png');
   }
 
+  getVideoElement(): HTMLVideoElement | null {
+    return this.videoElement;
+  }
+
   stopCapture(): void {
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
