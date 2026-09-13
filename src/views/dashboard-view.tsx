@@ -16,7 +16,9 @@ import {
   ArrowRight,
   Clock,
   BookOpen,
+  Feather,
 } from 'lucide-react';
+import { PandaMascot } from '../components/ui/panda-mascot';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -73,6 +75,34 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
+      {/* Mascot Companion Welcome Banner */}
+      <div className="mb-8 p-5 rounded-2xl border border-zinc-800 bg-zinc-950 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="flex items-center gap-4">
+          <PandaMascot size="sm" showSpeechBubble={false} />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white tracking-tight">Domo Panda Assistant</span>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-1.5 py-0.5 rounded">
+                LOCAL FIRST
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5 max-w-lg leading-relaxed">
+              Welcome back. You have {totalItems} items stored safely in your browser. All speech recordings, documents, and notes are air-gapped from cloud servers.
+            </p>
+          </div>
+        </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setActiveView('zen')}
+          className="shrink-0 font-mono text-xs"
+        >
+          <Feather className="w-3.5 h-3.5" />
+          <span>Launch Zen Focus</span>
+        </Button>
+      </div>
+
       {/* Quick Action Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
         <button
@@ -103,8 +133,8 @@ export const DashboardView: React.FC = () => {
         >
           <FileUp className="w-5 h-5 text-zinc-300" />
           <div>
-            <div className="text-xs font-semibold text-zinc-100">Upload PDF</div>
-            <span className="text-[10px] text-zinc-500">Reader & annotations</span>
+            <div className="text-xs font-semibold text-zinc-100">Upload Doc</div>
+            <span className="text-[10px] text-zinc-500">PDF, PPTX, DOCX, TXT</span>
           </div>
         </button>
 
