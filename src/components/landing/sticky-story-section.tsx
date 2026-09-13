@@ -106,6 +106,7 @@ export const StickyStorySection: React.FC = () => {
         {/* Left Content */}
         <div className="lg:col-span-5 lg:sticky lg:top-32 space-y-6">
           <div className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>How It Works</span>
           </div>
 
@@ -118,32 +119,80 @@ export const StickyStorySection: React.FC = () => {
             said, highlights key decisions, and turns them into lasting notes right on your computer.
           </p>
 
-          {/* Step Selector Buttons */}
-          <div className="flex items-center gap-2 pt-4">
-            {stages.map((st, idx) => (
+          {/* Interactive Step Selection Cards */}
+          <div className="space-y-2.5 pt-2">
+            {stages.map((st, idx) => {
+              const isActive = activeStep === idx;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setActiveStep(idx)}
+                  className={`w-full text-left p-3 rounded-xl border transition-all duration-300 flex items-center justify-between group ${
+                    isActive
+                      ? 'bg-zinc-900 border-zinc-700 text-white shadow-lg'
+                      : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:border-zinc-750 hover:text-zinc-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-xs font-mono font-bold px-2 py-0.5 rounded transition-colors ${
+                        isActive
+                          ? 'bg-white text-black'
+                          : 'bg-zinc-900 text-zinc-500 group-hover:text-zinc-300'
+                      }`}
+                    >
+                      {st.step}
+                    </span>
+                    <span className="text-xs font-medium">{st.title}</span>
+                  </div>
+                  {isActive && (
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+                      Active
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Step Controls */}
+          <div className="flex items-center justify-between pt-2 border-t border-zinc-850/80 text-xs text-zinc-500 font-mono">
+            <span>Step {activeStep + 1} of {stages.length}</span>
+            <div className="flex items-center gap-2">
               <button
-                key={idx}
-                onClick={() => setActiveStep(idx)}
-                className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  activeStep === idx
-                    ? 'bg-white text-black font-bold'
-                    : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
-                }`}
+                onClick={() => setActiveStep((prev) => (prev > 0 ? prev - 1 : stages.length - 1))}
+                className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition-colors"
+                title="Previous step"
               >
-                {st.step}
+                ← Prev
               </button>
-            ))}
+              <button
+                onClick={() => setActiveStep((prev) => (prev < stages.length - 1 ? prev + 1 : 0))}
+                className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition-colors"
+                title="Next step"
+              >
+                Next →
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Dynamic Interface */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl transition-all duration-300">
+        {/* Right Dynamic Interface with Sliding-In Card */}
+        <div className="lg:col-span-7 overflow-hidden relative min-h-[440px]">
+          <div
+            key={activeStep}
+            className="animate-slide-in-right rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl relative overflow-hidden"
+          >
             <div className="flex items-center justify-between border-b border-zinc-850 pb-3 mb-6">
-              <span className="text-xs font-semibold text-white tracking-wide">
-                {stages[activeStep].title}
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-semibold text-white tracking-wide font-mono">
+                  STAGE {stages[activeStep].step} • {stages[activeStep].title.toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
+                Live Preview
               </span>
-              <span className="text-xs text-zinc-500">Preview</span>
             </div>
 
             <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
@@ -152,6 +201,20 @@ export const StickyStorySection: React.FC = () => {
 
             <div className="p-5 rounded-xl border border-zinc-850 bg-zinc-900/50 min-h-[260px] flex flex-col justify-center">
               {stages[activeStep].content}
+            </div>
+
+            {/* Next stage callout button */}
+            <div className="mt-6 pt-4 border-t border-zinc-850 flex items-center justify-between text-xs">
+              <span className="text-zinc-500 font-mono text-[11px]">
+                Click step or Next to preview stage transformation
+              </span>
+              <button
+                onClick={() => setActiveStep((prev) => (prev < stages.length - 1 ? prev + 1 : 0))}
+                className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+              >
+                <span>{activeStep < stages.length - 1 ? 'Next: ' + stages[activeStep + 1].title : 'Restart Flow (01)'}</span>
+                <span>→</span>
+              </button>
             </div>
           </div>
         </div>
