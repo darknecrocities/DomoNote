@@ -14,6 +14,9 @@ import {
   RefreshCw,
   PanelLeftClose,
   PanelLeftOpen,
+  Feather,
+  Calendar,
+  GitCommit,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
@@ -36,16 +39,20 @@ export const Sidebar: React.FC = () => {
   const navItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'notes', label: 'Notes', icon: FileText },
+    { id: 'zen', label: 'Zen Notes', icon: Feather },
     { id: 'meetings', label: 'Meetings', icon: Mic },
+    { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'documents', label: 'Documents', icon: FileUp },
     { id: 'manuals', label: 'Manuals', icon: Video },
+    { id: 'studio', label: 'Studio', icon: Video },
     { id: 'ai-workspace', label: 'AI Workspace', icon: Bot },
     { id: 'templates', label: 'Templates', icon: BookOpen },
   ];
 
   const secondaryItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'about', label: 'About', icon: Info },
+    { id: 'about', label: 'About & Demo', icon: Info },
+    { id: 'changelog', label: 'Changelog', icon: GitCommit },
     { id: 'privacy', label: 'Privacy', icon: Shield },
   ];
 

@@ -6,13 +6,17 @@ import { GlobalSearchModal } from './components/search/global-search-modal';
 import { LandingPage } from './views/landing-page';
 import { DashboardView } from './views/dashboard-view';
 import { NotesView } from './views/notes-view';
+import { ZenFocusView } from './views/zen-focus-view';
 import { MeetingsView } from './views/meetings-view';
+import { ScheduleView } from './views/schedule-view';
 import { DocumentsView } from './views/documents-view';
 import { ManualsView } from './views/manuals-view';
+import { StudioView } from './views/studio-view';
 import { AIWorkspaceView } from './components/ai-workspace/ai-workspace-view';
 import { TemplateGallery } from './components/templates/template-gallery';
 import { SettingsView } from './views/settings-view';
 import { AboutView } from './views/about-view';
+import { ChangelogView } from './views/changelog-view';
 import { PrivacyView } from './views/privacy-view';
 
 export const App: React.FC = () => {
@@ -33,12 +37,18 @@ export const App: React.FC = () => {
         return <DashboardView />;
       case 'notes':
         return <NotesView />;
+      case 'zen':
+        return <ZenFocusView />;
       case 'meetings':
         return <MeetingsView />;
+      case 'schedule':
+        return <ScheduleView />;
       case 'documents':
         return <DocumentsView />;
       case 'manuals':
         return <ManualsView />;
+      case 'studio':
+        return <StudioView />;
       case 'ai-workspace':
         return <AIWorkspaceView />;
       case 'templates':
@@ -47,6 +57,8 @@ export const App: React.FC = () => {
         return <SettingsView />;
       case 'about':
         return <AboutView />;
+      case 'changelog':
+        return <ChangelogView />;
       case 'privacy':
         return <PrivacyView />;
       default:
