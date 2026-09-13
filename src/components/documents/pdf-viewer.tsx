@@ -431,8 +431,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ document: docEntity, onDel
           ref={containerRef}
           className="flex-1 overflow-auto p-8 flex items-start justify-center bg-zinc-950/40"
         >
-          <div className="relative shadow-2xl border border-zinc-800 bg-white">
-            <canvas ref={canvasRef} className="block" />
+          <div className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm">
+            <canvas ref={canvasRef} className="block rounded-sm" />
             <AnnotationLayer
               annotations={annotations}
               pageNumber={currentPage}
