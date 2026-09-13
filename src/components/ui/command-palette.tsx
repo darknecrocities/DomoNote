@@ -105,6 +105,45 @@ export const CommandPalette: React.FC = () => {
         },
       },
       {
+        id: 'zen-notes',
+        title: 'Zen Notes Focus Mode',
+        description: 'Distraction-free note sanctuary with Panda mascot companion',
+        icon: FileText,
+        shortcut: 'Cmd+Shift+N',
+        run: () => {
+          setActiveView('zen');
+        },
+      },
+      {
+        id: 'schedule',
+        title: 'Automated Schedule',
+        description: 'Timeline agenda, recurring alarms, and AI scheduling',
+        icon: Settings,
+        shortcut: 'Cmd+Shift+S',
+        run: () => {
+          setActiveView('schedule');
+        },
+      },
+      {
+        id: 'screen-studio',
+        title: 'Screen Recording Studio',
+        description: 'Flight recorder for computer tasks with webcam PIP',
+        icon: Video,
+        shortcut: 'Cmd+Shift+R',
+        run: () => {
+          setActiveView('studio');
+        },
+      },
+      {
+        id: 'changelog',
+        title: 'Changelog & Diagnostics',
+        description: 'System specifications and database ledger',
+        icon: Shield,
+        run: () => {
+          setActiveView('changelog');
+        },
+      },
+      {
         id: 'privacy',
         title: 'Privacy & Architecture',
         description: 'View local-first boundaries and data ownership',

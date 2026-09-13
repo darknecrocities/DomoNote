@@ -4,13 +4,17 @@ export type ViewType =
   | 'landing'
   | 'dashboard'
   | 'notes'
+  | 'zen'
   | 'meetings'
+  | 'schedule'
   | 'documents'
   | 'manuals'
+  | 'studio'
   | 'ai-workspace'
   | 'templates'
   | 'settings'
   | 'about'
+  | 'changelog'
   | 'privacy';
 
 export interface ToastItem {
@@ -52,13 +56,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         [
           'dashboard',
           'notes',
+          'zen',
           'meetings',
+          'schedule',
           'documents',
           'manuals',
+          'studio',
           'ai-workspace',
           'templates',
           'settings',
           'about',
+          'changelog',
           'privacy',
         ].includes(requestedView)
       ) {
