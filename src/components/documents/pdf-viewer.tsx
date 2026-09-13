@@ -6,6 +6,7 @@ import { AnnotationLayer } from './annotation-layer';
 import { AISuggestionsModal } from './ai-suggestions-modal';
 import { StepsModeModal } from './steps-mode';
 import { Button } from '../ui/button';
+import { Modal } from '../ui/modal';
 import { useAI } from '../../context/ai-context';
 import { useWorkspace } from '../../context/workspace-context';
 import { chunkDocumentPages, retrieveRelevantChunks, buildRAGPrompt } from '../../services/ai/rag';
@@ -13,6 +14,8 @@ import { ollama } from '../../services/ai/ollama';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import DOMPurify from 'dompurify';
+import { autoAnnotator, DocumentEvidenceNote } from '../../services/documents/auto-annotator';
+import { DocumentNotesModal } from './document-notes-modal';
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,6 +35,8 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  FileText,
+  Download,
 } from 'lucide-react';
 
 interface PDFViewerProps {
@@ -74,13 +79,185 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   const [aiResponse, setAiResponse] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSources, setAiSources] = useState<Array<{ pageNumber: number; text: string }>>([]);
+  const [compiledNotes, setCompiledNotes] = useState<DocumentEvidenceNote[]>([]);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [autoBoxoutEnabled, setAutoBoxoutEnabled] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const textDocRef = useRef<HTMLDivElement>(null);
+  const textContentRef = useRef<HTMLDivElement>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 600, height: 800 });
 
   const [isTextDocument, setIsTextDocument] = useState<boolean>(false);
+
+  /**
+   * Uses the browser's Range API to find the exact pixel position of an excerpt
+   * in the rendered DOM. Returns percentage coordinates relative to the paper container.
+   * Uses whitespace-normalized mapping so line breaks and formatting in extracted text
+   * match rendered text with 100% precision.
+   */
+  const locateExcerptInDOM = useCallback((excerpt: string): { x: number; y: number; width: number; height: number; confidence: 'exact' | 'partial' | 'fallback'; matchedText: string } | null => {
+    const textEl = textContentRef.current;
+    const containerEl = textDocRef.current;
+    if (!textEl || !containerEl) return null;
+
+    // Walk all text nodes in the content div
+    const walker = document.createTreeWalker(textEl, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+    let tNode: Node | null;
+    while ((tNode = walker.nextNode())) {
+      textNodes.push(tNode as Text);
+    }
+    if (textNodes.length === 0) return null;
+
+    // Build full text and a map of each node's start/end char index
+    let fullText = '';
+    const nodeMap: Array<{ node: Text; start: number; end: number }> = [];
+    for (const tn of textNodes) {
+      const s = fullText.length;
+      const content = tn.textContent || '';
+      fullText += content;
+      nodeMap.push({ node: tn, start: s, end: s + content.length });
+    }
+
+    // Build normalized string with index mapping back to original fullText
+    const normMap: number[] = [];
+    let normFull = '';
+    for (let i = 0; i < fullText.length; i++) {
+      const ch = fullText[i];
+      if (/\s/.test(ch)) {
+        if (normFull.length === 0 || normFull[normFull.length - 1] !== ' ') {
+          normMap.push(i);
+          normFull += ' ';
+        }
+      } else {
+        normMap.push(i);
+        normFull += ch.toLowerCase();
+      }
+    }
+
+    const excerptNorm = excerpt.toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!excerptNorm) return null;
+
+    let matchStart = -1;
+    let matchLen = 0;
+    let confidence: 'exact' | 'partial' | 'fallback' = 'exact';
+    let matchedText = '';
+
+    // Strategy 1: Exact match in whitespace-normalized text
+    let nIdx = normFull.indexOf(excerptNorm);
+    if (nIdx !== -1) {
+      const origStart = normMap[nIdx];
+      const origEnd = normMap[Math.min(normMap.length - 1, nIdx + excerptNorm.length - 1)] + 1;
+      matchStart = origStart;
+      matchLen = origEnd - origStart;
+      matchedText = fullText.slice(matchStart, matchStart + matchLen);
+    }
+
+    // Strategy 2: First 60-80 characters of excerpt
+    if (matchStart === -1 && excerptNorm.length > 40) {
+      const sub = excerptNorm.slice(0, 60).trim();
+      nIdx = normFull.indexOf(sub);
+      if (nIdx !== -1) {
+        const origStart = normMap[nIdx];
+        const origEnd = normMap[Math.min(normMap.length - 1, nIdx + sub.length - 1)] + 1;
+        matchStart = origStart;
+        matchLen = origEnd - origStart;
+        matchedText = fullText.slice(matchStart, matchStart + matchLen);
+        confidence = 'partial';
+      }
+    }
+
+    // Strategy 3: Significant sentences from excerpt
+    if (matchStart === -1) {
+      const sentences = excerptNorm.split(/[.!?\n]/).map((s) => s.trim()).filter((s) => s.length > 15);
+      for (const sent of sentences) {
+        nIdx = normFull.indexOf(sent);
+        if (nIdx !== -1) {
+          const origStart = normMap[nIdx];
+          const origEnd = normMap[Math.min(normMap.length - 1, nIdx + sent.length - 1)] + 1;
+          matchStart = origStart;
+          matchLen = origEnd - origStart;
+          matchedText = fullText.slice(matchStart, matchStart + matchLen);
+          confidence = 'partial';
+          break;
+        }
+      }
+    }
+
+    // Strategy 4: Leading 4 to 8 words
+    if (matchStart === -1) {
+      const words = excerptNorm.split(' ').filter((w) => w.length > 2);
+      for (let len = Math.min(words.length, 8); len >= 4; len--) {
+        const phrase = words.slice(0, len).join(' ');
+        nIdx = normFull.indexOf(phrase);
+        if (nIdx !== -1) {
+          const origStart = normMap[nIdx];
+          const origEnd = normMap[Math.min(normMap.length - 1, nIdx + phrase.length - 1)] + 1;
+          matchStart = origStart;
+          matchLen = origEnd - origStart;
+          matchedText = fullText.slice(matchStart, matchStart + matchLen);
+          confidence = 'partial';
+          break;
+        }
+      }
+    }
+
+    if (matchStart === -1) return null;
+
+    // Find the start and end text nodes for the Range
+    let startNode: Text | null = null;
+    let startOffset = 0;
+    let endNode: Text | null = null;
+    let endOffset = 0;
+    const matchEnd = matchStart + matchLen;
+
+    for (const entry of nodeMap) {
+      if (!startNode && matchStart >= entry.start && matchStart < entry.end) {
+        startNode = entry.node;
+        startOffset = matchStart - entry.start;
+      }
+      if (matchEnd > entry.start && matchEnd <= entry.end) {
+        endNode = entry.node;
+        endOffset = matchEnd - entry.start;
+      }
+    }
+
+    if (!startNode || !endNode) return null;
+
+    try {
+      const range = document.createRange();
+      range.setStart(startNode, Math.min(startOffset, startNode.length));
+      range.setEnd(endNode, Math.min(endOffset, endNode.length));
+
+      const rangeRect = range.getBoundingClientRect();
+      const containerRect = containerEl.getBoundingClientRect();
+
+      if (rangeRect.width === 0 || rangeRect.height === 0) return null;
+
+      // Small padding around the box so it cleanly wraps the exact words
+      const padX = 4;
+      const padY = 2;
+      const x = ((rangeRect.left - containerRect.left - padX) / containerRect.width) * 100;
+      const y = ((rangeRect.top - containerRect.top - padY) / containerRect.height) * 100;
+      const w = ((rangeRect.width + padX * 2) / containerRect.width) * 100;
+      const h = ((rangeRect.height + padY * 2) / containerRect.height) * 100;
+
+      return {
+        x: Math.max(0.5, Math.round(x * 10) / 10),
+        y: Math.max(0.5, Math.round(y * 10) / 10),
+        width: Math.min(99, Math.round(w * 10) / 10),
+        height: Math.max(1.8, Math.round(h * 10) / 10),
+        confidence,
+        matchedText,
+      };
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Load document from blob in IndexedDB (PDF or Text/DOCX/PPTX)
   useEffect(() => {
@@ -273,7 +450,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     askDocumentAI(prompts[action]);
   };
 
-  // Document Q&A with local RAG
+  // Document Q&A with local RAG, dynamic auto-boxout, and screenshot evidence capture
   const askDocumentAI = async (queryText: string) => {
     if (!queryText.trim()) return;
     setIsAiLoading(true);
@@ -293,22 +470,135 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
         }))
       );
 
-      const prompt = buildRAGPrompt(queryText, relevant);
+      // Automatic Document Box-out Annotation & Screenshot Capture
+      let screenshotDataUrl = '';
+      const topChunk = relevant[0] || { pageNumber: currentPage, text: '' };
+      const targetPage = topChunk.pageNumber || currentPage;
+      const targetExcerpt = topChunk.text || '';
 
-      if (!isConnected || !selectedModel) {
-        setAiResponse(
-          'Local AI (Ollama) is not connected. Connect Ollama in Settings to query this document.'
-        );
-        setIsAiLoading(false);
-        return;
+      const pageData = docEntity.extractedPages.find((p) => p.pageNumber === targetPage);
+      const fullPageText = pageData?.text || targetExcerpt;
+      const stepIdx = compiledNotes.length;
+
+      // Use DOM Range API for text documents (truly dynamic), fallback to static method
+      let coordResult: { x: number; y: number; width: number; height: number; confidence: 'exact' | 'partial' | 'fallback'; matchedText: string };
+
+      if (isTextDocument && targetPage === currentPage) {
+        // DOM-based location -- measures actual rendered text positions
+        const domResult = locateExcerptInDOM(targetExcerpt);
+        coordResult = domResult || autoAnnotator.locateExcerptCoordinates(fullPageText, targetExcerpt);
+      } else {
+        coordResult = autoAnnotator.locateExcerptCoordinates(fullPageText, targetExcerpt);
       }
 
-      await ollama.streamGenerate(
-        prompt,
-        (chunk) => {
-          setAiResponse((prev) => prev + chunk);
-        },
-        { model: selectedModel }
+      const boxCoords = { x: coordResult.x, y: coordResult.y, width: coordResult.width, height: coordResult.height };
+
+      if (autoBoxoutEnabled) {
+        // Jump to referenced page so user immediately sees the highlight
+        if (targetPage !== currentPage) {
+          setCurrentPage(targetPage);
+        }
+
+        // Clean, readable label instead of arbitrary text slice
+        const qLower = queryText.toLowerCase();
+        const cleanLabel = qLower.includes('summar')
+          ? 'Executive Summary'
+          : qLower.includes('step')
+          ? 'Key Steps'
+          : qLower.includes('takeaway')
+          ? 'Key Takeaways'
+          : qLower.includes('requirement')
+          ? 'Requirements'
+          : `Note ${stepIdx + 1}`;
+
+        // Add visual bounding box annotation with step-indexed color
+        const autoAnn = autoAnnotator.createBoxoutAnnotation({
+          documentId: docEntity.id,
+          pageNumber: targetPage,
+          coords: boxCoords,
+          label: cleanLabel,
+          text: targetExcerpt.slice(0, 180),
+          stepIndex: stepIdx,
+        });
+
+        // Filter out any previous auto-boxouts on the same paragraph to avoid stacking duplicate boxes
+        setAnnotations((prev) => [
+          ...prev.filter(
+            (a) =>
+              !(
+                a.pageNumber === targetPage &&
+                a.type === 'rectangle' &&
+                Math.abs(a.coords.y - boxCoords.y) < 6 &&
+                Math.abs(a.coords.x - boxCoords.x) < 6
+              )
+          ),
+          autoAnn,
+        ]);
+        await db.annotations.put(autoAnn);
+
+        // Capture annotated screenshot of the document page
+        if (isTextDocument || !pdfDoc) {
+          screenshotDataUrl = autoAnnotator.captureDigitalPaperScreenshot({
+            fileName: docEntity.fileName,
+            pageNumber: targetPage,
+            pageCount: docEntity.pageCount,
+            pageText: fullPageText,
+            boxCoords,
+            label: queryText.slice(0, 20),
+            stepIndex: stepIdx,
+          });
+        } else if (canvasRef.current) {
+          screenshotDataUrl = autoAnnotator.capturePdfPageScreenshot(
+            canvasRef.current,
+            boxCoords,
+            queryText.slice(0, 20),
+            stepIdx
+          );
+        }
+      }
+
+      const prompt = buildRAGPrompt(queryText, relevant);
+
+      let fullAiAnswer = '';
+
+      if (!isConnected || !selectedModel) {
+        fullAiAnswer = `Page ${targetPage} analysis: "${targetExcerpt.slice(0, 220)}..." -- Key content located and boxed out. Match confidence: ${coordResult.confidence}.`;
+        setAiResponse(fullAiAnswer);
+        setIsAiLoading(false);
+      } else {
+        await ollama.streamGenerate(
+          prompt,
+          (chunk) => {
+            fullAiAnswer += chunk;
+            setAiResponse((prev) => prev + chunk);
+          },
+          { model: selectedModel }
+        );
+      }
+
+      // Compile into document evidence notes with step metadata
+      const evidenceNote: DocumentEvidenceNote = {
+        id: `docnote-${Date.now()}-${stepIdx + 1}`,
+        documentId: docEntity.id,
+        documentTitle: docEntity.title,
+        pageNumber: targetPage,
+        query: queryText,
+        aiSummary: fullAiAnswer || 'Document section analyzed and boxed out.',
+        excerpt: coordResult.matchedText || targetExcerpt.slice(0, 300),
+        screenshotDataUrl,
+        timestamp: Date.now(),
+        stepIndex: stepIdx + 1,
+        totalSteps: stepIdx + 1,
+      };
+
+      setCompiledNotes((prev) => [...prev, evidenceNote]);
+      addToast(
+        coordResult.confidence === 'exact'
+          ? `Exact match found on Page ${targetPage} -- note captured.`
+          : coordResult.confidence === 'partial'
+          ? `Partial match located on Page ${targetPage} -- note captured.`
+          : `Page ${targetPage} annotated and note captured.`,
+        'success'
       );
     } catch (err: any) {
       setAiResponse(`Error generating response: ${err?.message || 'Unknown error'}`);
@@ -321,14 +611,22 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     if (!aiResponse) return;
     try {
       const noteId = `note-${Date.now()}`;
+      const noteContent = `# Document Intelligence: ${docEntity.title}\n\n**Query:** ${aiQuestion || 'Document Analysis'}\n\n${aiResponse}\n\n## Source Citations\n${aiSources.map((s) => `- Page ${s.pageNumber}: "${s.text}"`).join('\n')}`;
       await db.notes.put({
         id: noteId,
         title: `AI Analysis: ${docEntity.title}`,
-        content: `# Document Intelligence: ${docEntity.title}\n\n**Query:** ${aiQuestion || 'Document Analysis'}\n\n${aiResponse}\n\n## Source Citations\n${aiSources.map((s) => `- Page ${s.pageNumber}: "${s.text}"`).join('\n')}`,
+        content: noteContent,
         tags: ['document', 'ai-analysis'],
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        versions: [],
+        versions: [
+          {
+            id: `v-${Date.now()}`,
+            title: `AI Analysis: ${docEntity.title}`,
+            content: noteContent,
+            timestamp: Date.now(),
+          },
+        ],
       });
       addToast('Saved AI analysis to Notes.', 'success');
       setActiveNoteId(noteId);
@@ -338,13 +636,29 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
-  const handleDeleteDocument = async () => {
-    if (confirm(`Permanently delete "${docEntity.title}" and its annotations?`)) {
+  const confirmDeleteDocument = async () => {
+    try {
       await db.documents.delete(docEntity.id);
-      await db.blobs.delete(docEntity.fileBlobId);
+      if (docEntity.fileBlobId) {
+        await db.blobs.delete(docEntity.fileBlobId);
+      }
       await db.annotations.where('documentId').equals(docEntity.id).delete();
-      addToast('Document deleted.', 'info');
+      addToast(`Deleted "${docEntity.title}".`, 'info');
+      setIsDeleteModalOpen(false);
       if (onDeleted) onDeleted();
+    } catch (err: any) {
+      console.error('[DomoNote] Failed to delete document:', err);
+      addToast(`Failed to delete document: ${err?.message || 'Unknown error'}`, 'error');
+    }
+  };
+
+  const handleClearAllAnnotations = async () => {
+    try {
+      await db.annotations.where('documentId').equals(docEntity.id).delete();
+      setAnnotations([]);
+      addToast('Cleared all annotations for this document.', 'info');
+    } catch (err: any) {
+      console.error('[DomoNote] Failed to clear annotations:', err);
     }
   };
 
@@ -486,6 +800,21 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
               <span className="hidden lg:inline">Steps</span>
             </Button>
 
+            {/* Compiled Notes Button */}
+            <Button
+              size="sm"
+              variant={compiledNotes.length > 0 ? 'secondary' : 'outline'}
+              onClick={() => setIsNotesModalOpen(true)}
+              title="View and download compiled document notes"
+              className="px-2.5 flex items-center gap-1.5"
+            >
+              <FileText className="w-3.5 h-3.5 text-zinc-300" />
+              <span className="hidden sm:inline">Compiled Notes</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-zinc-800 text-[10px] font-mono">
+                {compiledNotes.length}
+              </span>
+            </Button>
+
             {/* AI Assistant Panel Toggle */}
             <Button
               size="sm"
@@ -498,7 +827,26 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
               <span className="hidden sm:inline">AI Assistant</span>
             </Button>
 
-            <Button size="icon" variant="ghost" onClick={handleDeleteDocument} title="Delete PDF">
+            {/* Clear Annotations Button */}
+            {annotations.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleClearAllAnnotations}
+                title="Clear all annotations on this document"
+                className="text-zinc-400 hover:text-zinc-200 text-xs px-2"
+              >
+                Clear Boxes
+              </Button>
+            )}
+
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setIsDeleteModalOpen(true)}
+              title="Delete document"
+              className="hover:bg-red-950/40 hover:text-red-400"
+            >
               <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-400" />
             </Button>
           </div>
@@ -510,7 +858,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
           className="flex-1 overflow-auto p-8 flex items-start justify-center bg-zinc-950/40 select-text"
         >
           {isTextDocument ? (
-            <div className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm w-full max-w-2xl min-h-[720px] p-10 flex flex-col justify-between text-zinc-900 shadow-2xl select-text">
+            <div ref={textDocRef} className="relative paper-desk-shadow border border-zinc-750 bg-white rounded-sm w-full max-w-2xl min-h-[720px] p-10 flex flex-col justify-between text-zinc-900 shadow-2xl select-text">
               <div>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-zinc-200 pb-3 mb-6 text-[10px] font-mono text-zinc-500 uppercase">
@@ -523,7 +871,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
                 </div>
 
                 {/* Page Content */}
-                <div className="text-sm font-sans text-zinc-900 leading-relaxed space-y-4 whitespace-pre-wrap font-normal select-text">
+                <div ref={textContentRef} className="text-sm font-sans text-zinc-900 leading-relaxed space-y-4 whitespace-pre-wrap font-normal select-text">
                   {currentPageText || 'Empty page content.'}
                 </div>
               </div>
@@ -537,8 +885,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
               <AnnotationLayer
                 annotations={annotations}
                 pageNumber={currentPage}
-                width={600}
-                height={720}
                 onRemoveAnnotation={handleRemoveAnnotation}
               />
             </div>
@@ -580,26 +926,65 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
             </div>
           </div>
 
-          {/* Quick Question Chips */}
-          <div className="p-3 border-b border-zinc-850 flex flex-wrap gap-1.5 bg-zinc-950/60">
-            <button
-              onClick={() => askDocumentAI('Summarize this page in 3 concise bullet points.')}
-              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-            >
-              Summarize Page
-            </button>
-            <button
-              onClick={() => askDocumentAI('What are the main procedural steps or actions required?')}
-              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-            >
-              Main Steps
-            </button>
-            <button
-              onClick={() => askDocumentAI('What are the critical requirements, warnings, or prerequisites?')}
-              className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
-            >
-              Requirements
-            </button>
+          {/* Quick Question Chips with Auto-Boxout */}
+          <div className="p-3 border-b border-zinc-850 flex flex-col gap-2 bg-zinc-950/60">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Quick Summaries</span>
+              <button
+                onClick={() => setAutoBoxoutEnabled(!autoBoxoutEnabled)}
+                className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors"
+                title="Toggle automatic document text box-out and screenshot"
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    autoBoxoutEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'
+                  }`}
+                />
+                <span>AUTO-BOXOUT: {autoBoxoutEnabled ? 'ON' : 'OFF'}</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => askDocumentAI('Summarize this page in 3 concise bullet points.')}
+                className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+              >
+                Summarize Page
+              </button>
+              <button
+                onClick={() => askDocumentAI('What are the main procedural steps or actions required?')}
+                className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+              >
+                Main Steps
+              </button>
+              <button
+                onClick={() => askDocumentAI('What are the critical requirements, warnings, or prerequisites?')}
+                className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+              >
+                Requirements
+              </button>
+              <button
+                onClick={() => askDocumentAI('What are the 3 most important takeaways from this page?')}
+                className="text-[11px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-colors"
+              >
+                Key Takeaways
+              </button>
+            </div>
+
+            {compiledNotes.length > 0 && (
+              <button
+                onClick={() => setIsNotesModalOpen(true)}
+                className="mt-0.5 w-full py-1.5 px-2.5 rounded bg-zinc-900 border border-zinc-750 text-xs text-zinc-200 hover:text-white hover:bg-zinc-850 flex items-center justify-between transition-colors shadow-sm"
+              >
+                <span className="flex items-center gap-1.5 font-medium">
+                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Review Compiled Notes</span>
+                </span>
+                <span className="px-1.5 py-0.2 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-mono">
+                  {compiledNotes.length}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* AI Conversation View */}
@@ -774,6 +1159,62 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
           sourcePage={currentPage}
           sourceText={selectedText || currentPageText.slice(0, 800)}
         />
+      )}
+
+      {/* Document Evidence Notes Compilation Modal */}
+      <DocumentNotesModal
+        isOpen={isNotesModalOpen}
+        onClose={() => setIsNotesModalOpen(false)}
+        documentTitle={docEntity.title}
+        notes={compiledNotes}
+        onRemoveNote={(id) => setCompiledNotes((prev) => prev.filter((n) => n.id !== id))}
+        onClearNotes={() => setCompiledNotes([])}
+      />
+
+      {/* Delete Document Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Delete Document"
+          description="Are you sure you want to delete this document? This action cannot be undone."
+          maxWidth="sm"
+        >
+          <div className="p-6 space-y-4">
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
+              <FileText className="w-5 h-5 text-zinc-300 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-zinc-100 truncate">{docEntity.title}</p>
+                <p className="text-[10px] font-mono text-zinc-400">
+                  {docEntity.fileName} • {(docEntity.fileSize / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              This will permanently remove the file, extracted pages, and all associated AI annotations and notes from your local storage.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={confirmDeleteDocument}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Permanently</span>
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

@@ -4,8 +4,8 @@ import type { Annotation } from '../../types';
 interface AnnotationLayerProps {
   annotations: Annotation[];
   pageNumber: number;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   onRemoveAnnotation?: (id: string) => void;
 }
 
@@ -20,8 +20,8 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      style={{ width, height }}
+      className="absolute inset-0 pointer-events-none overflow-hidden w-full h-full"
+      style={width && height ? { width, height } : undefined}
     >
       {pageAnnotations.map((ann) => {
         const { x, y, width: w, height: h } = ann.coords;
@@ -52,15 +52,38 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
           return (
             <div
               key={ann.id}
-              className="absolute border-2 border-red-500 bg-red-500/10 rounded pointer-events-auto cursor-pointer group"
-              style={{ left, top, width: itemWidth, height: itemHeight }}
+              className="absolute border-2 rounded-sm pointer-events-auto cursor-pointer group bg-transparent transition-all"
+              style={{
+                left,
+                top,
+                width: itemWidth,
+                height: itemHeight,
+                borderColor: ann.color || '#ef4444',
+                boxShadow: `0 0 0 1px ${ann.color || '#ef4444'}30`,
+              }}
+              title={ann.text ? `${ann.label ? ann.label + ': ' : ''}${ann.text}` : 'Annotation'}
               onClick={() => onRemoveAnnotation?.(ann.id)}
             >
               {ann.label && (
-                <span className="absolute -top-4 left-0 text-[10px] font-semibold bg-red-600 text-white px-1.5 py-0.2 rounded shadow">
+                <span
+                  className="absolute -top-5 left-0 text-[10px] font-semibold text-white px-1.5 py-0.5 rounded shadow whitespace-nowrap pointer-events-none"
+                  style={{ backgroundColor: ann.color || '#ef4444' }}
+                >
                   {ann.label}
                 </span>
               )}
+              {/* Dismiss button on hover */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveAnnotation?.(ann.id);
+                }}
+                className="absolute -top-5 right-0 text-[9px] bg-zinc-900 text-zinc-300 hover:text-white hover:bg-red-600 px-1.5 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto"
+                title="Remove annotation"
+              >
+                ✕
+              </button>
             </div>
           );
         }

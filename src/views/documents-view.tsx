@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../context/workspace-context';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
+import type { DocumentEntity } from '../types';
 import { PDFViewer } from '../components/documents/pdf-viewer';
 import { parseDocumentFile } from '../services/documents/universal-parser';
 import { EmptyState } from '../components/ui/empty-state';
 import { Button } from '../components/ui/button';
+import { Modal } from '../components/ui/modal';
 import {
   FileUp,
   File,
@@ -16,11 +18,13 @@ import {
   Presentation,
   PanelLeftClose,
   PanelLeftOpen,
+  Trash2,
 } from 'lucide-react';
 
 export const DocumentsView: React.FC = () => {
   const { activeDocumentId, setActiveDocumentId, addToast } = useWorkspace();
   const [isUploading, setIsUploading] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<DocumentEntity | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isListOpen, setIsListOpen] = useState<boolean>(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
@@ -28,12 +32,43 @@ export const DocumentsView: React.FC = () => {
 
   const documents = useLiveQuery(() => db.documents.orderBy('createdAt').reverse().toArray(), []) || [];
 
-  // Auto-select first document if available and none selected
+  // Auto-select valid document or clear active ID if current is deleted
   useEffect(() => {
-    if (!activeDocumentId && documents.length > 0) {
-      setActiveDocumentId(documents[0].id);
+    if (documents.length > 0) {
+      if (!activeDocumentId || !documents.some((d) => d.id === activeDocumentId)) {
+        setActiveDocumentId(documents[0].id);
+      }
+    } else if (activeDocumentId) {
+      setActiveDocumentId(null);
     }
   }, [documents, activeDocumentId, setActiveDocumentId]);
+
+  // Handle document deletion safely
+  const handleConfirmDeleteDoc = async () => {
+    if (!docToDelete) return;
+    const deletingId = docToDelete.id;
+    const deletingTitle = docToDelete.title;
+    const blobId = docToDelete.fileBlobId;
+
+    try {
+      await db.documents.delete(deletingId);
+      if (blobId) {
+        await db.blobs.delete(blobId);
+      }
+      await db.annotations.where('documentId').equals(deletingId).delete();
+      addToast(`Deleted "${deletingTitle}".`, 'info');
+
+      if (activeDocumentId === deletingId) {
+        const remaining = documents.filter((d) => d.id !== deletingId);
+        setActiveDocumentId(remaining.length > 0 ? remaining[0].id : null);
+      }
+    } catch (err: any) {
+      console.error('[DomoNote] Failed to delete document:', err);
+      addToast(`Failed to delete document: ${err?.message || 'Unknown error'}`, 'error');
+    } finally {
+      setDocToDelete(null);
+    }
+  };
 
   // Handle universal file upload (PDF, PPT, DOCX, TXT, MD)
   const processUploadedFile = async (file: File) => {
@@ -186,15 +221,29 @@ export const DocumentsView: React.FC = () => {
                         setIsListOpen(false);
                       }
                     }}
-                    className={`p-4 cursor-pointer transition-colors ${
+                    className={`p-3.5 cursor-pointer transition-colors group relative ${
                       isSelected
                         ? 'bg-zinc-900/90 text-white border-l-2 border-white'
                         : 'hover:bg-zinc-900/40 text-zinc-300'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      {getDocIcon(d.fileName)}
-                      <h4 className="text-xs font-semibold text-zinc-100 truncate">{d.title}</h4>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {getDocIcon(d.fileName)}
+                        <h4 className="text-xs font-semibold text-zinc-100 truncate">{d.title}</h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDocToDelete(d);
+                        }}
+                        className="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors opacity-70 group-hover:opacity-100 shrink-0"
+                        title={`Delete "${d.title}"`}
+                        aria-label={`Delete "${d.title}"`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 pl-6">
                       <span>
@@ -255,6 +304,52 @@ export const DocumentsView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {docToDelete && (
+        <Modal
+          isOpen={true}
+          onClose={() => setDocToDelete(null)}
+          title="Delete Document"
+          description="Are you sure you want to delete this document? This action cannot be undone."
+          maxWidth="sm"
+        >
+          <div className="p-6 space-y-4">
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
+              {getDocIcon(docToDelete.fileName)}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-zinc-100 truncate">{docToDelete.title}</p>
+                <p className="text-[10px] font-mono text-zinc-400">
+                  {docToDelete.fileName} • {(docToDelete.fileSize / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              This will permanently remove the file, extracted pages, and all associated AI annotations and compiled notes from your browser's local database.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDocToDelete(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleConfirmDeleteDoc}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Permanently</span>
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
