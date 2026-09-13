@@ -87,7 +87,7 @@ export const DashboardView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-0.5 max-w-lg leading-relaxed">
-              Welcome back. You have {totalItems} items stored safely in your browser. All speech recordings, documents, and notes are air-gapped from cloud servers.
+              Welcome back. You have {totalItems} items stored safely in your browser. All recordings, documents, and notes stay 100% private on your device.
             </p>
           </div>
         </div>

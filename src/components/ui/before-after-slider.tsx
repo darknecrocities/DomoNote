@@ -36,9 +36,9 @@ export const BeforeAfterSlider: React.FC = () => {
 
   return (
     <div className="w-full select-none">
-      <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 uppercase tracking-wider mb-3">
-        <span>Raw Unstructured Input</span>
-        <span>DomoNote Synthesized Output</span>
+      <div className="flex items-center justify-between text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+        <span>Raw Meeting Audio</span>
+        <span>Organized Summary & Tasks</span>
       </div>
 
       <div
@@ -46,17 +46,17 @@ export const BeforeAfterSlider: React.FC = () => {
         onTouchMove={handleTouchMove}
         className="relative w-full h-[380px] rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl cursor-ew-resize"
       >
-        {/* Right Pane: DomoNote Structured Knowledge (Background) */}
+        {/* Right Pane: Structured Knowledge (Background) */}
         <div className="absolute inset-0 p-6 flex flex-col justify-between bg-zinc-950 text-zinc-100">
           <div>
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-zinc-850 pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 <span className="font-semibold text-xs tracking-tight text-white">
-                  Executive Minutes & Decisions
+                  Meeting Minutes & Decisions
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">DOMONOTE / LOCAL AI</span>
+              <span className="text-xs text-zinc-500">Local Summary</span>
             </div>
 
             <div className="space-y-4 text-xs">
@@ -69,7 +69,7 @@ export const BeforeAfterSlider: React.FC = () => {
 
               <div className="p-3.5 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-2">
                 <div className="font-semibold text-zinc-200">Action Items</div>
-                <div className="space-y-1.5 font-mono text-[11px]">
+                <div className="space-y-1.5 text-xs">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span>[ ] Prepare canary rollout manifests</span>
                     <span className="text-zinc-500">@Arron</span>
@@ -83,13 +83,13 @@ export const BeforeAfterSlider: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-[10px] font-mono text-zinc-500 pt-3 border-t border-zinc-900 flex justify-between">
-            <span>SAVED TO INDEXEDDB</span>
-            <span>CITATIONS: 3 VERIFIED</span>
+          <div className="text-xs text-zinc-500 pt-3 border-t border-zinc-900 flex justify-between">
+            <span>Saved to your workspace</span>
+            <span>2 action items</span>
           </div>
         </div>
 
-        {/* Left Pane: Raw Messy Transcript (Clipped by sliderPos) */}
+        {/* Left Pane: Raw Audio Transcript (Clipped by sliderPos) */}
         <div
           className="absolute inset-y-0 left-0 overflow-hidden bg-zinc-900/95 border-r border-zinc-600 text-zinc-400"
           style={{ width: `${sliderPos}%` }}
@@ -97,13 +97,13 @@ export const BeforeAfterSlider: React.FC = () => {
           <div className="w-[800px] h-full p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
-                <span className="font-semibold text-xs tracking-tight text-zinc-400">
-                  Raw Speech Transcript
+                <span className="font-semibold text-xs tracking-tight text-zinc-300">
+                  Raw Audio Transcript
                 </span>
-                <span className="text-[10px] font-mono text-zinc-600">UNSTRUCTURED AUDIO</span>
+                <span className="text-xs text-zinc-500">Spoken Words</span>
               </div>
 
-              <div className="font-mono text-xs text-zinc-400 space-y-2.5 leading-relaxed">
+              <div className="text-xs text-zinc-400 space-y-2.5 leading-relaxed">
                 <p>00:02 speaker: hey so about the deployment we were talking earlier...</p>
                 <p>00:14 speaker: yeah i think friday might be better because of the load testing</p>
                 <p>00:31 speaker: who's preparing the yaml files again? arron did you do that?</p>
@@ -112,13 +112,13 @@ export const BeforeAfterSlider: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-[10px] font-mono text-zinc-600 pt-3 border-t border-zinc-800/80">
-              UNPARSED VERBAL STREAM
+            <div className="text-xs text-zinc-500 pt-3 border-t border-zinc-800/80">
+              Unedited audio recording
             </div>
           </div>
         </div>
 
-        {/* Draggable Divider Line & Handle */}
+        {/* Draggable Divider Handle */}
         <div
           onMouseDown={handleMouseDown}
           className="absolute inset-y-0 -ml-3 w-6 flex items-center justify-center cursor-ew-resize z-20"

@@ -209,7 +209,7 @@ export const Sidebar: React.FC = () => {
         {/* Footer Meta */}
         {!isCollapsed && (
           <div className="flex items-center justify-between mt-2.5 px-1 text-[10px] font-mono text-zinc-500">
-            <span>DOMONOTE V0.1</span>
+            <span>Local Workspace</span>
             <a
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
@@ -217,7 +217,7 @@ export const Sidebar: React.FC = () => {
               className="flex items-center gap-1 hover:text-zinc-300 transition-colors"
             >
               <GithubIcon className="w-3 h-3" />
-              <span>SRC</span>
+              <span>GitHub</span>
             </a>
           </div>
         )}
