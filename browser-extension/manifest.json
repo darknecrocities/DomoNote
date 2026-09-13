@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "DomoNote Meeting Companion",
+  "version": "0.1.0",
+  "description": "Capture meetings and tab audio directly into your local-first DomoNote workspace.",
+  "permissions": [
+    "activeTab",
+    "tabCapture",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "http://localhost:5173/*",
+    "https://domonote.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DomoNote Meeting Companion"
+  }
+}

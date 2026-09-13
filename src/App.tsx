@@ -1,0 +1,65 @@
+import React, { useEffect } from 'react';
+import { useWorkspace } from './context/workspace-context';
+import { initializeDatabase } from './db';
+import { AppLayout } from './components/layout/app-layout';
+import { GlobalSearchModal } from './components/search/global-search-modal';
+import { LandingPage } from './views/landing-page';
+import { DashboardView } from './views/dashboard-view';
+import { NotesView } from './views/notes-view';
+import { MeetingsView } from './views/meetings-view';
+import { DocumentsView } from './views/documents-view';
+import { ManualsView } from './views/manuals-view';
+import { AIWorkspaceView } from './components/ai-workspace/ai-workspace-view';
+import { TemplateGallery } from './components/templates/template-gallery';
+import { SettingsView } from './views/settings-view';
+import { AboutView } from './views/about-view';
+import { PrivacyView } from './views/privacy-view';
+
+export const App: React.FC = () => {
+  const { activeView } = useWorkspace();
+
+  // Initialize Dexie IndexedDB and seeds on app boot
+  useEffect(() => {
+    initializeDatabase().catch((err) => {
+      console.warn('[DomoNote] DB initialization warning:', err);
+    });
+  }, []);
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'landing':
+        return <LandingPage />;
+      case 'dashboard':
+        return <DashboardView />;
+      case 'notes':
+        return <NotesView />;
+      case 'meetings':
+        return <MeetingsView />;
+      case 'documents':
+        return <DocumentsView />;
+      case 'manuals':
+        return <ManualsView />;
+      case 'ai-workspace':
+        return <AIWorkspaceView />;
+      case 'templates':
+        return <TemplateGallery />;
+      case 'settings':
+        return <SettingsView />;
+      case 'about':
+        return <AboutView />;
+      case 'privacy':
+        return <PrivacyView />;
+      default:
+        return <DashboardView />;
+    }
+  };
+
+  return (
+    <AppLayout>
+      {renderActiveView()}
+      <GlobalSearchModal />
+    </AppLayout>
+  );
+};
+
+export default App;
