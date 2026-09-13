@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Shield, Cpu, Database, ExternalLink, Play, RotateCcw, Sparkles, Video, CheckCircle } from 'lucide-react';
+import { ExternalLink, RotateCcw, Sparkles, Video, CheckCircle } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { PandaMascot } from '../components/ui/panda-mascot';
 import logoImg from '../assets/domodomo.png';
 import demoWalkthrough from '../assets/domonote-demo.webp';
 
 export const AboutView: React.FC = () => {
-  const [isPlaying, setIsPlaying] = useState(true);
   const [key, setKey] = useState(0);
 
   const handleRestart = () => {
     setKey((prev) => prev + 1);
-    setIsPlaying(true);
   };
 
   return (
@@ -23,7 +21,7 @@ export const AboutView: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">About DomoNote</h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Local-First AI Knowledge Workspace • Version 0.2.0 • Canonical Architecture
+              Local-first notes, meetings, and documents.
             </p>
           </div>
         </div>
@@ -33,7 +31,7 @@ export const AboutView: React.FC = () => {
             href="https://github.com/darknecrocities/DomoNote"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-white bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-2 text-xs text-white bg-zinc-900 border border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
           >
             <GithubIcon className="w-3.5 h-3.5" />
             <span>GitHub Repository</span>
@@ -43,25 +41,22 @@ export const AboutView: React.FC = () => {
       </div>
 
       <div className="space-y-10 text-xs text-zinc-300 leading-relaxed">
-        {/* Real Embedded Screen Recording Product Demo */}
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
+        {/* Product Demo Video Section */}
+        <section className="rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-2xl">
           <div className="p-4 border-b border-zinc-850 flex items-center justify-between bg-zinc-900/40">
-            <div className="flex items-center gap-2 text-white font-mono text-xs">
+            <div className="flex items-center gap-2 text-white text-xs">
               <Video className="w-4 h-4 text-zinc-400" />
-              <span className="font-semibold">DEMONSTRATION // LIVE PRODUCT WALKTHROUGH</span>
+              <span className="font-semibold">Product Walkthrough</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-mono transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition-colors"
                 title="Replay product demo"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span>Replay Demo</span>
+                <span>Replay</span>
               </button>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
-                REAL REC
-              </span>
             </div>
           </div>
 
@@ -69,18 +64,18 @@ export const AboutView: React.FC = () => {
             <img
               key={key}
               src={demoWalkthrough}
-              alt="DomoNote Live Product Demo Walkthrough"
+              alt="DomoNote Product Walkthrough"
               className="w-full max-h-[520px] object-contain rounded-lg shadow-inner"
             />
           </div>
 
-          <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 font-mono text-[11px]">
+          <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 text-xs">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Full product capture: Landing, Notes, Meetings, Documents, Zen Mode & Panda</span>
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Full product walkthrough: Notes, Meetings, Documents, Zen Mode & Mascot</span>
             </div>
-            <div className="text-zinc-500 text-[10px]">
-              ENGINE: BROWSER MEDIA RECORDER • ZERO TELEMETRY
+            <div className="text-zinc-500 text-xs">
+              Runs entirely on your device without cloud telemetry.
             </div>
           </div>
         </section>
@@ -88,20 +83,19 @@ export const AboutView: React.FC = () => {
         {/* Mascot Showcase Section */}
         <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xl">
           <div className="max-w-xl space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400 uppercase">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
               <Sparkles className="w-3 h-3 text-zinc-400" />
               <span>Focus Companion</span>
             </div>
             <h3 className="text-lg font-bold text-white tracking-tight">
-              Meet DomoNote's Panda Mascot
+              Meet DomoNote's Panda Companion
             </h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Designed in a minimalist, high-craft editorial black-and-white style. The panda sits
-              quietly taking notes in your Zen focus workspace, scribbling when you type and tracking
-              your word count without getting in your way.
+              Designed in a clean, minimal black-and-white style. The panda sits quietly taking notes in
+              your Zen focus workspace, reacting as you type and keeping track of your session without distractions.
             </p>
-            <div className="font-mono text-[11px] text-zinc-500">
-              CLICK THE PANDA TO CYCLE FOCUS TIPS • LAUNCH ZEN MODE VIA CMD/CTRL + SHIFT + N
+            <div className="text-xs text-zinc-500">
+              Click the panda to cycle focus tips. Open Zen mode with Cmd/Ctrl + Shift + N.
             </div>
           </div>
 
@@ -110,20 +104,20 @@ export const AboutView: React.FC = () => {
           </div>
         </section>
 
-        {/* Concept & Manifesto */}
+        {/* Concept & Purpose */}
         <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 space-y-4">
           <h3 className="text-sm font-semibold text-white tracking-tight uppercase tracking-wider">
             What is DomoNote?
           </h3>
           <p className="leading-relaxed">
-            DomoNote is an open-source, local-first workspace designed to capture, understand, and
-            synthesize what happens across meetings, documents, computer operations, and notes.
+            DomoNote is an open-source, local-first workspace designed to capture, organize, and synthesize
+            what happens across your meetings, documents, and notes.
           </p>
           <p className="text-zinc-400 leading-relaxed">
-            Instead of dispersing information across closed SaaS products, DomoNote operates
-            entirely inside your browser and local machine. It combines the functions of a modern
-            markdown notes app, an automated meeting secretary, an interactive PDF document reader, and
-            a step-by-step standard operating procedure (SOP) generator.
+            Instead of storing your information on third-party cloud servers, DomoNote operates
+            entirely inside your browser and local machine. It combines a distraction-free markdown notes editor,
+            an automated meeting secretary, a multi-format document reader (PDF, DOCX, PPTX, TXT), and a step-by-step
+            guide generator.
           </p>
         </section>
 
@@ -165,15 +159,15 @@ export const AboutView: React.FC = () => {
           <h3 className="text-sm font-semibold text-white tracking-tight uppercase tracking-wider">
             Technology Foundation
           </h3>
-          <ul className="space-y-2 text-zinc-400 font-mono text-xs">
+          <ul className="space-y-2 text-zinc-400 text-xs">
             <li>• Frontend: React 18, TypeScript 5, Vite 6, Tailwind CSS</li>
-            <li>• Audio Engine: Web Audio API mechanical switch & thock synthesizer</li>
-            <li>• Local Storage: IndexedDB via Dexie 4</li>
-            <li>• Local Intelligence: Ollama REST API (streaming generate & chat)</li>
-            <li>• PDF Engine: PDF.js (pdfjs-dist) with coordinate annotations</li>
-            <li>• Audio Processing: Web Audio API & MediaRecorder</li>
+            <li>• Audio: Web Audio API sound synthesizer</li>
+            <li>• Local Storage: IndexedDB via Dexie</li>
+            <li>• Local Intelligence: Ollama REST API (streaming generate and chat)</li>
+            <li>• Document Ingestion: PDF.js, Mammoth (.docx), JSZip (.pptx)</li>
+            <li>• Audio Processing: Web Audio API and MediaRecorder</li>
             <li>• Screen Recording: Standard Navigator MediaDevices DisplayMedia</li>
-            <li>• Architecture: Fully deployable to Vercel as a client-side SPA</li>
+            <li>• Deployment: Static client-side Single Page Application</li>
           </ul>
         </section>
       </div>

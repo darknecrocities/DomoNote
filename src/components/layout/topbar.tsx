@@ -15,17 +15,17 @@ export const Topbar: React.FC = () => {
       case 'notes':
         return 'Notes';
       case 'zen':
-        return 'Zen Focus Sanctuary';
+        return 'Zen Notes';
       case 'meetings':
-        return 'Meeting Secretary';
+        return 'Meetings';
       case 'schedule':
-        return 'Automated Schedule';
+        return 'Schedule';
       case 'documents':
-        return 'Document Intelligence';
+        return 'Documents';
       case 'manuals':
-        return 'Operation Manuals';
+        return 'Manuals';
       case 'studio':
-        return 'Screen Recording Studio';
+        return 'Screen Recorder';
       case 'ai-workspace':
         return 'AI Workspace';
       case 'templates':
@@ -35,9 +35,9 @@ export const Topbar: React.FC = () => {
       case 'about':
         return 'About DomoNote';
       case 'changelog':
-        return 'Changelog & System Diagnostics';
+        return 'Changelog';
       case 'privacy':
-        return 'Privacy & Local-First Boundaries';
+        return 'Privacy Architecture';
       default:
         return 'DomoNote';
     }
