@@ -173,42 +173,24 @@ export const SpotlightWarpCursor: React.FC = () => {
               ? 'radial-gradient(circle, rgba(255, 255, 255, 0.13) 0%, rgba(200, 220, 255, 0.05) 35%, transparent 70%)'
               : 'radial-gradient(circle, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 40%, transparent 70%)'
             : isHovering
-            ? 'radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.06) 38%, transparent 72%)'
-            : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 70%)',
+            ? 'radial-gradient(circle, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.02) 45%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 45%, transparent 70%)',
           filter: 'blur(24px)',
           transition: 'opacity 0.25s ease, transform 0.05s linear',
         }}
       />
 
-      {/* 2. Magnetic Warp Halo Ring with Elastic Spring Distortion */}
+      {/* 2. Fluid Blended Cursor Follower (Borderless Difference Blend) */}
       <div
         ref={haloRef}
-        className={`absolute -top-5 -left-5 w-10 h-10 rounded-full will-change-transform pointer-events-none flex items-center justify-center transition-colors duration-200 ${
-          isHovering
-            ? isDark
-              ? 'border-2 border-white/60 bg-white/10 shadow-[0_0_24px_rgba(255,255,255,0.25)] backdrop-blur-[1px]'
-              : 'border-2 border-indigo-600/70 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.25)] backdrop-blur-[1px]'
-            : isDark
-            ? 'border border-white/25 bg-transparent'
-            : 'border border-slate-400/40 bg-transparent'
-        }`}
+        className="absolute -top-4 -left-4 w-8 h-8 rounded-full will-change-transform pointer-events-none transition-opacity duration-200"
         style={{
-          boxShadow: isHovering
-            ? isDark
-              ? '0 0 20px 2px rgba(255, 255, 255, 0.2), inset 0 0 12px rgba(255, 255, 255, 0.15)'
-              : '0 0 18px 2px rgba(99, 102, 241, 0.25), inset 0 0 10px rgba(99, 102, 241, 0.15)'
-            : 'none',
+          background: 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 42%, transparent 75%)',
+          mixBlendMode: 'difference',
+          filter: 'blur(2px)',
+          opacity: isHovering ? 0.85 : 0.45,
         }}
-      >
-        {/* Subtle Inner Optical Ripple when Hovering */}
-        {isHovering && (
-          <div
-            className={`w-full h-full rounded-full animate-ping opacity-30 ${
-              isDark ? 'bg-white' : 'bg-indigo-500'
-            }`}
-          />
-        )}
-      </div>
+      />
     </div>
   );
 };

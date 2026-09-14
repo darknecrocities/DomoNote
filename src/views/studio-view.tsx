@@ -366,18 +366,18 @@ export const StudioView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black p-6 sm:p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 sm:p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Top Header Controls Card */}
-      <div className="border-b border-zinc-850 pb-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-white" />
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <Video className="w-5 h-5 text-slate-900 dark:text-white" />
+            <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">
               Screen Recording Studio
             </h1>
             <Badge variant="outline">FLIGHT RECORDER</Badge>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
             Capture workflows dynamically with auto-annotated keyframes and generate standard operating procedures.
           </p>
         </div>

@@ -163,7 +163,7 @@ export const DocumentsView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-black font-sans">
+    <div className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-black transition-colors duration-500 font-sans">
       <input
         type="file"
         ref={fileInputRef}
@@ -177,9 +177,9 @@ export const DocumentsView: React.FC = () => {
 
       {/* Left Sidebar: Document List */}
       {isListOpen && (
-        <div className="w-72 lg:w-80 border-r border-zinc-850 flex flex-col h-full bg-zinc-950 shrink-0 select-none animate-fade-in z-10">
-          <div className="p-3.5 border-b border-zinc-850 flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+        <div className="w-72 lg:w-80 border-r border-slate-200 dark:border-zinc-850 flex flex-col h-full bg-white dark:bg-zinc-950 shrink-0 select-none animate-fade-in z-10 transition-colors duration-500">
+          <div className="p-3.5 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
               Documents ({documents.length})
             </span>
             <div className="flex items-center gap-1.5">
@@ -194,7 +194,7 @@ export const DocumentsView: React.FC = () => {
               </Button>
               <button
                 onClick={() => setIsListOpen(false)}
-                className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-900 transition-colors"
+                className="p-1 rounded text-slate-500 dark:text-zinc-500 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
                 title="Collapse document list"
                 aria-label="Collapse document list"
               >
@@ -203,9 +203,9 @@ export const DocumentsView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-zinc-850">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-850">
             {documents.length === 0 ? (
-              <div className="p-8 text-center text-xs text-zinc-500">
+              <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500">
                 No documents uploaded yet. Upload a PDF, Word (DOCX), PowerPoint (PPTX), or text file to analyze with local AI.
               </div>
             ) : (
@@ -223,14 +223,14 @@ export const DocumentsView: React.FC = () => {
                     }}
                     className={`p-3.5 cursor-pointer transition-colors group relative ${
                       isSelected
-                        ? 'bg-zinc-900/90 text-white border-l-2 border-white'
-                        : 'hover:bg-zinc-900/40 text-zinc-300'
+                        ? 'bg-slate-100 dark:bg-zinc-900/90 text-slate-950 dark:text-white border-l-2 border-slate-900 dark:border-white'
+                        : 'hover:bg-slate-50 dark:hover:bg-zinc-900/40 text-slate-700 dark:text-zinc-300'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {getDocIcon(d.fileName)}
-                        <h4 className="text-xs font-semibold text-zinc-100 truncate">{d.title}</h4>
+                        <h4 className="text-xs font-bold text-slate-950 dark:text-zinc-100 truncate">{d.title}</h4>
                       </div>
                       <button
                         type="button"
@@ -238,14 +238,14 @@ export const DocumentsView: React.FC = () => {
                           e.stopPropagation();
                           setDocToDelete(d);
                         }}
-                        className="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors opacity-70 group-hover:opacity-100 shrink-0"
+                        className="p-1 rounded text-slate-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors opacity-70 group-hover:opacity-100 shrink-0"
                         title={`Delete "${d.title}"`}
                         aria-label={`Delete "${d.title}"`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 pl-6">
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 pl-6 font-medium">
                       <span>
                         {d.pageCount} {isPresentation ? 'slides' : 'pages'}
                       </span>

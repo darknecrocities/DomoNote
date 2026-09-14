@@ -225,13 +225,6 @@ export const ZenFocusView: React.FC = () => {
           <PandaMascot
             size="md"
             isWriting={isTyping}
-            message={
-              isTyping
-                ? `${wordsCount} words captured... keep going!`
-                : wordsCount > 0
-                ? `${wordsCount} words • Saved locally`
-                : undefined
-            }
           />
         </div>
       </main>

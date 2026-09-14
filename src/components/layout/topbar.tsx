@@ -60,7 +60,7 @@ export const Topbar: React.FC = () => {
           <Menu className="w-4 h-4" />
         </button>
 
-        <h1 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight truncate max-w-[120px] sm:max-w-none">
+        <h1 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight truncate max-w-[120px] sm:max-w-none">
           {getTitle()}
         </h1>
       </div>
@@ -71,7 +71,7 @@ export const Topbar: React.FC = () => {
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 h-full">
         {/* Language Switcher */}
         <LanguageSwitcher />
 
@@ -81,12 +81,12 @@ export const Topbar: React.FC = () => {
         {/* Search / Command Palette Trigger */}
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="flex items-center gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-xs"
+          className="flex items-center gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-850 text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-zinc-700 transition-colors text-xs shadow-sm"
           title={`${t('common.search')} (Cmd+K)`}
         >
-          <Search className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden xl:inline text-slate-500 dark:text-zinc-400">{t('common.search')}</span>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-zinc-500 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded">
+          <Search className="w-3.5 h-3.5 shrink-0 text-slate-600 dark:text-zinc-400" />
+          <span className="hidden xl:inline text-slate-700 dark:text-zinc-400 font-medium">{t('common.search')}</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-700 dark:text-zinc-400 bg-white dark:bg-zinc-950 border border-slate-300 dark:border-zinc-850 rounded font-semibold">
             Cmd+K
           </kbd>
         </button>
@@ -130,11 +130,16 @@ export const Topbar: React.FC = () => {
             <span className="hidden sm:inline">Upload</span>
           </Button>
         )}
-      </div>
 
-      {/* Physics Rope Hanging Directly Under the Appbar */}
-      <div className="absolute right-20 sm:right-32 top-full -mt-px z-50 pointer-events-auto">
-        <PhysicsRopeToggle />
+        {/* Subtle Divider */}
+        <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-0.5" />
+
+        {/* Physics Lampcord Toggle */}
+        <div className="relative flex items-center justify-center w-8 h-full self-stretch">
+          <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+            <PhysicsRopeToggle />
+          </div>
+        </div>
       </div>
     </header>
   );

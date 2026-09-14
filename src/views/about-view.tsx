@@ -13,14 +13,14 @@ export const AboutView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Brand Header */}
-      <div className="border-b border-zinc-850 pb-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-slate-200 dark:border-zinc-850 pb-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <img src={logoImg} alt="DomoNote" className="w-12 h-12 rounded-xl object-contain" />
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">About DomoNote</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">About DomoNote</h1>
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
               Local-first notes, meetings, and documents.
             </p>
           </div>
@@ -31,27 +31,27 @@ export const AboutView: React.FC = () => {
             href="https://github.com/darknecrocities/DomoNote"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-white bg-zinc-900 border border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-2 text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors font-medium shadow-xs"
           >
             <GithubIcon className="w-3.5 h-3.5" />
             <span>GitHub Repository</span>
-            <ExternalLink className="w-3 h-3 text-zinc-500" />
+            <ExternalLink className="w-3 h-3 text-slate-500 dark:text-zinc-500" />
           </a>
         </div>
       </div>
 
-      <div className="space-y-10 text-xs text-zinc-300 leading-relaxed">
+      <div className="space-y-10 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
         {/* Product Demo Video Section */}
-        <section className="rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-2xl">
-          <div className="p-4 border-b border-zinc-850 flex items-center justify-between bg-zinc-900/40">
-            <div className="flex items-center gap-2 text-white text-xs">
-              <Video className="w-4 h-4 text-zinc-400" />
-              <span className="font-semibold">Product Walkthrough</span>
+        <section className="rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs dark:shadow-2xl transition-colors duration-500">
+          <div className="p-4 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between bg-slate-50 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2 text-slate-950 dark:text-white text-xs">
+              <Video className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
+              <span className="font-bold">Product Walkthrough</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs transition-colors font-medium"
                 title="Replay product demo"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -60,7 +60,7 @@ export const AboutView: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative bg-black flex items-center justify-center p-2">
+          <div className="relative bg-slate-950 flex items-center justify-center p-2">
             <img
               key={key}
               src={demoWalkthrough}
@@ -69,51 +69,51 @@ export const AboutView: React.FC = () => {
             />
           </div>
 
-          <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 text-xs">
+          <div className="p-4 border-t border-slate-200 dark:border-zinc-850 bg-slate-50/80 dark:bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-slate-600 dark:text-zinc-400 text-xs">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Full product walkthrough: Notes, Meetings, Documents, Zen Mode & Mascot</span>
             </div>
-            <div className="text-zinc-500 text-xs">
+            <div className="text-slate-500 dark:text-zinc-500 text-xs">
               Runs entirely on your device with no data sent outside.
             </div>
           </div>
         </section>
 
         {/* Mascot Showcase Section */}
-        <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xl">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xs dark:shadow-xl transition-colors duration-500">
           <div className="max-w-xl space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
-              <Sparkles className="w-3 h-3 text-zinc-400" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 font-medium">
+              <Sparkles className="w-3 h-3 text-slate-500 dark:text-zinc-400" />
               <span>Focus Companion</span>
             </div>
-            <h3 className="text-lg font-bold text-white tracking-tight">
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white tracking-tight">
               Meet DomoNote's Panda Companion
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
               Designed in a clean, minimal black-and-white style. The panda sits quietly taking notes in
               your Zen focus workspace, reacting as you type and keeping track of your session without distractions.
             </p>
-            <div className="text-xs text-zinc-500">
-              Click the panda to cycle focus tips. Open Zen mode with Cmd/Ctrl + Shift + N.
+            <div className="text-xs text-slate-500 dark:text-zinc-500">
+              Your distraction-free companion. Open Zen mode with Cmd/Ctrl + Shift + N.
             </div>
           </div>
 
           <div className="shrink-0 flex items-center justify-center">
-            <PandaMascot size="lg" message="I keep your notes private and safe locally." />
+            <PandaMascot size="lg" />
           </div>
         </section>
 
         {/* Concept & Purpose */}
-        <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-white tracking-tight uppercase tracking-wider">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             What is DomoNote?
           </h3>
-          <p className="leading-relaxed">
+          <p className="leading-relaxed text-slate-800 dark:text-zinc-300">
             DomoNote is an open-source, local-first workspace designed to capture, organize, and synthesize
             what happens across your meetings, documents, and notes.
           </p>
-          <p className="text-zinc-400 leading-relaxed">
+          <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">
             Instead of storing your information on third-party cloud servers, DomoNote operates
             entirely inside your browser and local machine. It combines a distraction-free markdown notes editor,
             an automated meeting secretary, a multi-format document reader (PDF, DOCX, PPTX, TXT), and a step-by-step
@@ -122,32 +122,32 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Domo Open Source Ecosystem */}
-        <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-white tracking-tight uppercase tracking-wider">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             Domo Open Source Ecosystem
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800">
-              <div className="font-semibold text-zinc-100 text-sm">DomoNote</div>
-              <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800">
+              <div className="font-bold text-slate-950 dark:text-zinc-100 text-sm">DomoNote</div>
+              <p className="text-slate-600 dark:text-zinc-400 text-xs mt-1 leading-relaxed">
                 Local-first AI note-taking, meetings, documents, and operational memory.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800">
-              <div className="font-semibold text-zinc-100 text-sm">DomoDomo</div>
-              <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800">
+              <div className="font-bold text-slate-950 dark:text-zinc-100 text-sm">DomoDomo</div>
+              <p className="text-slate-600 dark:text-zinc-400 text-xs mt-1 leading-relaxed">
                 General local-first developer toolbox and utilities.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800">
-              <div className="font-semibold text-zinc-100 text-sm">DomoSkills</div>
-              <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800">
+              <div className="font-bold text-slate-950 dark:text-zinc-100 text-sm">DomoSkills</div>
+              <p className="text-slate-600 dark:text-zinc-400 text-xs mt-1 leading-relaxed">
                 Autonomous agent skills, capabilities, and system cheatsheets.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800">
-              <div className="font-semibold text-zinc-100 text-sm">Codepyne</div>
-              <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800">
+              <div className="font-bold text-slate-950 dark:text-zinc-100 text-sm">Codepyne</div>
+              <p className="text-slate-600 dark:text-zinc-400 text-xs mt-1 leading-relaxed">
                 AI engineering education and hands-on learning resources.
               </p>
             </div>
@@ -155,11 +155,11 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Technology Foundation */}
-        <section className="bg-zinc-950 border border-zinc-850 rounded-2xl p-6 space-y-3">
-          <h3 className="text-sm font-semibold text-white tracking-tight uppercase tracking-wider">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             Technology Foundation
           </h3>
-          <ul className="space-y-2 text-zinc-400 text-xs">
+          <ul className="space-y-2 text-slate-600 dark:text-zinc-400 text-xs">
             <li>• Frontend: React 18, TypeScript 5, Vite 6, Tailwind CSS</li>
             <li>• Audio: Web Audio API sound synthesizer</li>
             <li>• Local Storage: IndexedDB via Dexie</li>

@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useWorkspace } from '../context/workspace-context';
+import { useTheme } from '../context/theme-context';
 import { Button } from '../components/ui/button';
+import { PhysicsRopeToggle } from '../components/ui/physics-rope-toggle';
 import {
   Download,
   Terminal,
@@ -10,11 +12,7 @@ import {
   Shield,
   ArrowRight,
   ExternalLink,
-  Laptop,
   Cpu,
-  HardDrive,
-  Sparkles,
-  Info,
   ArrowLeft,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
@@ -34,14 +32,16 @@ export const WindowsIcon: React.FC<{ className?: string }> = ({ className = 'w-6
   </svg>
 );
 
+// Authentic Official Tux the Penguin Linux Vector
 export const LinuxTuxIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
-  <svg viewBox="0 0 340 340" fill="currentColor" className={className} aria-label="Linux Tux Logo">
-    <path d="M170 10C118 10 90 45 90 95c0 25 8 50 15 75-10 15-30 35-45 50-10 10-15 25-10 38 6 15 25 22 55 18 10 12 35 24 65 24s55-12 65-24c30 4 49-3 55-18 5-13 0-28-10-38-15-15-35-35-45-50 7-25 15-50 15-75 0-50-28-85-80-85zm-25 60c8 0 15 10 15 22s-7 22-15 22-15-10-15-22 7-22 15-22zm50 0c8 0 15 10 15 22s-7 22-15 22-15-10-15-22 7-22 15-22zm-40 45c10 0 25 4 35 12-5 8-18 15-35 15s-30-7-35-15c10-8 25-12 35-12z" />
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-label="Linux Tux Logo">
+    <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z" />
   </svg>
 );
 
 export const DownloadView: React.FC = () => {
   const { setActiveView, addToast } = useWorkspace();
+  const { theme } = useTheme();
 
   // Detect user operating system and architecture
   const detectedOS = useMemo<SupportedOS>(() => {
@@ -74,7 +74,6 @@ export const DownloadView: React.FC = () => {
   };
 
   const handleDownload = (filename: string, osName: string) => {
-    // Initiate browser download
     const blobContent = `#!/usr/bin/env bash
 # DomoNote Installer Bootstrap for ${osName}
 # Repository: https://github.com/darknecrocities/DomoNote
@@ -99,33 +98,33 @@ bash start.sh
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black text-white p-6 md:p-10 overflow-y-auto max-w-6xl mx-auto w-full select-none">
+    <div className="flex-1 flex flex-col min-h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 md:p-10 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-500 font-sans">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-8">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-6 mb-8 transition-colors duration-500 relative">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveView('landing')}
-            className="p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-white/40 transition-colors"
+            className="p-2 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 text-slate-700 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/40 transition-colors shadow-sm"
             title="Back to Landing Page"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
               Download DomoNote Desktop
             </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 font-medium">
               Local-first desktop application with offline Ollama AI, screen recording, and secure local storage.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <a
             href="https://github.com/darknecrocities/DomoNote"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-white hover:border-white/40 transition-colors"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 text-xs font-semibold text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/40 transition-colors shadow-sm"
           >
             <GithubIcon className="w-3.5 h-3.5" />
             <span>GitHub Repository</span>
@@ -134,29 +133,34 @@ bash start.sh
           <Button
             size="sm"
             variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
+            className="border-slate-300 dark:border-white/20 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 font-semibold"
             onClick={() => setActiveView('dashboard')}
           >
             <span>Launch Local Workspace</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1" />
           </Button>
+
+          {/* Lampcord Pull Switch anchored directly on bottom border */}
+          <div className="absolute -bottom-[2px] right-0 pointer-events-auto z-50">
+            <PhysicsRopeToggle />
+          </div>
         </div>
       </div>
 
       {/* Auto-Detected Operating System Banner */}
-      <div className="mb-8 p-4 rounded-xl bg-zinc-950 border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mb-8 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm dark:shadow-none transition-colors duration-500">
         <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-lg bg-white text-black">
+          <div className="p-3 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black shadow-md">
             {detectedOS === 'macos' && <AppleIcon className="w-6 h-6" />}
             {detectedOS === 'windows' && <WindowsIcon className="w-6 h-6" />}
             {detectedOS === 'linux' && <LinuxTuxIcon className="w-6 h-6" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-white font-mono">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
                 Detected System:
               </span>
-              <span className="text-xs font-bold text-white uppercase">
+              <span className="text-xs font-bold text-slate-950 dark:text-white uppercase">
                 {detectedOS === 'macos'
                   ? isAppleSilicon
                     ? 'macOS (Apple Silicon M-Series)'
@@ -165,11 +169,11 @@ bash start.sh
                   ? 'Windows 10 / 11 (64-bit)'
                   : 'Linux (x86_64)'}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white text-black font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold">
                 Auto-Matched
               </span>
             </div>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 font-medium">
               {detectedOS === 'macos'
                 ? 'High-speed Metal acceleration and zero-lag local model execution ready.'
                 : detectedOS === 'windows'
@@ -193,7 +197,7 @@ bash start.sh
                 handleDownload('DomoNote-Linux-x86_64.AppImage', 'Linux');
               }
             }}
-            className="px-5 py-2.5 rounded-lg bg-white text-black text-xs font-bold hover:bg-zinc-200 transition-colors flex items-center gap-2 shadow-lg"
+            className="px-5 py-2.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center gap-2 shadow-lg"
           >
             <Download className="w-4 h-4" />
             <span>
@@ -211,13 +215,13 @@ bash start.sh
       </div>
 
       {/* OS Filter Switcher */}
-      <div className="flex items-center gap-2 mb-6 border-b border-zinc-850 pb-4">
+      <div className="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-zinc-850 pb-4 transition-colors duration-500">
         <button
           onClick={() => setSelectedOS('macos')}
-          className={`px-4 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2.5 ${
             selectedOS === 'macos'
-              ? 'bg-white text-black font-bold'
-              : 'bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-white/30'
+              ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-md'
+              : 'bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <AppleIcon className="w-4 h-4" />
@@ -226,10 +230,10 @@ bash start.sh
 
         <button
           onClick={() => setSelectedOS('windows')}
-          className={`px-4 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2.5 ${
             selectedOS === 'windows'
-              ? 'bg-white text-black font-bold'
-              : 'bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-white/30'
+              ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-md'
+              : 'bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <WindowsIcon className="w-4 h-4" />
@@ -238,10 +242,10 @@ bash start.sh
 
         <button
           onClick={() => setSelectedOS('linux')}
-          className={`px-4 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2.5 ${
             selectedOS === 'linux'
-              ? 'bg-white text-black font-bold'
-              : 'bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-white/30'
+              ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-md'
+              : 'bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <LinuxTuxIcon className="w-4 h-4" />
@@ -249,47 +253,47 @@ bash start.sh
         </button>
       </div>
 
-      {/* 3 Main Black and White Cards with Original OS Icons */}
+      {/* 3 Main OS Cards with High Contrast Light & Dark Styling */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
         {/* macOS Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
             selectedOS === 'macos'
-              ? 'bg-zinc-950 border-2 border-white shadow-2xl shadow-white/5'
-              : 'bg-zinc-950/70 border border-zinc-850 hover:border-white/30'
+              ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
+              : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-white text-black">
+              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
                 <AppleIcon className="w-7 h-7" />
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'macos' && (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-white text-black">
+                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black">
                     Your System
                   </span>
                 )}
-                <span className="text-[11px] text-zinc-400 font-mono">macOS 12.0+</span>
+                <span className="text-[11px] text-slate-600 dark:text-zinc-400 font-mono font-semibold">macOS 12.0+</span>
               </div>
             </div>
 
             {/* Title */}
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight">macOS</h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <h3 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">macOS</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 font-medium">
                 Optimized for Apple Silicon Unified Memory and Intel x86_64.
               </p>
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-black border border-zinc-800 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <Cpu className="w-3.5 h-3.5 text-zinc-400" />
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
               </div>
-              <ul className="text-[11px] text-zinc-400 space-y-1 font-mono">
+              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
                 <li>• Architecture: Apple Silicon (M1/M2/M3/M4) or Intel x86_64</li>
                 <li>• Minimum RAM: 8 GB Unified Memory (16 GB for 8B models)</li>
                 <li>• OS Version: macOS Monterey 12.0 or newer</li>
@@ -298,17 +302,17 @@ bash start.sh
             </div>
 
             {/* Features */}
-            <div className="space-y-1.5 text-xs text-zinc-300">
+            <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Metal GPU acceleration enabled</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Screen Capture Studio with audio recording</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Automated Ollama local launch script</span>
               </div>
             </div>
@@ -318,14 +322,14 @@ bash start.sh
           <div className="pt-6 space-y-2">
             <button
               onClick={() => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)')}
-              className="w-full py-2.5 px-4 rounded-lg bg-white text-black text-xs font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Apple Silicon (DMG)</span>
             </button>
             <button
               onClick={() => handleDownload('DomoNote-macOS-x64.dmg', 'macOS (Intel)')}
-              className="w-full py-2 px-4 rounded-lg bg-black border border-zinc-800 text-zinc-300 text-xs font-medium hover:border-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Intel Mac (DMG)</span>
@@ -335,43 +339,43 @@ bash start.sh
 
         {/* Windows Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
             selectedOS === 'windows'
-              ? 'bg-zinc-950 border-2 border-white shadow-2xl shadow-white/5'
-              : 'bg-zinc-950/70 border border-zinc-850 hover:border-white/30'
+              ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
+              : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-white text-black">
+              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
                 <WindowsIcon className="w-7 h-7" />
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'windows' && (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-white text-black">
+                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black">
                     Your System
                   </span>
                 )}
-                <span className="text-[11px] text-zinc-400 font-mono">Win 10/11 64-bit</span>
+                <span className="text-[11px] text-slate-600 dark:text-zinc-400 font-mono font-semibold">Win 10/11 64-bit</span>
               </div>
             </div>
 
             {/* Title */}
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight">Windows</h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <h3 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Windows</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 font-medium">
                 Standard desktop installer and portable archive for Windows 10/11.
               </p>
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-black border border-zinc-800 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <Cpu className="w-3.5 h-3.5 text-zinc-400" />
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
               </div>
-              <ul className="text-[11px] text-zinc-400 space-y-1 font-mono">
+              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
                 <li>• Architecture: x64 / ARM64 with AVX2 instruction support</li>
                 <li>• Minimum RAM: 8 GB (16 GB for deep cross-note RAG)</li>
                 <li>• OS Version: Windows 10 (Build 19041+) or Windows 11</li>
@@ -380,17 +384,17 @@ bash start.sh
             </div>
 
             {/* Features */}
-            <div className="space-y-1.5 text-xs text-zinc-300">
+            <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>DirectML & NVIDIA GPU acceleration</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Windows Tab Audio and Screen Recorder</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Portable standalone execution mode</span>
               </div>
             </div>
@@ -400,14 +404,14 @@ bash start.sh
           <div className="pt-6 space-y-2">
             <button
               onClick={() => handleDownload('DomoNote-Setup-x64.exe', 'Windows')}
-              className="w-full py-2.5 px-4 rounded-lg bg-white text-black text-xs font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Installer (.EXE)</span>
             </button>
             <button
               onClick={() => handleDownload('DomoNote-Windows-Portable.zip', 'Windows Portable')}
-              className="w-full py-2 px-4 rounded-lg bg-black border border-zinc-800 text-zinc-300 text-xs font-medium hover:border-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Portable (.ZIP)</span>
@@ -417,43 +421,43 @@ bash start.sh
 
         {/* Linux Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
             selectedOS === 'linux'
-              ? 'bg-zinc-950 border-2 border-white shadow-2xl shadow-white/5'
-              : 'bg-zinc-950/70 border border-zinc-850 hover:border-white/30'
+              ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
+              : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-white text-black">
+              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
                 <LinuxTuxIcon className="w-7 h-7" />
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'linux' && (
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-white text-black">
+                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black">
                     Your System
                   </span>
                 )}
-                <span className="text-[11px] text-zinc-400 font-mono">glibc 2.31+</span>
+                <span className="text-[11px] text-slate-600 dark:text-zinc-400 font-mono font-semibold">glibc 2.31+</span>
               </div>
             </div>
 
             {/* Title */}
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight">Linux</h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <h3 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">Linux</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 font-medium">
                 Universal AppImage and Debian/Ubuntu package for modern distributions.
               </p>
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-black border border-zinc-850 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <Cpu className="w-3.5 h-3.5 text-zinc-400" />
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
               </div>
-              <ul className="text-[11px] text-zinc-400 space-y-1 font-mono">
+              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
                 <li>• Architecture: x86_64 or aarch64</li>
                 <li>• Distributions: Ubuntu 20.04+, Debian 11+, Fedora 36+, Arch</li>
                 <li>• Minimum RAM: 8 GB RAM (systemd required for companion)</li>
@@ -462,17 +466,17 @@ bash start.sh
             </div>
 
             {/* Features */}
-            <div className="space-y-1.5 text-xs text-zinc-300">
+            <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>Sandboxed universal AppImage binary</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>PipeWire & PulseAudio capture integration</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                 <span>1-line terminal curl installer script</span>
               </div>
             </div>
@@ -482,14 +486,14 @@ bash start.sh
           <div className="pt-6 space-y-2">
             <button
               onClick={() => handleDownload('DomoNote-Linux-x86_64.AppImage', 'Linux AppImage')}
-              className="w-full py-2.5 px-4 rounded-lg bg-white text-black text-xs font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download AppImage (.AppImage)</span>
             </button>
             <button
               onClick={() => handleDownload('domonote_1.0.0_amd64.deb', 'Debian/Ubuntu')}
-              className="w-full py-2 px-4 rounded-lg bg-black border border-zinc-800 text-zinc-300 text-xs font-medium hover:border-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Debian Package (.DEB)</span>
@@ -499,22 +503,22 @@ bash start.sh
       </div>
 
       {/* Terminal / One-Line Quick Install Section */}
-      <div className="rounded-2xl bg-zinc-950 border border-white/20 p-6 space-y-5">
+      <div className="rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 p-6 space-y-5 shadow-sm dark:shadow-none transition-colors duration-500">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Terminal className="w-4 h-4 text-white" />
-            <h3 className="text-sm font-semibold text-white tracking-tight">
+            <Terminal className="w-4 h-4 text-slate-900 dark:text-white" />
+            <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight">
               One-Line Automated Terminal Installation
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-zinc-400">Clone & Run with Native Hardware Access</span>
+          <span className="text-[11px] font-mono text-slate-600 dark:text-zinc-400 font-semibold">Clone & Run with Native Hardware Access</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Mac Terminal */}
-          <div className="p-4 rounded-xl bg-black border border-zinc-850 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <AppleIcon className="w-3.5 h-3.5" /> macOS Terminal
               </span>
               <button
@@ -524,21 +528,21 @@ bash start.sh
                     'mac'
                   )
                 }
-                className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-[10px] text-slate-600 dark:text-zinc-400 hover:text-black dark:hover:text-white flex items-center gap-1 cursor-pointer font-semibold"
               >
-                {copiedCmd === 'mac' ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3" />}
+                {copiedCmd === 'mac' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                 <span>{copiedCmd === 'mac' ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
-            <code className="block text-[11px] text-zinc-300 font-mono bg-zinc-900/60 p-2.5 rounded border border-zinc-800 overflow-x-auto whitespace-pre">
+            <code className="block text-[11px] text-slate-800 dark:text-zinc-300 font-mono bg-slate-100 dark:bg-zinc-900/60 p-2.5 rounded border border-slate-200 dark:border-zinc-800 overflow-x-auto whitespace-pre font-medium">
               git clone https://github.com/darknecrocities/DomoNote.git && cd DomoNote && ./start.sh
             </code>
           </div>
 
           {/* Windows PowerShell */}
-          <div className="p-4 rounded-xl bg-black border border-zinc-850 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <WindowsIcon className="w-3.5 h-3.5" /> Windows PowerShell
               </span>
               <button
@@ -548,21 +552,21 @@ bash start.sh
                     'win'
                   )
                 }
-                className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-[10px] text-slate-600 dark:text-zinc-400 hover:text-black dark:hover:text-white flex items-center gap-1 cursor-pointer font-semibold"
               >
-                {copiedCmd === 'win' ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3" />}
+                {copiedCmd === 'win' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                 <span>{copiedCmd === 'win' ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
-            <code className="block text-[11px] text-zinc-300 font-mono bg-zinc-900/60 p-2.5 rounded border border-zinc-800 overflow-x-auto whitespace-pre">
+            <code className="block text-[11px] text-slate-800 dark:text-zinc-300 font-mono bg-slate-100 dark:bg-zinc-900/60 p-2.5 rounded border border-slate-200 dark:border-zinc-800 overflow-x-auto whitespace-pre font-medium">
               git clone https://github.com/darknecrocities/DomoNote.git; cd DomoNote; npm install; npm run dev
             </code>
           </div>
 
           {/* Linux Shell */}
-          <div className="p-4 rounded-xl bg-black border border-zinc-850 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <LinuxTuxIcon className="w-3.5 h-3.5" /> Linux Bash
               </span>
               <button
@@ -572,13 +576,13 @@ bash start.sh
                     'linux'
                   )
                 }
-                className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-[10px] text-slate-600 dark:text-zinc-400 hover:text-black dark:hover:text-white flex items-center gap-1 cursor-pointer font-semibold"
               >
-                {copiedCmd === 'linux' ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3" />}
+                {copiedCmd === 'linux' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                 <span>{copiedCmd === 'linux' ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
-            <code className="block text-[11px] text-zinc-300 font-mono bg-zinc-900/60 p-2.5 rounded border border-zinc-800 overflow-x-auto whitespace-pre">
+            <code className="block text-[11px] text-slate-800 dark:text-zinc-300 font-mono bg-slate-100 dark:bg-zinc-900/60 p-2.5 rounded border border-slate-200 dark:border-zinc-800 overflow-x-auto whitespace-pre font-medium">
               git clone https://github.com/darknecrocities/DomoNote.git && cd DomoNote && bash start.sh
             </code>
           </div>
@@ -586,23 +590,23 @@ bash start.sh
       </div>
 
       {/* Footer verification note */}
-      <div className="mt-8 pt-6 border-t border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-zinc-500 transition-colors duration-500">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-zinc-400" />
-          <span>All releases are cryptographically signed, secure, and open-source under the MIT License.</span>
+          <Shield className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
+          <span className="font-medium">All releases are cryptographically signed, secure, and open-source under the MIT License.</span>
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => setActiveView('privacy')} className="hover:text-white transition-colors">
+        <div className="flex items-center gap-4 font-semibold">
+          <button onClick={() => setActiveView('privacy')} className="hover:text-black dark:hover:text-white transition-colors">
             Privacy Architecture
           </button>
-          <button onClick={() => setActiveView('about')} className="hover:text-white transition-colors">
+          <button onClick={() => setActiveView('about')} className="hover:text-black dark:hover:text-white transition-colors">
             About DomoNote
           </button>
           <a
             href="https://github.com/darknecrocities/DomoNote/releases"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-white transition-colors flex items-center gap-1"
+            className="hover:text-black dark:hover:text-white transition-colors flex items-center gap-1"
           >
             <span>GitHub Releases</span>
             <ExternalLink className="w-3 h-3" />

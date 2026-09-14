@@ -84,24 +84,24 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black p-4 sm:p-8 overflow-y-auto max-w-5xl mx-auto w-full">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-4 sm:p-8 overflow-y-auto max-w-5xl mx-auto w-full transition-colors duration-500 font-sans">
       {/* Header */}
-      <div className="border-b border-zinc-850 pb-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             {onBackToList && (
               <button
                 onClick={onBackToList}
-                className="md:hidden flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-900 border border-zinc-800"
+                className="md:hidden flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white px-2 py-1 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800"
                 title="Back to meetings list"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Meetings</span>
               </button>
             )}
-            <h2 className="text-xl font-bold text-white tracking-tight">{meeting.title}</h2>
+            <h2 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight">{meeting.title}</h2>
           </div>
-          <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1.5">
+          <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-zinc-400 mt-1.5 font-medium">
             <span className="font-mono">{new Date(meeting.startTime).toLocaleString()}</span>
             <span>•</span>
             <span className="flex items-center gap-1 font-mono">
@@ -123,19 +123,19 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
             <span>Export MD</span>
           </Button>
           <Button size="icon" variant="ghost" onClick={handleDelete} title="Delete Meeting">
-            <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-400" />
+            <Trash2 className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400" />
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-zinc-850 mb-6 gap-2">
+      <div className="flex items-center border-b border-slate-200 dark:border-zinc-850 mb-6 gap-2">
         <button
           onClick={() => setActiveTab('summary')}
           className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'summary'
-              ? 'border-white text-white'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
+              : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
           Executive Summary
@@ -144,8 +144,8 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
           onClick={() => setActiveTab('transcript')}
           className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'transcript'
-              ? 'border-white text-white'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
+              : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
           Verbal Transcript ({meeting.transcript.length})
@@ -154,8 +154,8 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
           onClick={() => setActiveTab('timeline')}
           className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'timeline'
-              ? 'border-white text-white'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
+              : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
           Milestone Timeline ({meeting.timeline.length})
@@ -166,26 +166,26 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
       {activeTab === 'summary' && (
         <div className="space-y-6">
           {/* Executive Overview */}
-          <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6">
-            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
-              <Sparkles className="w-4 h-4 text-zinc-400" />
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
+              <Sparkles className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
               <span>Overview</span>
             </div>
-            <p className="text-sm text-zinc-200 leading-relaxed">
+            <p className="text-sm text-slate-900 dark:text-zinc-200 leading-relaxed">
               {meeting.summary?.overview || 'No overview generated.'}
             </p>
           </div>
 
           {/* Key Decisions */}
           {meeting.summary && meeting.summary.decisions.length > 0 && (
-            <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6">
-              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+              <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Key Decisions
               </h3>
               <ul className="space-y-2">
                 {meeting.summary.decisions.map((dec, i) => (
-                  <li key={i} className="text-xs text-zinc-200 flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
+                  <li key={i} className="text-xs text-slate-800 dark:text-zinc-200 flex items-start gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-400 mt-1.5 shrink-0" />
                     <span>{dec}</span>
                   </li>
                 ))}
@@ -195,9 +195,9 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Action Items */}
           {meeting.summary && meeting.summary.actionItems.length > 0 && (
-            <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
                   Action Items ({meeting.summary.actionItems.length})
                 </h3>
               </div>
@@ -205,13 +205,13 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                 {meeting.summary.actionItems.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 text-xs"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-850 text-xs"
                   >
-                    <CheckSquare className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
+                    <CheckSquare className="w-4 h-4 text-slate-500 dark:text-zinc-400 mt-0.5 shrink-0" />
                     <div className="flex-1">
-                      <span className="text-zinc-200 font-medium">{item.task}</span>
+                      <span className="text-slate-900 dark:text-zinc-200 font-bold">{item.task}</span>
                       {item.owner && (
-                        <span className="ml-2 text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                        <span className="ml-2 text-[10px] text-slate-700 bg-slate-200 dark:text-zinc-400 dark:bg-zinc-800 px-2 py-0.5 rounded border border-slate-300 dark:border-zinc-700 font-medium">
                           @{item.owner}
                         </span>
                       )}
@@ -224,15 +224,15 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Discussion Topics */}
           {meeting.summary && meeting.summary.topics.length > 0 && (
-            <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6">
-              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+              <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Topics Discussed
               </h3>
               <div className="flex flex-wrap gap-2">
                 {meeting.summary.topics.map((t, i) => (
                   <span
                     key={i}
-                    className="text-xs text-zinc-300 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md"
+                    className="text-xs text-slate-800 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-md font-medium"
                   >
                     {t}
                   </span>
@@ -243,11 +243,11 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Manual Notes Taken During Meeting */}
           {meeting.manualNotes.trim() && (
-            <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6">
-              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+              <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Participant Notes
               </h3>
-              <div className="font-mono text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
+              <div className="font-mono text-xs text-slate-800 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed">
                 {meeting.manualNotes}
               </div>
             </div>
@@ -257,9 +257,9 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
       {/* Tab: Transcript */}
       {activeTab === 'transcript' && (
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-3">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
           {meeting.transcript.length === 0 ? (
-            <div className="text-center py-12 text-xs text-zinc-500">
+            <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
               No verbal transcript was recorded for this session.
             </div>
           ) : (
@@ -273,13 +273,13 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                   key={seg.id}
                   className={`p-3.5 rounded-lg border text-xs transition-colors ${
                     isTarget
-                      ? 'bg-zinc-800/80 border-white text-white shadow-md'
-                      : 'bg-zinc-900/40 border-zinc-850 text-zinc-300'
+                      ? 'bg-slate-200 dark:bg-zinc-800/80 border-slate-900 dark:border-white text-slate-950 dark:text-white shadow-md'
+                      : 'bg-slate-50 dark:bg-zinc-900/40 border-slate-200 dark:border-zinc-850 text-slate-800 dark:text-zinc-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1.5">
-                    <span className="font-semibold text-zinc-200">{seg.speaker}</span>
-                    <span className="font-mono text-zinc-400">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 mb-1.5 font-medium">
+                    <span className="font-bold text-slate-950 dark:text-zinc-200">{seg.speaker}</span>
+                    <span className="font-mono text-slate-500 dark:text-zinc-400">
                       {formatSecondsToTime(seg.timestampSeconds)}
                     </span>
                   </div>
@@ -293,9 +293,9 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
       {/* Tab: Timeline */}
       {activeTab === 'timeline' && (
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-4">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
           {meeting.timeline.length === 0 ? (
-            <div className="text-center py-12 text-xs text-zinc-500">
+            <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
               No timeline milestones recorded for this session.
             </div>
           ) : (
@@ -303,17 +303,17 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
               <div
                 key={item.id}
                 onClick={() => jumpToTimestamp(item.timestampSeconds)}
-                className="flex items-start gap-4 p-3.5 rounded-lg bg-zinc-900/50 border border-zinc-850 hover:bg-zinc-900 hover:border-zinc-750 cursor-pointer transition-all group"
+                className="flex items-start gap-4 p-3.5 rounded-lg bg-slate-50 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-750 cursor-pointer transition-all group"
               >
-                <span className="font-mono text-xs text-zinc-400 group-hover:text-white shrink-0 pt-0.5">
+                <span className="font-mono text-xs text-slate-500 dark:text-zinc-400 group-hover:text-slate-950 dark:group-hover:text-white shrink-0 pt-0.5 font-medium">
                   {item.timeFormatted}
                 </span>
-                <div className="w-px h-6 bg-zinc-800" />
+                <div className="w-px h-6 bg-slate-200 dark:bg-zinc-800" />
                 <div className="flex-1">
-                  <div className="text-xs font-semibold text-zinc-200 group-hover:text-white">
+                  <div className="text-xs font-bold text-slate-900 dark:text-zinc-200 group-hover:text-slate-950 dark:group-hover:text-white">
                     {item.label}
                   </div>
-                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
                     {item.type} • click to jump to transcript
                   </span>
                 </div>

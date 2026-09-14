@@ -223,14 +223,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black">
+    <div className="flex-1 flex flex-col h-full bg-white dark:bg-black text-slate-900 dark:text-white transition-colors duration-500">
       {/* Editor Header */}
-      <div className="border-b border-zinc-850 px-4 sm:px-8 py-3 flex items-center justify-between gap-3 sm:gap-4 shrink-0 bg-zinc-950/40">
+      <div className="border-b border-slate-200 dark:border-zinc-850 px-4 sm:px-8 py-3 flex items-center justify-between gap-3 sm:gap-4 shrink-0 bg-slate-50/70 dark:bg-zinc-950/40">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           {onBackToList && (
             <button
               onClick={onBackToList}
-              className="md:hidden flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-900 border border-zinc-800 shrink-0"
+              className="md:hidden flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white px-2 py-1 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shrink-0"
               title="Back to notes list"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -242,22 +242,24 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
             placeholder="Untitled Note"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            className="w-full bg-transparent text-base sm:text-lg font-semibold text-white placeholder-zinc-600 focus:outline-none tracking-tight"
+            className="w-full bg-transparent text-base sm:text-lg font-bold text-slate-950 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none tracking-tight"
           />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] text-zinc-500 mr-2">
+          <span className="text-[11px] text-slate-500 dark:text-zinc-500 mr-2 font-mono">
             {saveStatus === 'saving' ? 'Saving...' : 'Saved'}
           </span>
 
           {/* View mode toggle */}
-          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-md p-0.5 mr-2">
+          <div className="flex items-center bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md p-0.5 mr-2">
             <button
               onClick={() => setViewMode('edit')}
               title="Edit Mode"
               className={`p-1.5 rounded text-xs transition-colors ${
-                viewMode === 'edit' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                viewMode === 'edit'
+                  ? 'bg-white dark:bg-zinc-800 text-slate-950 dark:text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -266,7 +268,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
               onClick={() => setViewMode('split')}
               title="Split View"
               className={`p-1.5 rounded text-xs transition-colors ${
-                viewMode === 'split' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                viewMode === 'split'
+                  ? 'bg-white dark:bg-zinc-800 text-slate-950 dark:text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
               <Columns className="w-3.5 h-3.5" />
@@ -275,7 +279,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
               onClick={() => setViewMode('preview')}
               title="Preview Mode"
               className={`p-1.5 rounded text-xs transition-colors ${
-                viewMode === 'preview' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                viewMode === 'preview'
+                  ? 'bg-white dark:bg-zinc-800 text-slate-950 dark:text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
@@ -303,76 +309,76 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
           </Button>
 
           <Button size="icon" variant="ghost" onClick={handleDelete} title="Delete Note">
-            <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-400" />
+            <Trash2 className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400" />
           </Button>
         </div>
       </div>
 
       {/* Formatting Toolbar */}
       {viewMode !== 'preview' && (
-        <div className="border-b border-zinc-850 px-8 py-1.5 flex items-center gap-1 bg-zinc-950/20 overflow-x-auto shrink-0">
+        <div className="border-b border-slate-200 dark:border-zinc-850 px-8 py-1.5 flex items-center gap-1 bg-slate-50/40 dark:bg-zinc-950/20 overflow-x-auto shrink-0">
           <button
             onClick={() => insertFormatting('**', '**')}
             title="Bold"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Bold className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('*', '*')}
             title="Italic"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Italic className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('`', '`')}
             title="Inline Code"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Code className="w-3.5 h-3.5" />
           </button>
-          <div className="w-px h-4 bg-zinc-800 mx-1" />
+          <div className="w-px h-4 bg-slate-200 dark:bg-zinc-800 mx-1" />
           <button
             onClick={() => insertFormatting('# ')}
             title="Heading 1"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Heading1 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('## ')}
             title="Heading 2"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Heading2 className="w-3.5 h-3.5" />
           </button>
-          <div className="w-px h-4 bg-zinc-800 mx-1" />
+          <div className="w-px h-4 bg-slate-200 dark:bg-zinc-800 mx-1" />
           <button
             onClick={() => insertFormatting('- ')}
             title="Bullet List"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <List className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('1. ')}
             title="Numbered List"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <ListOrdered className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('- [ ] ')}
             title="Checklist Item"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <CheckSquare className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => insertFormatting('> ')}
             title="Blockquote"
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 transition-colors"
+            className="p-1.5 rounded text-slate-600 hover:text-slate-950 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850 transition-colors"
           >
             <Quote className="w-3.5 h-3.5" />
           </button>
@@ -389,7 +395,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
               placeholder="Write your note in Markdown..."
-              className="w-full h-full bg-transparent resize-none text-zinc-200 text-sm leading-relaxed focus:outline-none font-mono"
+              className="w-full h-full bg-transparent resize-none text-slate-900 dark:text-zinc-200 text-sm leading-relaxed focus:outline-none font-mono placeholder-slate-400 dark:placeholder-zinc-600"
             />
           </div>
         )}
@@ -398,10 +404,10 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
         {(viewMode === 'preview' || viewMode === 'split') && (
           <div
             className={`flex-1 h-full p-8 overflow-y-auto ${
-              viewMode === 'split' ? 'border-l border-zinc-850 bg-zinc-950/20' : ''
+              viewMode === 'split' ? 'border-l border-slate-200 dark:border-zinc-850 bg-slate-50/40 dark:bg-zinc-950/20' : ''
             }`}
           >
-            <div className="prose prose-invert max-w-none text-sm leading-relaxed">
+            <div className="prose prose-slate dark:prose-invert max-w-none text-sm leading-relaxed text-slate-900 dark:text-zinc-100">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {DOMPurify.sanitize(content || '*No content*')}
               </ReactMarkdown>
@@ -411,18 +417,18 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
       </div>
 
       {/* Tags Footer */}
-      <div className="border-t border-zinc-850 px-8 py-2.5 flex items-center gap-2 bg-zinc-950/40 text-xs">
-        <TagIcon className="w-3.5 h-3.5 text-zinc-500" />
+      <div className="border-t border-slate-200 dark:border-zinc-850 px-8 py-2.5 flex items-center gap-2 bg-slate-50/60 dark:bg-zinc-950/40 text-xs">
+        <TagIcon className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500" />
         <div className="flex items-center gap-1.5 flex-wrap">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 text-[11px]"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-[11px]"
             >
               #{tag}
               <button
                 onClick={() => removeTag(tag)}
-                className="text-zinc-500 hover:text-zinc-200"
+                className="text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-200"
               >
                 <X className="w-2.5 h-2.5" />
               </button>
@@ -434,7 +440,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={addTag}
-            className="bg-transparent text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none min-w-[140px]"
+            className="bg-transparent text-xs text-slate-900 dark:text-zinc-300 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none min-w-[140px]"
           />
         </div>
       </div>

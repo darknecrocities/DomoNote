@@ -241,13 +241,13 @@ export const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none transition-colors duration-500 font-sans">
       {/* Sticky Settings Header & Quick Jump Navigation */}
-      <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-zinc-850">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 transition-colors duration-500">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Settings</h2>
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
               Configure local AI connectivity, install browser companions, review client-side storage, and manage workspace archives.
             </p>
           </div>
@@ -258,28 +258,28 @@ export const SettingsView: React.FC = () => {
           <button
             type="button"
             onClick={() => document.getElementById('section-ai')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
             AI Engine
           </button>
           <button
             type="button"
             onClick={() => document.getElementById('section-models')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
             Models Catalog
           </button>
           <button
             type="button"
             onClick={() => document.getElementById('section-companion')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
             Chrome Extension
           </button>
           <button
             type="button"
             onClick={() => document.getElementById('section-storage')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
             Storage & Backup
           </button>
@@ -288,23 +288,23 @@ export const SettingsView: React.FC = () => {
 
       <div className="space-y-8">
         {/* Local AI / Ollama Configuration */}
-        <div id="section-ai" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28">
-          <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
+        <div id="section-ai" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
-              <Cpu className="w-5 h-5 text-zinc-300" />
+              <Cpu className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
               <div>
-                <h3 className="text-sm font-semibold text-zinc-100">Local AI (Ollama)</h3>
-                <p className="text-xs text-zinc-400">Direct connection to your local AI engine</p>
+                <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Local AI (Ollama)</h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">Direct connection to your local AI engine</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isConnected ? 'bg-emerald-400' : 'bg-red-500'
+                  isConnected ? 'bg-emerald-500' : 'bg-red-500'
                 }`}
               />
-              <span className="text-xs font-semibold text-zinc-200">
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
                 {isConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
@@ -816,31 +816,31 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Chrome Browser Extension Companion Setup */}
-        <div id="section-companion" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28">
-          <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
+        <div id="section-companion" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-400">
                 <Puzzle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-zinc-100">Chrome Browser Extension</h3>
-                <p className="text-xs text-zinc-400">
+                <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Chrome Browser Extension</h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
                   Meeting & Tab Audio Companion (Google Meet, Microsoft Teams, Browser Tabs)
                 </p>
               </div>
             </div>
 
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-md">
+            <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 px-2.5 py-1 rounded-md font-semibold">
               Manifest V3 • Built-in
             </span>
           </div>
 
           {/* Quick Explanation Banner */}
-          <div className="p-4 rounded-lg bg-zinc-900/60 border border-zinc-800 flex items-start gap-3">
-            <Shield className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-zinc-300 leading-relaxed space-y-1">
-              <span className="font-semibold text-white">Direct Tab Audio Streaming:</span>
-              <p className="text-zinc-400">
+          <div className="p-4 rounded-lg bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 flex items-start gap-3">
+            <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed space-y-1">
+              <span className="font-bold text-slate-950 dark:text-white">Direct Tab Audio Streaming:</span>
+              <p className="text-slate-600 dark:text-zinc-400">
                 The Chrome extension connects Google Meet sessions directly to your local DomoNote workspace.
                 All audio is captured via Chrome's native <code>tabCapture</code> API with zero external servers.
               </p>
@@ -849,91 +849,91 @@ export const SettingsView: React.FC = () => {
 
           {/* Step-by-Step Installation Instructions */}
           <div className="space-y-4">
-            <div className="text-xs font-semibold text-zinc-200 uppercase tracking-wider font-mono">
+            <div className="text-xs font-bold text-slate-700 dark:text-zinc-200 uppercase tracking-wider font-mono">
               Installation Steps (30 Seconds)
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Step 1 */}
-              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                  <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-xs flex items-center justify-center font-mono">
                     1
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-500">Open Extensions</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Open Extensions</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Navigate to chrome://extensions</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white">Navigate to chrome://extensions</h4>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   Paste the address into your Chrome browser address bar and press Enter:
                 </p>
-                <div className="flex items-center justify-between p-2 rounded bg-black border border-zinc-800 font-mono text-xs text-zinc-200">
+                <div className="flex items-center justify-between p-2 rounded bg-slate-100 dark:bg-black border border-slate-200 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-zinc-200">
                   <span>chrome://extensions</span>
                   <button
                     onClick={() => copyToClipboard('chrome://extensions', 'url')}
-                    className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded bg-zinc-900 hover:bg-zinc-850 transition-colors"
+                    className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors font-medium"
                   >
-                    {copiedUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedUrl ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
               </div>
 
               {/* Step 2 */}
-              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                  <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-xs flex items-center justify-center font-mono">
                     2
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-500">Enable Developer Mode</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Enable Developer Mode</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Toggle Developer Mode</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  In the top-right corner of the Extensions page, switch the <strong className="text-zinc-200">Developer mode</strong> toggle to <span className="text-emerald-400 font-medium">ON</span>.
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white">Toggle Developer Mode</h4>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                  In the top-right corner of the Extensions page, switch the <strong className="text-slate-900 dark:text-zinc-200">Developer mode</strong> toggle to <span className="text-emerald-700 dark:text-emerald-400 font-bold">ON</span>.
                 </p>
-                <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Reveals the "Load unpacked" button</span>
                 </div>
               </div>
 
               {/* Step 3 */}
-              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                  <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-xs flex items-center justify-center font-mono">
                     3
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-500">Load Unpacked</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Load Unpacked</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Click "Load unpacked"</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Click the <strong className="text-zinc-200">Load unpacked</strong> button on the top-left toolbar and select this repository's extension folder:
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white">Click "Load unpacked"</h4>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                  Click the <strong className="text-slate-900 dark:text-zinc-200">Load unpacked</strong> button on the top-left toolbar and select this repository's extension folder:
                 </p>
-                <div className="flex items-center justify-between p-2 rounded bg-black border border-zinc-800 font-mono text-xs text-zinc-200">
+                <div className="flex items-center justify-between p-2 rounded bg-slate-100 dark:bg-black border border-slate-200 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-zinc-200">
                   <span className="truncate">domonote/browser-extension</span>
                   <button
                     onClick={() => copyToClipboard('browser-extension', 'path')}
-                    className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded bg-zinc-900 hover:bg-zinc-850 transition-colors shrink-0 ml-2"
+                    className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors shrink-0 ml-2 font-medium"
                   >
-                    {copiedPath ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedPath ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedPath ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
               </div>
 
               {/* Step 4 */}
-              <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 space-y-2">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="w-5 h-5 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center font-mono">
+                  <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-xs flex items-center justify-center font-mono">
                     4
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-500">Ready to Capture</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Ready to Capture</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Start Meeting or Tab Audio</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white">Start Meeting or Tab Audio</h4>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   Open Google Meet or any browser tab. Click the DomoNote puzzle piece icon or floating badge to stream audio directly into your Meeting Secretary note!
                 </p>
-                <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Streams audio directly to IndexedDB</span>
                 </div>
               </div>
@@ -942,36 +942,36 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Storage & Archive Management */}
-        <div id="section-storage" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28">
-          <div className="flex items-center gap-3 border-b border-zinc-850 pb-4">
-            <Database className="w-5 h-5 text-zinc-300" />
+        <div id="section-storage" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center gap-3 border-b border-slate-200 dark:border-zinc-850 pb-4">
+            <Database className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
             <div>
-              <h3 className="text-sm font-semibold text-zinc-100">Local-First Storage (IndexedDB)</h3>
-              <p className="text-xs text-zinc-400">All data is kept inside your browser database</p>
+              <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Local-First Storage (IndexedDB)</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400">All data is kept inside your browser database</p>
             </div>
           </div>
 
           {/* Metric Badges */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-center">
-              <div className="text-lg font-bold text-white font-mono">{notesCount}</div>
-              <div className="text-[10px] text-zinc-400 uppercase">Notes</div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-center">
+              <div className="text-lg font-bold text-slate-950 dark:text-white font-mono">{notesCount}</div>
+              <div className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase font-semibold">Notes</div>
             </div>
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-center">
-              <div className="text-lg font-bold text-white font-mono">{meetingsCount}</div>
-              <div className="text-[10px] text-zinc-400 uppercase">Meetings</div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-center">
+              <div className="text-lg font-bold text-slate-950 dark:text-white font-mono">{meetingsCount}</div>
+              <div className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase font-semibold">Meetings</div>
             </div>
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-center">
-              <div className="text-lg font-bold text-white font-mono">{documentsCount}</div>
-              <div className="text-[10px] text-zinc-400 uppercase">Documents</div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-center">
+              <div className="text-lg font-bold text-slate-950 dark:text-white font-mono">{documentsCount}</div>
+              <div className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase font-semibold">Documents</div>
             </div>
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-center">
-              <div className="text-lg font-bold text-white font-mono">{manualsCount}</div>
-              <div className="text-[10px] text-zinc-400 uppercase">Manuals</div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-center">
+              <div className="text-lg font-bold text-slate-950 dark:text-white font-mono">{manualsCount}</div>
+              <div className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase font-semibold">Manuals</div>
             </div>
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-center">
-              <div className="text-lg font-bold text-white font-mono">{blobsCount}</div>
-              <div className="text-[10px] text-zinc-400 uppercase">Files & Audio</div>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-center">
+              <div className="text-lg font-bold text-slate-950 dark:text-white font-mono">{blobsCount}</div>
+              <div className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase font-semibold">Files & Audio</div>
             </div>
           </div>
 

@@ -127,31 +127,31 @@ export const ModeSwitcher: React.FC = () => {
         }}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all duration-150 ${
           isOpen
-            ? 'bg-zinc-850 border-zinc-700 text-white shadow-md'
-            : 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 hover:bg-zinc-900'
+            ? 'bg-slate-100 dark:bg-zinc-850 border-slate-300 dark:border-zinc-700 text-slate-950 dark:text-white shadow-md'
+            : 'bg-white dark:bg-zinc-950/80 border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-900 shadow-sm'
         }`}
         title={`Current Mode: ${currentMode.label} (Click to switch)`}
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <CurrentIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-        <span className="font-semibold text-xs text-zinc-200 tracking-tight">{currentMode.label}</span>
-        <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono text-zinc-500 bg-zinc-900 border border-zinc-800 rounded">
+        <CurrentIcon className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400 shrink-0" />
+        <span className="font-bold text-xs text-slate-950 dark:text-zinc-200 tracking-tight">{currentMode.label}</span>
+        <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono text-slate-700 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 rounded font-semibold">
           {currentMode.hotkey}
         </kbd>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-zinc-500 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-zinc-300' : ''
+          className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-500 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-slate-800 dark:text-zinc-300' : ''
           }`}
         />
       </button>
 
       {/* Sleek Floating Menu Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-72 rounded-xl bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 shadow-2xl p-1.5 z-50 animate-fade-in divide-y divide-zinc-900">
-          <div className="px-3 py-2 text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-72 rounded-xl bg-white dark:bg-zinc-950/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-1.5 z-50 animate-fade-in divide-y divide-slate-100 dark:divide-zinc-900">
+          <div className="px-3 py-2 text-[10px] font-mono text-slate-700 dark:text-zinc-500 uppercase tracking-wider flex items-center justify-between font-bold">
             <span>Workspace Modes</span>
-            <span className="text-[9px] text-zinc-600">Quick Switch</span>
+            <span className="text-[9px] text-slate-500 dark:text-zinc-600">Quick Switch</span>
           </div>
 
           <div className="py-1 space-y-0.5">
@@ -166,13 +166,13 @@ export const ModeSwitcher: React.FC = () => {
                   onMouseEnter={() => playThock()}
                   className={`w-full flex items-start gap-3 p-2.5 rounded-lg text-left transition-colors ${
                     isActive
-                      ? 'bg-zinc-850/90 text-white font-medium shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80'
+                      ? 'bg-slate-100 dark:bg-zinc-850/90 text-black dark:text-white font-bold shadow-sm'
+                      : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-900/80'
                   }`}
                 >
                   <div
                     className={`mt-0.5 p-1.5 rounded-md ${
-                      isActive ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-400'
+                      isActive ? 'bg-slate-200 dark:bg-zinc-800 text-black dark:text-white' : 'bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-400'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -180,17 +180,17 @@ export const ModeSwitcher: React.FC = () => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className={`text-xs ${isActive ? 'font-bold text-white' : 'font-medium'}`}>
+                      <span className={`text-xs ${isActive ? 'font-bold text-black dark:text-white' : 'font-semibold text-slate-900 dark:text-zinc-200'}`}>
                         {mode.label}
                       </span>
-                      <kbd className="text-[9px] font-mono text-zinc-500 bg-zinc-900 px-1 py-0.5 rounded border border-zinc-850">
+                      <kbd className="text-[9px] font-mono text-slate-700 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 px-1 py-0.5 rounded border border-slate-200 dark:border-zinc-850 font-semibold">
                         {mode.hotkey}
                       </kbd>
                     </div>
-                    <p className="text-[11px] text-zinc-500 line-clamp-1 leading-snug">{mode.desc}</p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-500 line-clamp-1 leading-snug">{mode.desc}</p>
                   </div>
 
-                  {isActive && <Check className="w-3.5 h-3.5 text-emerald-400 mt-1 shrink-0" />}
+                  {isActive && <Check className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 mt-1 shrink-0" />}
                 </button>
               );
             })}

@@ -49,11 +49,11 @@ export const ManualsView: React.FC = () => {
   const selectedManual = manuals.find((m) => m.id === activeManualId);
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-black">
+    <div className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-black transition-colors duration-500 font-sans">
       {/* Left Sidebar: Manuals List */}
-      <div className="w-80 border-r border-zinc-850 flex flex-col h-full bg-zinc-950 shrink-0 select-none">
-        <div className="p-4 border-b border-zinc-850 flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+      <div className="w-80 border-r border-slate-200 dark:border-zinc-850 flex flex-col h-full bg-white dark:bg-zinc-950 shrink-0 select-none transition-colors duration-500">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
+          <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
             Manuals ({manuals.length})
           </span>
           <div className="flex items-center gap-1.5">
@@ -80,9 +80,9 @@ export const ManualsView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-zinc-850">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-850">
           {manuals.length === 0 ? (
-            <div className="p-8 text-center text-xs text-zinc-500">
+            <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500">
               No operation manuals yet. Capture your screen or create a manual to get started.
             </div>
           ) : (
@@ -97,23 +97,23 @@ export const ManualsView: React.FC = () => {
                   }}
                   className={`p-4 cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-zinc-900/90 text-white border-l-2 border-white'
-                      : 'hover:bg-zinc-900/40 text-zinc-300'
+                      ? 'bg-slate-100 dark:bg-zinc-900/90 text-slate-950 dark:text-white border-l-2 border-slate-900 dark:border-white'
+                      : 'hover:bg-slate-50 dark:hover:bg-zinc-900/40 text-slate-700 dark:text-zinc-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-semibold text-zinc-100 truncate pr-2">
+                    <h4 className="text-xs font-bold text-slate-950 dark:text-zinc-100 truncate pr-2">
                       {m.title || 'Untitled Manual'}
                     </h4>
-                    <span className="text-[10px] text-zinc-500 font-mono">v{m.version}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono font-medium">v{m.version}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 mb-1.5">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-500 mb-1.5 font-medium">
                     <span>{m.steps.length} steps</span>
                     <span>•</span>
                     <span>{new Date(m.updatedAt).toLocaleDateString()}</span>
                   </div>
                   {m.purpose && (
-                    <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
                       {m.purpose}
                     </p>
                   )}

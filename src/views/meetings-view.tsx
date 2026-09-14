@@ -34,15 +34,15 @@ export const MeetingsView: React.FC = () => {
   const isDetailOpen = Boolean(isRecordingMode || selectedMeeting);
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-black">
+    <div className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-black transition-colors duration-500">
       {/* Left Sidebar: Sessions List */}
       <div
         className={`${
           isDetailOpen ? 'hidden md:flex' : 'flex'
-        } w-full md:w-80 border-r border-zinc-850 flex-col h-full bg-zinc-950 shrink-0 select-none`}
+        } w-full md:w-80 border-r border-slate-200 dark:border-zinc-850 flex-col h-full bg-white dark:bg-zinc-950 shrink-0 select-none transition-colors duration-500`}
       >
-        <div className="p-4 border-b border-zinc-850 flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
+          <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
             Meetings ({meetings.length})
           </span>
           <Button
@@ -58,9 +58,9 @@ export const MeetingsView: React.FC = () => {
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-zinc-850">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-850">
           {meetings.length === 0 ? (
-            <div className="p-8 text-center text-xs text-zinc-500">
+            <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500">
               No meetings recorded yet. Start your first session to record audio and build your
               timeline.
             </div>
@@ -76,25 +76,25 @@ export const MeetingsView: React.FC = () => {
                   }}
                   className={`p-4 cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-zinc-900/90 text-white border-l-2 border-white'
-                      : 'hover:bg-zinc-900/40 text-zinc-300'
+                      ? 'bg-slate-100 dark:bg-zinc-900/90 text-slate-950 dark:text-white border-l-2 border-slate-900 dark:border-white'
+                      : 'hover:bg-slate-50 dark:hover:bg-zinc-900/40 text-slate-700 dark:text-zinc-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-semibold text-zinc-100 truncate pr-2">
+                    <h4 className="text-xs font-bold text-slate-950 dark:text-zinc-100 truncate pr-2">
                       {m.title}
                     </h4>
-                    <span className="text-[10px] font-mono text-zinc-500 font-mono">
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 font-medium">
                       {formatSecondsToTime(m.durationSeconds)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 mb-1.5">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 dark:text-zinc-500 mb-1.5 font-medium">
                     <span>{new Date(m.startTime).toLocaleDateString()}</span>
                     <span>•</span>
                     <span>{m.transcript.length} transcript segments</span>
                   </div>
                   {m.summary?.overview && (
-                    <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
                       {m.summary.overview}
                     </p>
                   )}

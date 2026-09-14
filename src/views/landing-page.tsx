@@ -21,7 +21,6 @@ import {
   Terminal,
   Play,
   RotateCcw,
-  Sparkles,
   Download,
   Star,
 } from 'lucide-react';
@@ -72,37 +71,6 @@ const TYPEWRITER_PHRASES: Record<string, string[]> = {
   ],
 };
 
-const MASCOT_MESSAGES: Record<string, string[]> = {
-  en: [
-    'All notes, recordings, and documents stay 100% private on your machine.',
-    'Local AI runs directly on your computer hardware via Ollama.',
-    'Upload PDF, Word (DOCX), PowerPoint (PPTX), or TXT for instant AI summaries!',
-    'Private and local-first by design — runs entirely on your device.',
-    'Click me again for more tips!',
-  ],
-  zh: [
-    '所有笔记、录音和文档 100% 私密保存在您的计算机中。',
-    '本地 AI 通过 Ollama 直接在您的计算机硬件上运行。',
-    '支持上传 PDF、Word、PPT 或 TXT，即时生成本地 AI 摘要！',
-    '原生本地优先设计——完全在您的设备上运行。',
-    '再次点击我获取更多技巧！',
-  ],
-  ja: [
-    'すべてのノート、録音、ドキュメントは 100% お使いの端末内に保持されます。',
-    'ローカル AI は Ollama を介して PC ハードウェア上で直接実行されます。',
-    'PDF、Word、PPT、テキストをアップロードして即時 AI 要約！',
-    'プライベート＆ローカルファースト設計 — 端末内で完結。',
-    'もう一度クリックすると次のヒントを表示します！',
-  ],
-  fr: [
-    'Toutes vos notes, enregistrements et documents restent 100% privés sur votre machine.',
-    'L\'IA locale s\'exécute directement sur votre matériel via Ollama.',
-    'Importez des fichiers PDF, Word, PowerPoint ou TXT pour des synthèses instantanées !',
-    'Privé et local-first par conception — s\'exécute entièrement sur votre appareil.',
-    'Cliquez à nouveau pour d\'autres conseils !',
-  ],
-};
-
 export const LandingPage: React.FC = () => {
   const { setActiveView, isCloudHost, setIsCloudModalOpen } = useWorkspace();
   const { playPop, playThock } = useSound();
@@ -110,8 +78,6 @@ export const LandingPage: React.FC = () => {
   const { theme } = useTheme();
 
   const mascotRef = React.useRef<HTMLDivElement>(null);
-  const [mascotMsgIdx, setMascotMsgIdx] = useState(0);
-  const [showMascotBubble, setShowMascotBubble] = useState(false);
   const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
   const [starCount, setStarCount] = useState<number | null>(() => {
     try {
@@ -157,7 +123,6 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  const activeMascotList = MASCOT_MESSAGES[language] || MASCOT_MESSAGES.en;
   const activeTypewriterList = TYPEWRITER_PHRASES[language] || TYPEWRITER_PHRASES.en;
 
   const carouselPanels = useMemo(
@@ -330,14 +295,14 @@ export const LandingPage: React.FC = () => {
       <NoiseTexture opacity={0.035} />
 
       {/* Top Navigation - Sticky Appbar */}
-      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 py-3 transition-all shadow-sm dark:shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
+        <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-between relative">
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain" />
             <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">DomoNote</span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 h-full">
             <button
               onClick={() => setActiveView('download')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-colors"
@@ -351,7 +316,7 @@ export const LandingPage: React.FC = () => {
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900/90 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm group"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900/90 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-850 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm group"
               title="Star DomoNote on GitHub"
             >
               <GithubIcon className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
@@ -370,12 +335,17 @@ export const LandingPage: React.FC = () => {
               <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
-          </div>
-        </div>
 
-        {/* Physics Rope Hanging Directly Under the Appbar */}
-        <div className="absolute right-8 sm:right-20 top-full -mt-px z-50 pointer-events-auto">
-          <PhysicsRopeToggle />
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
+
+            {/* Physics Lampcord Toggle Hanging Seamlessly Under Action Bar */}
+            <div className="relative flex items-center justify-center w-8 h-full self-stretch">
+              <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+                <PhysicsRopeToggle />
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -533,33 +503,12 @@ export const LandingPage: React.FC = () => {
                 tabIndex={0}
                 onClick={() => {
                   playPop();
-                  setMascotMsgIdx((prev: number) => (prev + 1) % activeMascotList.length);
-                  setShowMascotBubble(true);
                 }}
                 onMouseEnter={() => {
                   playThock(1.2);
-                  setShowMascotBubble(true);
                 }}
-                onMouseLeave={() => {
-                  setShowMascotBubble(false);
-                }}
-                title="Click to interact with DomoNote Mascot"
+                title="DomoNote Mascot"
               >
-                {/* Speech Reaction Chip */}
-                <div
-                  className={`absolute -top-8 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 rounded-full text-[11px] font-mono shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
-                    showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
-                  }`}
-                  style={{
-                    background: 'rgba(9,9,11,0.95)',
-                    border: '1px solid rgba(63,63,70,0.8)',
-                    color: '#e4e4e7',
-                  }}
-                >
-                  <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
-                </div>
-
                 {/* Inner bezel — always dark */}
                 <div
                   className="w-full h-full rounded-full overflow-hidden flex items-center justify-center relative"

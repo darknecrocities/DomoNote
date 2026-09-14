@@ -71,7 +71,7 @@ export const Sidebar: React.FC = () => {
       {/* Navigation List */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-none">
         {!collapsed && (
-          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-400 dark:text-zinc-500 uppercase">
+          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-900/80 dark:text-zinc-400 uppercase font-bold">
             Workspace
           </div>
         )}
@@ -85,10 +85,10 @@ export const Sidebar: React.FC = () => {
               title={collapsed ? item.label : undefined}
               className={`w-full flex items-center ${
                 collapsed ? 'justify-center px-2' : 'px-2.5'
-              } py-2 rounded-lg text-xs font-medium transition-all ${
+              } py-2 rounded-lg text-xs transition-all ${
                 isActive
-                  ? 'bg-slate-100 dark:bg-zinc-850 text-slate-950 dark:text-white font-semibold shadow-sm border border-slate-300 dark:border-zinc-700'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-zinc-900'
+                  ? 'bg-slate-200/90 dark:bg-zinc-850 text-black dark:text-white font-bold shadow-sm border border-slate-300 dark:border-zinc-700'
+                  : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -99,7 +99,7 @@ export const Sidebar: React.FC = () => {
 
         <div className="pt-4" />
         {!collapsed && (
-          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-400 dark:text-zinc-500 uppercase">
+          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-900/80 dark:text-zinc-400 uppercase font-bold">
             System
           </div>
         )}
@@ -113,10 +113,10 @@ export const Sidebar: React.FC = () => {
               title={collapsed ? item.label : undefined}
               className={`w-full flex items-center ${
                 collapsed ? 'justify-center px-2' : 'px-2.5'
-              } py-2 rounded-lg text-xs font-medium transition-all ${
+              } py-2 rounded-lg text-xs transition-all ${
                 isActive
-                  ? 'bg-slate-100 dark:bg-zinc-850 text-slate-950 dark:text-white font-semibold shadow-sm border border-slate-300 dark:border-zinc-700'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-zinc-900'
+                  ? 'bg-slate-200/90 dark:bg-zinc-850 text-black dark:text-white font-bold shadow-sm border border-slate-300 dark:border-zinc-700'
+                  : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -153,29 +153,29 @@ export const Sidebar: React.FC = () => {
                     isConnected ? 'bg-emerald-500 ring-2 ring-emerald-500/20' : 'bg-red-500 animate-pulse'
                   }`}
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate">
+                <span className="text-xs font-bold text-slate-950 dark:text-zinc-200 truncate">
                   {isConnected ? 'Local AI Active' : 'AI Offline'}
                 </span>
               </div>
               <button
                 onClick={() => checkConnection()}
                 title="Refresh connection"
-                className="p-1 rounded text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
+                className="p-1 rounded text-slate-500 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
               >
                 <RefreshCw className={`w-3 h-3 ${isChecking ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
-            <div className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 truncate mb-2">
+            <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-400 font-semibold truncate mb-2">
               {isConnected ? selectedModel || 'No model picked' : 'Ollama not detected'}
             </div>
 
             {!isConnected && (
               <button
                 onClick={() => startOllamaService()}
-                className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-[10px] font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded bg-slate-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white text-[10px] font-semibold transition-colors shadow-sm"
               >
-                <Power className="w-3 h-3" />
+                <Power className="w-3 h-3 text-emerald-400" />
                 <span>Start Service</span>
               </button>
             )}
@@ -184,13 +184,13 @@ export const Sidebar: React.FC = () => {
 
         {/* Footer Meta */}
         {!collapsed && (
-          <div className="flex items-center justify-between mt-2.5 px-1 text-[10px] font-mono text-slate-400 dark:text-zinc-500">
+          <div className="flex items-center justify-between mt-2.5 px-1 text-[10px] font-mono text-slate-600 dark:text-zinc-500 font-semibold">
             <span>{t('nav.localWorkspace')}</span>
             <a
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-slate-700 dark:hover:text-zinc-300 transition-colors"
+              className="flex items-center gap-1 hover:text-black dark:hover:text-zinc-300 transition-colors"
             >
               <GithubIcon className="w-3 h-3" />
               <span>GitHub</span>
@@ -219,10 +219,10 @@ export const Sidebar: React.FC = () => {
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
             {!isCollapsed && (
               <div className="truncate">
-                <div className="font-bold text-xs text-slate-900 dark:text-white tracking-tight leading-none truncate">
+                <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight leading-none truncate">
                   DomoNote
                 </div>
-                <div className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 mt-1 tracking-tight truncate">
+                <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-500 font-semibold mt-1 tracking-tight truncate">
                   {t('nav.localAi')}
                 </div>
               </div>
@@ -231,7 +231,7 @@ export const Sidebar: React.FC = () => {
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
+            className="p-1 rounded text-slate-500 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -263,14 +263,14 @@ export const Sidebar: React.FC = () => {
               >
                 <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
                 <div>
-                  <div className="font-bold text-xs text-slate-900 dark:text-white tracking-tight">DomoNote</div>
-                  <div className="text-[10px] font-mono text-slate-500 dark:text-zinc-500">{t('nav.localAi')}</div>
+                  <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight">DomoNote</div>
+                  <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-500 font-semibold">{t('nav.localAi')}</div>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
                 title="Close menu"
               >
                 <X className="w-4 h-4" />
