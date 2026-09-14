@@ -338,16 +338,16 @@ export const LandingPage: React.FC = () => {
                 <h1 className="text-4xl sm:text-6xl xl:text-7xl font-black tracking-tight text-white leading-[1.05]">
                   Notes, meetings, and documents.
                 </h1>
-                <div className="text-2xl sm:text-4xl font-bold text-zinc-400 tracking-tight min-h-[1.4em] flex items-center">
+                <div className="text-xl sm:text-3xl lg:text-4xl font-bold text-zinc-400 tracking-tight h-[2.5rem] sm:h-[3rem] flex items-center overflow-hidden">
                   <LoopingTypewriter
                     phrases={[
-                      'Captured and annotated automatically.',
-                      'Transcribed and summarized offline.',
-                      'Turned into step-by-step documentation.',
-                      'Powered by your local Ollama models.',
-                      'Zero cloud servers or telemetry.',
+                      'Transcribed & summarized offline.',
+                      'Captured & annotated on device.',
+                      'Organized into clear notes.',
+                      'Powered by your local AI.',
+                      'Private, offline, and secure.',
                     ]}
-                    className="text-zinc-300"
+                    className="text-zinc-300 sm:whitespace-nowrap"
                   />
                 </div>
               </div>

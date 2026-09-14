@@ -58,9 +58,9 @@ export const LoopingTypewriter: React.FC<LoopingTypewriterProps> = ({
 
   return (
     <span className={`inline-flex items-center ${className}`}>
-      <span>{currentText}</span>
+      <span>{currentText || '\u00A0'}</span>
       <span
-        className={`inline-block w-[3px] h-[1.05em] bg-white ml-1.5 align-middle animate-pulse ${cursorClassName}`}
+        className={`inline-block w-[3px] h-[1.05em] bg-white ml-1.5 align-middle shrink-0 animate-pulse ${cursorClassName}`}
         aria-hidden="true"
       />
     </span>
