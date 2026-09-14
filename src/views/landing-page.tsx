@@ -49,7 +49,7 @@ const CAROUSEL_PANELS = [
       <div className="space-y-2 text-zinc-300">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800 pb-1.5">
           <span>Weekly Team Sync</span>
-          <span className="text-emerald-400">Transcribing</span>
+          <span className="text-zinc-300">Transcribing</span>
         </div>
         <div className="text-xs text-zinc-400">03:12 speaker: "All documents will be stored locally on device."</div>
         <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800 text-xs text-zinc-200">
@@ -112,7 +112,7 @@ const CAROUSEL_PANELS = [
       <div className="space-y-2 text-zinc-300">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-850 pb-1.5">
           <span>Local Assistant</span>
-          <span className="text-emerald-400">Ready</span>
+          <span className="text-zinc-300">Ready</span>
         </div>
         <div className="text-xs text-zinc-400">Attached: [SprintPlan.pdf] [TeamSync]</div>
         <p className="text-xs text-zinc-200 leading-relaxed">
@@ -132,10 +132,10 @@ const CAROUSEL_PANELS = [
       <div className="space-y-2 text-zinc-300">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800 pb-1.5">
           <span>Coordinate Detection</span>
-          <span className="text-emerald-400 font-mono text-[11px]">Exact Box: [x:142, y:388]</span>
+          <span className="text-zinc-300 font-mono text-[11px]">Exact Box: [x:142, y:388]</span>
         </div>
-        <div className="p-2.5 rounded bg-zinc-950 border border-emerald-850/80 text-xs text-zinc-200">
-          <span className="text-[10px] text-emerald-400 block uppercase font-semibold">Step 01 • Target Framed</span>
+        <div className="p-2.5 rounded bg-zinc-950 border border-zinc-750 text-xs text-zinc-200">
+          <span className="text-[10px] text-zinc-400 block uppercase font-semibold">Step 01 • Target Framed</span>
           Exact boundary calculated with border line only and zero inner obscuration.
         </div>
         <div className="text-[11px] text-zinc-500 font-mono">Auto-compiled into illustrated step manual</div>
@@ -153,11 +153,11 @@ const CAROUSEL_PANELS = [
       <div className="space-y-2 text-zinc-300">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800 pb-1.5">
           <span>Client Database Status</span>
-          <span className="text-emerald-400 font-mono text-[11px]">Encrypted IndexedDB</span>
+          <span className="text-zinc-300 font-mono text-[11px]">Encrypted IndexedDB</span>
         </div>
         <div className="flex items-center justify-between text-xs text-zinc-300 bg-zinc-950 p-2.5 rounded border border-zinc-800">
           <span>Local Documents & Audio Recordings</span>
-          <span className="font-mono text-emerald-400 font-bold">100% On-Device</span>
+          <span className="font-mono text-white font-bold">100% On-Device</span>
         </div>
         <div className="text-[11px] text-zinc-500 font-mono">Zero trackers • Zero cookies • Stays on your machine</div>
       </div>
@@ -197,11 +197,11 @@ const CAROUSEL_PANELS = [
       <div className="space-y-2 text-zinc-300">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-850 pb-1.5">
           <span>Compiled Deliverables</span>
-          <span className="text-emerald-400 font-mono text-[11px]">Ready for Download</span>
+          <span className="text-zinc-300 font-mono text-[11px]">Ready for Download</span>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
           <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-zinc-200">.PDF</div>
-          <div className="p-2 rounded bg-zinc-950 border border-emerald-800/80 text-emerald-400 font-bold">.MD</div>
+          <div className="p-2 rounded bg-zinc-900 border border-zinc-700 text-white font-bold">.MD</div>
           <div className="p-2 rounded bg-zinc-950 border border-zinc-800 text-zinc-200">.JSON</div>
         </div>
         <div className="text-[11px] text-zinc-500 font-mono">Self-contained archives with embedded diagrams</div>
@@ -270,12 +270,12 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white relative overflow-x-clip">
       {/* Subtle Noise Texture Overlay */}
       <NoiseTexture opacity={0.035} />
 
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-40 bg-[#050505]/85 backdrop-blur-md border-b border-zinc-850 px-6 py-3.5 transition-all">
+      {/* Top Navigation - Sticky Appbar */}
+      <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-md border-b border-zinc-850 px-6 py-3 transition-all shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain" />

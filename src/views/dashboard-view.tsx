@@ -54,8 +54,8 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-black p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none">
-      {/* Greeting Header */}
-      <div className="border-b border-zinc-850 pb-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Sticky Greeting Header & Quick Actions */}
+      <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Your Workspace</h2>
           <p className="text-xs text-zinc-400 mt-1">

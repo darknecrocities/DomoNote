@@ -242,16 +242,53 @@ export const SettingsView: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-black p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none">
-      <div className="border-b border-zinc-850 pb-5 mb-8">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
-        <p className="text-xs text-zinc-400 mt-1">
-          Configure local AI connectivity, install browser companions, review client-side storage, and manage workspace archives.
-        </p>
+      {/* Sticky Settings Header & Quick Jump Navigation */}
+      <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-zinc-850">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Configure local AI connectivity, install browser companions, review client-side storage, and manage workspace archives.
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Jump Sub-Navigation Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <button
+            type="button"
+            onClick={() => document.getElementById('section-ai')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+          >
+            AI Engine
+          </button>
+          <button
+            type="button"
+            onClick={() => document.getElementById('section-models')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+          >
+            Models Catalog
+          </button>
+          <button
+            type="button"
+            onClick={() => document.getElementById('section-companion')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+          >
+            Chrome Extension
+          </button>
+          <button
+            type="button"
+            onClick={() => document.getElementById('section-storage')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer"
+          >
+            Storage & Backup
+          </button>
+        </div>
       </div>
 
       <div className="space-y-8">
         {/* Local AI / Ollama Configuration */}
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5">
+        <div id="section-ai" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28">
           <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
               <Cpu className="w-5 h-5 text-zinc-300" />
@@ -558,7 +595,7 @@ export const SettingsView: React.FC = () => {
           )}
 
           {/* Compatible Models Hub (Ranked From Min to Higher) */}
-          <div className="space-y-4 pt-3 border-t border-zinc-850">
+          <div id="section-models" className="space-y-4 pt-3 border-t border-zinc-850 scroll-mt-28">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
@@ -779,7 +816,7 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Chrome Browser Extension Companion Setup */}
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-6">
+        <div id="section-companion" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28">
           <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
@@ -905,7 +942,7 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Storage & Archive Management */}
-        <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5">
+        <div id="section-storage" className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28">
           <div className="flex items-center gap-3 border-b border-zinc-850 pb-4">
             <Database className="w-5 h-5 text-zinc-300" />
             <div>
