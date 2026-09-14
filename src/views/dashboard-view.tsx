@@ -53,9 +53,9 @@ export const DashboardView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-500">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-200">
       {/* Sticky Greeting Header & Quick Actions */}
-      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-500">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-200">
         <div>
           <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Your Workspace</h2>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
@@ -76,7 +76,7 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* Mascot Companion Welcome Banner */}
-      <div className="mb-8 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm dark:shadow-xl transition-colors duration-500">
+      <div className="mb-8 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm dark:shadow-xl transition-colors duration-200">
         <div className="flex items-center gap-4">
           <PandaMascot size="sm" showSpeechBubble={false} />
           <div>
@@ -180,7 +180,7 @@ export const DashboardView: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Recent Notes */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -220,7 +220,7 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Recent Meetings */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -262,7 +262,7 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Recent Documents */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -302,7 +302,7 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Operation Manuals */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">

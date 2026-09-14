@@ -84,7 +84,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-4 sm:p-8 overflow-y-auto max-w-5xl mx-auto w-full transition-colors duration-500 font-sans">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-4 sm:p-8 overflow-y-auto max-w-5xl mx-auto w-full transition-colors duration-200 font-sans">
       {/* Header */}
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -166,7 +166,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
       {activeTab === 'summary' && (
         <div className="space-y-6">
           {/* Executive Overview */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-200">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
               <Sparkles className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
               <span>Overview</span>
@@ -178,7 +178,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Key Decisions */}
           {meeting.summary && meeting.summary.decisions.length > 0 && (
-            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-200">
               <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Key Decisions
               </h3>
@@ -195,7 +195,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Action Items */}
           {meeting.summary && meeting.summary.actionItems.length > 0 && (
-            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-200">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
                   Action Items ({meeting.summary.actionItems.length})
@@ -224,7 +224,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Discussion Topics */}
           {meeting.summary && meeting.summary.topics.length > 0 && (
-            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-200">
               <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Topics Discussed
               </h3>
@@ -243,7 +243,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
           {/* Manual Notes Taken During Meeting */}
           {meeting.manualNotes.trim() && (
-            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-200">
               <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider mb-3">
                 Participant Notes
               </h3>
@@ -257,7 +257,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
       {/* Tab: Transcript */}
       {activeTab === 'transcript' && (
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-200">
           {meeting.transcript.length === 0 ? (
             <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
               No verbal transcript was recorded for this session.
@@ -293,7 +293,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
 
       {/* Tab: Timeline */}
       {activeTab === 'timeline' && (
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-200">
           {meeting.timeline.length === 0 ? (
             <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
               No timeline milestones recorded for this session.

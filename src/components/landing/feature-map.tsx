@@ -46,7 +46,7 @@ export const FeatureMap: React.FC = () => {
       </div>
 
       {/* Visual Content Display */}
-      <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-500">
+      <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-200">
         {activeTab === 'meetings' && (
           <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3">

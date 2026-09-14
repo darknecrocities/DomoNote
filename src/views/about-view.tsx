@@ -13,7 +13,7 @@ export const AboutView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-200">
       {/* Brand Header */}
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -42,7 +42,7 @@ export const AboutView: React.FC = () => {
 
       <div className="space-y-10 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
         {/* Product Demo Video Section */}
-        <section className="rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs dark:shadow-2xl transition-colors duration-500">
+        <section className="rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs dark:shadow-2xl transition-colors duration-200">
           <div className="p-4 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between bg-slate-50 dark:bg-zinc-900/40">
             <div className="flex items-center gap-2 text-slate-950 dark:text-white text-xs">
               <Video className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
@@ -81,7 +81,7 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Mascot Showcase Section */}
-        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="max-w-xl space-y-3">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 font-medium">
               <Sparkles className="w-3 h-3 text-slate-500 dark:text-zinc-400" />
@@ -105,7 +105,7 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Concept & Purpose */}
-        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-200">
           <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             What is DomoNote?
           </h3>
@@ -122,7 +122,7 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Domo Open Source Ecosystem */}
-        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-500">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-4 shadow-xs dark:shadow-none transition-colors duration-200">
           <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             Domo Open Source Ecosystem
           </h3>
@@ -155,7 +155,7 @@ export const AboutView: React.FC = () => {
         </section>
 
         {/* Technology Foundation */}
-        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-200">
           <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
             Technology Foundation
           </h3>

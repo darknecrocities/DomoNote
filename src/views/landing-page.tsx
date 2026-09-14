@@ -353,7 +353,7 @@ export const LandingPage: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
         {/* 2-Column Hero Section with Interactive Background */}
         <div
-          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500"
+          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-200"
           style={{
             background: theme === 'light'
               ? 'linear-gradient(160deg, #d4dce8 0%, #dce4ef 30%, #e5eaf5 65%, #edf1f8 100%)'

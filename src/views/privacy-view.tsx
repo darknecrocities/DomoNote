@@ -3,7 +3,7 @@ import { Shield, Lock, EyeOff, Server, HardDrive } from 'lucide-react';
 
 export const PrivacyView: React.FC = () => {
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none font-sans transition-colors duration-500">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none font-sans transition-colors duration-200">
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-8">
         <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Privacy & Local-First Boundaries</h2>
         <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
@@ -13,7 +13,7 @@ export const PrivacyView: React.FC = () => {
 
       <div className="space-y-6 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
         {/* Core Guarantee */}
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center gap-2.5 text-slate-950 dark:text-zinc-100 font-bold text-sm">
             <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Local Storage by Default</span>
@@ -29,7 +29,7 @@ export const PrivacyView: React.FC = () => {
         </div>
 
         {/* Local AI Boundary */}
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center gap-2.5 text-slate-950 dark:text-zinc-100 font-bold text-sm">
             <Server className="w-4 h-4 text-slate-700 dark:text-zinc-300" />
             <span>Local AI Execution (Ollama)</span>
@@ -46,7 +46,7 @@ export const PrivacyView: React.FC = () => {
         </div>
 
         {/* Permissions */}
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center gap-2.5 text-slate-950 dark:text-zinc-100 font-bold text-sm">
             <Shield className="w-4 h-4 text-slate-700 dark:text-zinc-300" />
             <span>Hardware & Browser Permissions</span>
@@ -69,7 +69,7 @@ export const PrivacyView: React.FC = () => {
         </div>
 
         {/* No Tracking */}
-        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center gap-2.5 text-slate-950 dark:text-zinc-100 font-bold text-sm">
             <EyeOff className="w-4 h-4 text-slate-700 dark:text-zinc-300" />
             <span>Zero Third-Party Tracking</span>

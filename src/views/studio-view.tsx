@@ -366,7 +366,7 @@ export const StudioView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 sm:p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans transition-colors duration-500">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 sm:p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans transition-colors duration-200">
       {/* Top Header Controls Card */}
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -241,9 +241,9 @@ export const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none transition-colors duration-500 font-sans">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none transition-colors duration-200 font-sans">
       {/* Sticky Settings Header & Quick Jump Navigation */}
-      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 transition-colors duration-500">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
             <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Settings</h2>
@@ -288,7 +288,7 @@ export const SettingsView: React.FC = () => {
 
       <div className="space-y-8">
         {/* Local AI / Ollama Configuration */}
-        <div id="section-ai" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div id="section-ai" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
               <Cpu className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
@@ -816,7 +816,7 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Chrome Browser Extension Companion Setup */}
-        <div id="section-companion" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div id="section-companion" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-400">
@@ -942,7 +942,7 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Storage & Archive Management */}
-        <div id="section-storage" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+        <div id="section-storage" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-200">
           <div className="flex items-center gap-3 border-b border-slate-200 dark:border-zinc-850 pb-4">
             <Database className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
             <div>
