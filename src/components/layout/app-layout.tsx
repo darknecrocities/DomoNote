@@ -4,6 +4,7 @@ import { Sidebar } from './sidebar';
 import { Topbar } from './topbar';
 import { CommandPalette } from '../ui/command-palette';
 import { GlobalMascotDock } from '../ui/global-mascot-dock';
+import { SpotlightWarpCursor } from '../ui/spotlight-warp-cursor';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -13,6 +14,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-black text-slate-900 dark:text-zinc-100 antialiased font-sans transition-colors duration-200">
+      <SpotlightWarpCursor />
+
       {!isFullWidthPage && <Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
