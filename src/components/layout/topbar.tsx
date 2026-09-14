@@ -5,7 +5,7 @@ import { useLanguage } from '../../context/language-context';
 import { Button } from '../ui/button';
 import { ModeSwitcher } from './mode-switcher';
 import { SoundToggle } from '../ui/sound-toggle';
-import { ThemeToggle } from '../ui/theme-toggle';
+import { PhysicsRopeToggle } from '../ui/physics-rope-toggle';
 import { LanguageSwitcher } from '../ui/language-switcher';
 
 export const Topbar: React.FC = () => {
@@ -48,7 +48,7 @@ export const Topbar: React.FC = () => {
   };
 
   return (
-    <header className="h-14 border-b border-slate-200 dark:border-zinc-850 px-3 sm:px-6 flex items-center justify-between bg-white/85 dark:bg-zinc-950/70 backdrop-blur-md shrink-0 gap-2 sm:gap-4 z-20 transition-colors duration-200">
+    <header className="h-14 border-b border-slate-200 dark:border-zinc-850 px-3 sm:px-6 flex items-center justify-between bg-white/85 dark:bg-zinc-950/70 backdrop-blur-md shrink-0 gap-2 sm:gap-4 z-20 transition-colors duration-200 relative">
       {/* Left: Mobile Menu Trigger + View Title */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
@@ -74,9 +74,6 @@ export const Topbar: React.FC = () => {
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Language Switcher */}
         <LanguageSwitcher />
-
-        {/* Dark / Light Theme Toggle */}
-        <ThemeToggle />
 
         {/* Tactile Sound FX Toggle */}
         <SoundToggle />
@@ -133,6 +130,11 @@ export const Topbar: React.FC = () => {
             <span className="hidden sm:inline">Upload</span>
           </Button>
         )}
+      </div>
+
+      {/* Physics Rope Hanging Directly Under the Appbar */}
+      <div className="absolute right-24 sm:right-36 top-full -mt-0.5 z-50 pointer-events-auto">
+        <PhysicsRopeToggle />
       </div>
     </header>
   );

@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+  will-change: clip-path;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -177,6 +190,49 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Continuous Right to Left Cloud Drift Animations */
+@keyframes cloudDriftSlow {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes cloudDriftMedium {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes cloudDriftFast {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-cloud-slow {
+  animation: cloudDriftSlow 70s linear infinite;
+  will-change: transform;
+}
+
+.animate-cloud-medium {
+  animation: cloudDriftMedium 44s linear infinite;
+  will-change: transform;
+}
+
+.animate-cloud-fast {
+  animation: cloudDriftFast 26s linear infinite;
+  will-change: transform;
 }
 
 

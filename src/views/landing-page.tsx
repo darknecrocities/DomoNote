@@ -4,7 +4,7 @@ import { useSound } from '../context/sound-context';
 import { useLanguage } from '../context/language-context';
 import { useTheme } from '../context/theme-context';
 import { LanguageSwitcher } from '../components/ui/language-switcher';
-import { ThemeToggle } from '../components/ui/theme-toggle';
+import { PhysicsRopeToggle } from '../components/ui/physics-rope-toggle';
 import { Button } from '../components/ui/button';
 import {
   Mic,
@@ -36,6 +36,7 @@ import { CodeBlock } from '../components/ui/code-block';
 import { LoopingTypewriter } from '../components/landing/looping-typewriter';
 import { ScrollReveal } from '../components/ui/scroll-reveal';
 import { SectionConstellation } from '../components/landing/section-constellation';
+import { HeroCloudBackground } from '../components/landing/hero-cloud-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/domodomo.png';
@@ -365,22 +366,28 @@ export const LandingPage: React.FC = () => {
             {/* Language Switcher Dropdown */}
             <LanguageSwitcher />
 
-            {/* Theme Toggle Button */}
-            <ThemeToggle />
-
             <Button variant="primary" size="sm" onClick={handleOpenWorkspace}>
               <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
+
+        {/* Physics Rope Hanging Directly Under the Appbar */}
+        <div className="absolute right-8 sm:right-24 top-full -mt-0.5 z-50 pointer-events-auto">
+          <PhysicsRopeToggle />
+        </div>
       </header>
 
       {/* Main Hero Body */}
       <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
-        {/* 2-Column Hero Section with Interactive 3D Node Network Background */}
+        {/* 2-Column Hero Section with Interactive Background */}
         <div className="relative w-full overflow-hidden rounded-3xl">
-          <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.88 : 0.4} className="z-0" />
+          {/* Animated Cloud Sky in Light Mode (continuous right-to-left loop with smooth fadein/fadeout) */}
+          <HeroCloudBackground isLight={theme === 'light'} />
+
+          {/* Neural Clusters Constellation Background in Dark Mode */}
+          <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.88 : 0} className="z-0" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-6 pb-20 border-b border-slate-200 dark:border-zinc-850/60 mb-20 relative z-10">
             {/* Left Column: Text Content & Actions */}
@@ -483,15 +490,21 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column: Prominent Large Standalone Mascot */}
+            {/* Right Column: Standalone Mascot in Circular Gray-White Frame with Blended Edges */}
             <div className="lg:col-span-6 flex items-center justify-center relative select-none">
-              {/* Subtle Ambient Backlight Glow */}
-              <div className="absolute w-80 h-80 sm:w-[540px] sm:h-[540px] rounded-full bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.06)_0,transparent_70%)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12)_0,transparent_70%)] pointer-events-none blur-3xl" />
+              {/* Outer Ambient Blended Edge Halo */}
+              <div className="absolute w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] rounded-full bg-[radial-gradient(circle_at_center,rgba(241,245,249,0.95)_0,rgba(226,232,240,0.6)_50%,transparent_75%)] dark:bg-[radial-gradient(circle_at_center,rgba(39,39,42,0.8)_0,rgba(24,24,27,0.4)_50%,transparent_75%)] pointer-events-none blur-3xl" />
 
-              {/* Standalone Large Mascot with floating animation, hover interaction */}
+              {/* Circular Gray-White Frame */}
               <div
                 ref={mascotRef}
-                className="relative z-10 cursor-pointer transition-transform duration-300 hover:scale-105 group flex flex-col items-center p-4 sm:p-8 rounded-3xl bg-[#09090b] dark:bg-transparent border border-slate-200/90 dark:border-transparent shadow-xl dark:shadow-none"
+                className="relative z-10 cursor-pointer transition-transform duration-300 hover:scale-105 group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full p-3 sm:p-4 bg-gradient-to-b from-white/95 via-slate-100/90 to-slate-200/80 dark:from-zinc-800/90 dark:via-zinc-900/85 dark:to-zinc-950/90 border-2 border-slate-300/80 dark:border-zinc-700/70 shadow-[0_20px_50px_rgba(148,163,184,0.3)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+                style={{
+                  boxShadow:
+                    theme === 'light'
+                      ? '0 0 50px 15px rgba(255,255,255,0.9), 0 20px 40px -15px rgba(100,116,139,0.25)'
+                      : '0 0 50px 15px rgba(0,0,0,0.5), 0 25px 60px -15px rgba(0,0,0,0.8)',
+                }}
                 onClick={() => {
                   playPop();
                   setMascotMsgIdx((prev: number) => (prev + 1) % activeMascotList.length);
@@ -506,21 +519,32 @@ export const LandingPage: React.FC = () => {
                 }}
                 title="Click to interact with DomoNote Mascot"
               >
-                {/* Interactive Speech Reaction Chip */}
-                <div
-                  className={`absolute -top-12 px-3.5 py-1.5 rounded-full bg-zinc-950/95 border border-zinc-700 text-[11px] font-mono text-zinc-200 shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
-                    showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
-                  }`}
-                >
-                  <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
-                </div>
+                {/* Inner Bezel Ring with Inset Highlight */}
+                <div className="w-full h-full rounded-full p-2 sm:p-3 border border-white/80 dark:border-zinc-700/50 bg-gradient-to-b from-slate-100/50 via-slate-50/30 to-slate-200/40 dark:from-zinc-900/60 dark:to-black/80 overflow-hidden flex items-center justify-center relative">
+                  {/* Circular Backdrop Vignette that softly feathers into the frame */}
+                  <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,#09090b_38%,#1e293b_68%,transparent_100%)] dark:bg-[radial-gradient(circle_at_center,#000000_45%,#18181b_75%,transparent_100%)]" />
 
-                <img
-                  src="/domoreading.gif"
-                  alt="DomoNote Mascot Reading"
-                  className="w-[340px] sm:w-[480px] md:w-[560px] lg:w-[620px] xl:w-[680px] max-w-full h-auto object-contain rounded-2xl filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_25px_60px_rgba(255,255,255,0.15)] animate-float"
-                />
+                  {/* Interactive Speech Reaction Chip */}
+                  <div
+                    className={`absolute top-4 sm:top-6 z-20 px-3.5 py-1.5 rounded-full bg-zinc-950/95 border border-zinc-700 text-[11px] font-mono text-zinc-200 shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
+                      showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
+                    }`}
+                  >
+                    <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
+                  </div>
+
+                  {/* Panda Mascot with Circular Feathered Edge Masking */}
+                  <img
+                    src="/domoreading.gif"
+                    alt="DomoNote Mascot Reading"
+                    className="w-[125%] max-w-none h-auto object-contain relative z-10 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] animate-float"
+                    style={{
+                      maskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',
+                      WebkitMaskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -529,7 +553,8 @@ export const LandingPage: React.FC = () => {
         {/* Product Demo Video Showcase with Quantum Lattice Constellation */}
         <ScrollReveal direction="up" delayMs={50}>
           <div id="demo-video-section" className="w-full py-10 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="quantum-lattice" opacity={theme === 'dark' ? 0.55 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="quantum-lattice" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
               <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -625,7 +650,8 @@ export const LandingPage: React.FC = () => {
         {/* Live Interactive Workspace Preview with Synaptic Flow Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
           <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="synaptic-flow" opacity={theme === 'dark' ? 0.5 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="synaptic-flow" opacity={theme === 'dark' ? 0.5 : 0} />
             <div className="relative z-10">
               <div className="flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 mb-2 px-1">
                 <span className="font-semibold text-slate-800 dark:text-zinc-300">Document Reader & AI Assistant</span>
@@ -639,7 +665,8 @@ export const LandingPage: React.FC = () => {
         {/* Storytelling Section with Harmonic Wave Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
           <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="harmonic-wave" opacity={theme === 'dark' ? 0.55 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="harmonic-wave" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
               <StickyStorySection />
             </div>
@@ -649,7 +676,8 @@ export const LandingPage: React.FC = () => {
         {/* Before / After Comparison with Audio Nodes Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
           <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="audio-nodes" opacity={theme === 'dark' ? 0.6 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="audio-nodes" opacity={theme === 'dark' ? 0.6 : 0} />
             <div className="relative z-10">
               <div className="mb-8">
                 <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -670,7 +698,8 @@ export const LandingPage: React.FC = () => {
         {/* Horizontal Feature Carousel with Stellar Vortex Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
           <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="stellar-vortex" opacity={theme === 'dark' ? 0.65 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="stellar-vortex" opacity={theme === 'dark' ? 0.65 : 0} />
             <div className="relative z-10">
               <div className="mb-8">
                 <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -698,7 +727,8 @@ export const LandingPage: React.FC = () => {
         {/* Local Setup Section with Crystalline Polyhedra Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
           <div id="setup-section" className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-2 sm:px-4">
-            <SectionConstellation variant="crystalline-polyhedra" opacity={theme === 'dark' ? 0.55 : 0.25} />
+            <HeroCloudBackground isLight={theme === 'light'} />
+            <SectionConstellation variant="crystalline-polyhedra" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
               <div className="mb-8">
                 <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
