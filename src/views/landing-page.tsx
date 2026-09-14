@@ -374,7 +374,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Physics Rope Hanging Directly Under the Appbar */}
-        <div className="absolute right-8 sm:right-24 top-full -mt-0.5 z-50 pointer-events-auto">
+        <div className="absolute right-8 sm:right-20 top-full -mt-px z-50 pointer-events-auto">
           <PhysicsRopeToggle />
         </div>
       </header>
@@ -382,14 +382,21 @@ export const LandingPage: React.FC = () => {
       {/* Main Hero Body */}
       <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
         {/* 2-Column Hero Section with Interactive Background */}
-        <div className="relative w-full overflow-hidden rounded-3xl">
+        <div
+          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500"
+          style={{
+            background: theme === 'light'
+              ? 'linear-gradient(160deg, #d4dce8 0%, #dce4ef 30%, #e5eaf5 65%, #edf1f8 100%)'
+              : 'transparent',
+          }}
+        >
           {/* Animated Cloud Sky in Light Mode (continuous right-to-left loop with smooth fadein/fadeout) */}
           <HeroCloudBackground isLight={theme === 'light'} />
 
           {/* Neural Clusters Constellation Background in Dark Mode */}
           <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.88 : 0} className="z-0" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-6 pb-20 border-b border-slate-200 dark:border-zinc-850/60 mb-20 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-8 pb-20 border-b border-slate-200/50 dark:border-zinc-850/60 mb-20 relative z-10 px-6 sm:px-10 lg:px-12">
             {/* Left Column: Text Content & Actions */}
             <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
               {/* Top Benefit Badge */}
@@ -490,29 +497,40 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column: Standalone Mascot in Circular Gray-White Frame with Blended Edges */}
+            {/* Right Column: Mascot — frameless dark / black-framed light */}
             <div className="lg:col-span-6 flex items-center justify-center relative select-none">
-              {/* Outer Ambient Blended Edge Halo */}
-              <div className="absolute w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] rounded-full pointer-events-none blur-3xl transition-colors duration-500"
-                style={{ background: theme === 'light'
-                  ? 'radial-gradient(circle at center, rgba(241,245,249,0.95) 0, rgba(226,232,240,0.6) 50%, transparent 75%)'
-                  : 'radial-gradient(circle at center, rgba(39,39,42,0.8) 0, rgba(24,24,27,0.4) 50%, transparent 75%)'
+
+              {/* Ambient glow — adapts per theme */}
+              <div
+                className="absolute w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none blur-3xl transition-opacity duration-500"
+                style={{
+                  opacity: 1,
+                  background: theme === 'light'
+                    ? 'radial-gradient(circle at center, rgba(15,23,42,0.15) 0%, rgba(30,41,59,0.08) 50%, transparent 75%)'
+                    : 'radial-gradient(circle at center, rgba(39,39,42,0.6) 0%, rgba(24,24,27,0.3) 50%, transparent 75%)',
                 }}
               />
 
-              {/* Circular Gray-White Frame — speech bubble lives HERE so overflow-hidden doesn't clip it */}
+              {/*
+                FRAME WRAPPER:
+                - Dark mode  → transparent, no frame — image only
+                - Light mode → BLACK frame with dark inner fill
+              */}
               <div
                 ref={mascotRef}
-                className="relative z-10 cursor-pointer group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full p-3 sm:p-4 border-2 backdrop-blur-xl transition-all duration-300 hover:scale-105"
+                className="relative z-10 cursor-pointer group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full transition-all duration-500 hover:scale-105 outline-none"
                 style={{
+                  border: theme === 'light' ? '3px solid rgba(9,9,11,0.88)' : '2px solid transparent',
                   background: theme === 'light'
-                    ? 'linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(241,245,249,0.9), rgba(226,232,240,0.8))'
-                    : 'linear-gradient(to bottom, rgba(39,39,42,0.9), rgba(24,24,27,0.85), rgba(9,9,11,0.9))',
-                  borderColor: theme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(63,63,70,0.7)',
+                    ? 'linear-gradient(to bottom, rgba(9,9,11,0.95), rgba(15,23,42,0.92), rgba(24,24,27,0.90))'
+                    : 'transparent',
                   boxShadow: theme === 'light'
-                    ? '0 0 50px 15px rgba(255,255,255,0.9), 0 20px 40px -15px rgba(100,116,139,0.25)'
-                    : '0 0 50px 15px rgba(0,0,0,0.5), 0 25px 60px -15px rgba(0,0,0,0.8)',
+                    ? '0 0 0 1px rgba(255,255,255,0.08) inset, 0 25px 60px -10px rgba(0,0,0,0.5), 0 0 40px 10px rgba(0,0,0,0.25)'
+                    : 'none',
+                  backdropFilter: theme === 'light' ? 'blur(2px)' : 'none',
+                  padding: theme === 'light' ? '10px' : '0',
                 }}
+                tabIndex={0}
                 onClick={() => {
                   playPop();
                   setMascotMsgIdx((prev: number) => (prev + 1) % activeMascotList.length);
@@ -527,46 +545,44 @@ export const LandingPage: React.FC = () => {
                 }}
                 title="Click to interact with DomoNote Mascot"
               >
-                {/* Speech Reaction Chip — OUTSIDE overflow-hidden so it is never clipped */}
+                {/* Speech Reaction Chip */}
                 <div
-                  className={`absolute -top-6 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 rounded-full text-[11px] font-mono shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
+                  className={`absolute -top-8 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 rounded-full text-[11px] font-mono shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
                     showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
                   }`}
                   style={{
-                    background: theme === 'light' ? 'rgba(15,23,42,0.92)' : 'rgba(9,9,11,0.95)',
-                    border: `1px solid ${theme === 'light' ? 'rgba(51,65,85,0.5)' : 'rgba(63,63,70,0.8)'}`,
-                    color: theme === 'light' ? '#f1f5f9' : '#e4e4e7',
+                    background: 'rgba(9,9,11,0.95)',
+                    border: '1px solid rgba(63,63,70,0.8)',
+                    color: '#e4e4e7',
                   }}
                 >
                   <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
                 </div>
 
-                {/* Inner Bezel Ring */}
-                <div className="w-full h-full rounded-full p-2 sm:p-3 overflow-hidden flex items-center justify-center relative transition-colors duration-300"
+                {/* Inner bezel — always dark */}
+                <div
+                  className="w-full h-full rounded-full overflow-hidden flex items-center justify-center relative"
                   style={{
-                    border: `1px solid ${theme === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(63,63,70,0.5)'}`,
                     background: theme === 'light'
-                      ? 'linear-gradient(to bottom, rgba(241,245,249,0.5), rgba(248,250,252,0.3), rgba(226,232,240,0.4))'
-                      : 'linear-gradient(to bottom, rgba(24,24,27,0.6), rgba(0,0,0,0.8))',
+                      ? 'radial-gradient(circle at 50% 40%, rgba(24,24,27,0.8) 0%, rgba(9,9,11,0.95) 65%, rgba(0,0,0,1) 100%)'
+                      : 'transparent',
+                    border: theme === 'light' ? '1px solid rgba(255,255,255,0.06)' : 'none',
                   }}
                 >
-                  {/* Backdrop vignette — adapts per theme */}
-                  <div className="absolute inset-0 rounded-full transition-opacity duration-300"
-                    style={{ background: theme === 'light'
-                      ? 'radial-gradient(circle at center, rgba(241,245,249,0.7) 30%, rgba(203,213,225,0.5) 65%, transparent 100%)'
-                      : 'radial-gradient(circle at center, #09090b 38%, #1e293b 68%, transparent 100%)'
-                    }}
-                  />
-
-                  {/* Mascot GIF with feathered mask */}
+                  {/* Mascot GIF — always shows fully */}
                   <img
                     src="/domoreading.gif"
                     alt="DomoNote Mascot Reading"
-                    className="w-[125%] max-w-none h-auto object-contain relative z-10 drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] animate-float"
+                    className="max-w-none h-auto object-contain relative z-10 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] animate-float transition-all duration-500"
                     style={{
-                      maskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',
-                      WebkitMaskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',
+                      width: theme === 'light' ? '112%' : '85%',
+                      maskImage: theme === 'light'
+                        ? 'radial-gradient(circle at 50% 52%, black 48%, rgba(0,0,0,0.6) 62%, transparent 76%)'
+                        : 'none',
+                      WebkitMaskImage: theme === 'light'
+                        ? 'radial-gradient(circle at 50% 52%, black 48%, rgba(0,0,0,0.6) 62%, transparent 76%)'
+                        : 'none',
                     }}
                   />
                 </div>
@@ -577,7 +593,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Product Demo Video Showcase with Quantum Lattice Constellation */}
         <ScrollReveal direction="up" delayMs={50}>
-          <div id="demo-video-section" className="w-full py-10 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div id="demo-video-section" className="w-full py-10 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="quantum-lattice" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
@@ -674,7 +690,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Live Interactive Workspace Preview with Synaptic Flow Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="synaptic-flow" opacity={theme === 'dark' ? 0.5 : 0} />
             <div className="relative z-10">
@@ -689,7 +705,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Storytelling Section with Harmonic Wave Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="harmonic-wave" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
@@ -700,7 +716,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Before / After Comparison with Audio Nodes Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="audio-nodes" opacity={theme === 'dark' ? 0.6 : 0} />
             <div className="relative z-10">
@@ -722,7 +738,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Horizontal Feature Carousel with Stellar Vortex Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="stellar-vortex" opacity={theme === 'dark' ? 0.65 : 0} />
             <div className="relative z-10">
@@ -751,7 +767,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Local Setup Section with Crystalline Polyhedra Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div id="setup-section" className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-2 sm:px-4">
+          <div id="setup-section" className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-6 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="crystalline-polyhedra" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">

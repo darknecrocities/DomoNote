@@ -133,7 +133,7 @@ export const Topbar: React.FC = () => {
       </div>
 
       {/* Physics Rope Hanging Directly Under the Appbar */}
-      <div className="absolute right-24 sm:right-36 top-full -mt-0.5 z-50 pointer-events-auto">
+      <div className="absolute right-20 sm:right-32 top-full -mt-px z-50 pointer-events-auto">
         <PhysicsRopeToggle />
       </div>
     </header>
