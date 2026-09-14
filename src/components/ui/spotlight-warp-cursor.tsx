@@ -11,7 +11,6 @@ export const SpotlightWarpCursor: React.FC = () => {
   // References for smooth physics
   const spotlightRef = useRef<HTMLDivElement>(null);
   const haloRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
 
   const mousePos = useRef({ x: -100, y: -100 });
   const prevMousePos = useRef({ x: -100, y: -100 });
@@ -129,11 +128,6 @@ export const SpotlightWarpCursor: React.FC = () => {
         haloRef.current.style.transform = `translate3d(${haloPos.current.x}px, ${haloPos.current.y}px, 0) rotate(${currentAngle}deg) scale(${currentScale * currentStretch}, ${currentScale / currentStretch})`;
       }
 
-      // Update Micro Dot
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scale(${isHoveringRef.current ? 0 : isClickingRef.current ? 1.5 : 1})`;
-      }
-
       animId = requestAnimationFrame(render);
     };
 
@@ -215,14 +209,7 @@ export const SpotlightWarpCursor: React.FC = () => {
           />
         )}
       </div>
-
-      {/* 3. Center Precision Focal Dot */}
-      <div
-        ref={dotRef}
-        className={`absolute -top-1 -left-1 w-2 h-2 rounded-full will-change-transform pointer-events-none transition-all duration-150 ${
-          isDark ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-slate-900 shadow-[0_0_6px_rgba(0,0,0,0.4)]'
-        }`}
-      />
     </div>
   );
 };
+
