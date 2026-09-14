@@ -283,6 +283,12 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Minimal Online Status */}
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-850 text-xs text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-[11px] font-medium text-zinc-300">Online</span>
+            </div>
+
             <button
               onClick={() => setActiveView('download')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-300 hover:text-white transition-colors"

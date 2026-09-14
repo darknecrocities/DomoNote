@@ -3,17 +3,14 @@ import {
   Mic,
   FileText,
   Sparkles,
-  CheckCircle2,
   Play,
   Pause,
   RotateCcw,
   Copy,
   Check,
   ArrowRight,
-  Shield,
   ChevronRight,
   ChevronLeft,
-  Volume2,
   Clock,
   ExternalLink,
   Highlighter,
@@ -39,7 +36,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number>(0);
   const [callDuration, setCallDuration] = useState<number>(38);
   const [audioWaves, setAudioWaves] = useState<number[]>([
-    30, 65, 45, 90, 75, 40, 85, 100, 60, 45, 70, 95, 55, 80, 40, 60, 85, 50, 75, 90, 35, 60
+    25, 45, 35, 60, 50, 30, 65, 75, 45, 35, 55, 70, 40, 60, 30, 45, 65, 40, 55, 70, 25, 45
   ]);
 
   // Document Annotation Stage State
@@ -62,43 +59,42 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
 
   const currentStageIndex = stages.findIndex((s) => s.id === activeStage);
 
-  // Auto-play loop carousel timer: automatically advances to next stage and loops forever
+  // Auto-play loop carousel timer
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          // Continuous carousel loop
           setActiveStage((current) => {
             if (current === 'calls') return 'summarizing';
             if (current === 'summarizing') return 'annotation';
             if (current === 'annotation') return 'notes';
-            return 'calls'; // loop back to first
+            return 'calls';
           });
           return 0;
         }
-        return prev + 1.8; // ~5.5 seconds per slide
+        return prev + 1.8;
       });
     }, 100);
 
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Soundwave animation effect during call recording
+  // Gentle wave update
   useEffect(() => {
     if (activeStage !== 'calls' || !isPlaying) return;
 
     const waveTimer = setInterval(() => {
       setAudioWaves((prev) =>
-        prev.map(() => Math.floor(Math.random() * 75) + 25)
+        prev.map(() => Math.floor(Math.random() * 55) + 20)
       );
       setCallDuration((prev) => prev + 1);
-    }, 280);
+    }, 320);
 
     const speakerTimer = setInterval(() => {
       setActiveSpeakerIndex((prev) => (prev + 1) % 3);
-    }, 2800);
+    }, 3200);
 
     return () => {
       clearInterval(waveTimer);
@@ -124,7 +120,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   };
 
   const handleCopyNotes = () => {
-    const notesMarkdown = `# Team Sync & Architecture Review
+    const notesMarkdown = `# Team Architecture Sync
 Date: September 14, 2026 | Duration: 42m | Participants: Alex Chen, Elena Rostova, Marcus Vance
 
 ## Executive Summary
@@ -154,110 +150,92 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
   const annotationPresets = [
     {
-      title: 'Local Privacy',
+      title: 'Local Storage',
       targetText: 'All extracted document text, audio recordings, and screen captures are kept directly on your computer in local storage.',
-      stepTag: 'Highlight 01 • Local Storage',
-      confidence: 'Exact Match',
+      stepTag: '01 • Local Storage',
       note: 'Keeps confidential legal, medical, and executive documents completely private on your device.',
     },
     {
-      title: 'Dynamic Border Boxes',
-      targetText: 'Dynamic bounding boxes draw around exact sentences with zero background shading or occlusion, preserving document readability.',
-      stepTag: 'Highlight 02 • Clean Citation',
-      confidence: 'Exact Match',
+      title: 'Clean Outlines',
+      targetText: 'Dynamic bounding boxes draw around exact sentences with zero background shading, preserving original document readability.',
+      stepTag: '02 • Clean Citation',
       note: 'Enables clear visual citation directly inside the original page layout without obscuring text.',
     },
     {
-      title: 'Offline AI Processing',
+      title: 'Offline AI',
       targetText: 'Local AI models run entirely within user machine memory on port 11434 with instant responses and zero cloud latency.',
-      stepTag: 'Highlight 03 • Fast & Offline',
-      confidence: 'Exact Match',
+      stepTag: '03 • Fast & Offline',
       note: 'Works anywhere without an internet connection, with zero monthly subscription fees.',
     },
   ];
 
   return (
-    <div className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl font-sans text-left relative z-10">
-      {/* Top Studio Control Bar */}
-      <div className="p-3.5 sm:p-4 border-b border-zinc-850 bg-zinc-900/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Window controls & Title */}
+    <div className="w-full rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-xl font-sans text-left relative z-10">
+      {/* Top Minimal Bar */}
+      <div className="px-4 py-3 border-b border-zinc-850 bg-zinc-900/50 flex items-center justify-between gap-3 text-xs">
+        {/* Left: Window Dots, Title & Minimal Online Status */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-3 h-3 rounded-full bg-zinc-700/80 inline-block" />
-            <span className="w-3 h-3 rounded-full bg-zinc-700/80 inline-block" />
-            <span className="w-3 h-3 rounded-full bg-zinc-700/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-700 inline-block" />
           </div>
-          <div className="h-4 w-[1px] bg-zinc-800" />
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-bold text-white tracking-wide">DomoNote Interactive Showcase</span>
-            <span className="text-zinc-500 hidden sm:inline">•</span>
-            <span className="text-zinc-400 hidden sm:inline">Continuous Workflow Carousel</span>
+
+          <div className="h-3.5 w-[1px] bg-zinc-800 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-zinc-200">Interactive Demo</span>
+            {/* Minimal Online Status */}
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Online</span>
+            </span>
           </div>
         </div>
 
-        {/* Global Demo Carousel Controls */}
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          {/* Loop status indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md bg-zinc-950 border border-zinc-800 text-zinc-400">
-            <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
-            <span>{isPlaying ? 'Auto-Looping' : 'Paused'}</span>
-          </div>
-
-          {/* Carousel Previous / Next Arrows */}
+        {/* Right: Minimal Carousel Controls */}
+        <div className="flex items-center gap-1.5 text-xs text-zinc-400">
           <button
             onClick={handlePrevStage}
-            className="p-1.5 text-xs rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors"
-            title="Previous slide"
+            className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors"
+            title="Previous"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Stage Counter */}
-          <span className="text-xs font-mono text-zinc-300 bg-zinc-950 px-2 py-1 rounded-md border border-zinc-800 min-w-[54px] text-center">
+          <span className="font-mono text-[11px] px-1 text-zinc-400">
             {currentStageIndex + 1} / 4
           </span>
 
           <button
             onClick={handleNextStage}
-            className="p-1.5 text-xs rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors"
-            title="Next slide"
+            className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors"
+            title="Next"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
 
-          {/* Auto-play Play/Pause */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1.5 px-3 py-1 text-xs rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors"
-            title={isPlaying ? 'Pause loop' : 'Resume loop'}
+            className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors ml-1"
+            title={isPlaying ? 'Pause' : 'Play'}
           >
-            {isPlaying ? (
-              <>
-                <Pause className="w-3.5 h-3.5 text-zinc-300" />
-                <span className="hidden sm:inline">Pause</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-3.5 h-3.5 text-zinc-300" />
-                <span className="hidden sm:inline">Loop</span>
-              </>
-            )}
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Reset progress */}
           <button
             onClick={() => setProgress(0)}
-            className="p-1.5 text-xs rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors"
-            title="Replay slide"
+            className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors"
+            title="Replay"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Interactive Tabs Stepper with Live Progress Filling */}
-      <div className="px-3 sm:px-6 pt-4 pb-2 border-b border-zinc-850 bg-zinc-950/90 overflow-x-auto no-scrollbar">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 min-w-[560px] md:min-w-0">
+      {/* Minimal Stepper Tabs */}
+      <div className="px-3 sm:px-6 pt-3 pb-2 border-b border-zinc-850 bg-zinc-950 overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-w-[500px] md:min-w-0">
           {stages.map((stage) => {
             const Icon = stage.icon;
             const isActive = activeStage === stage.id;
@@ -265,31 +243,31 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
               <button
                 key={stage.id}
                 onClick={() => handleStageSelect(stage.id)}
-                className={`relative flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl border text-left transition-all ${
+                className={`relative flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-colors ${
                   isActive
-                    ? 'bg-zinc-900 border-white text-white shadow-lg'
-                    : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                    ? 'bg-zinc-900 border-zinc-700 text-white'
+                    : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+                  className={`w-6 h-6 rounded flex items-center justify-center shrink-0 text-xs ${
                     isActive ? 'bg-white text-black' : 'bg-zinc-850 text-zinc-400'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
-                    Step {stage.number}
+                  <div className="text-[10px] font-mono text-zinc-500 uppercase">
+                    {stage.number}
                   </div>
-                  <div className="text-xs sm:text-sm font-semibold truncate">
+                  <div className="text-xs font-medium truncate">
                     {stage.label}
                   </div>
                 </div>
 
-                {/* Active progress line at bottom of tab */}
+                {/* Minimal Progress Line */}
                 {isActive && (
-                  <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-white transition-all duration-100"
                       style={{ width: `${progress}%` }}
@@ -302,162 +280,113 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
         </div>
       </div>
 
-      {/* Main Carousel Slide Body */}
-      <div key={activeStage} className="p-4 sm:p-7 min-h-[460px] flex flex-col justify-between bg-black animate-slide-in-right">
+      {/* Main Slide Content */}
+      <div key={activeStage} className="p-5 sm:p-6 min-h-[440px] flex flex-col justify-between bg-[#080808] animate-slide-in-right">
         {/* ================= STAGE 1: CALL RECORDING ================= */}
         {activeStage === 'calls' && (
-          <div className="space-y-6">
-            {/* Call Header Status Card */}
-            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-5">
+            {/* Header info */}
+            <div className="p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-white shrink-0">
-                  <Mic className="w-5 h-5 animate-pulse" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200">
+                  <Mic className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide">
-                      Live Call Recording
-                    </span>
-                    <span className="text-xs text-zinc-400 font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="font-semibold text-white">Sprint Planning Sync</span>
+                    <span className="text-zinc-500 font-mono text-[11px]">
                       00:{callDuration < 10 ? `0${callDuration}` : callDuration}
                     </span>
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-white mt-0.5">
-                    Sprint Sync: Local Architecture & Knowledge Vault
-                  </h4>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Local Audio Recording</p>
                 </div>
               </div>
 
-              {/* Private Audio badge */}
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Private Audio Stream</span>
-                </span>
-                <span className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
-                  On-Device Audio
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-zinc-300 text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>Recording Active</span>
                 </span>
               </div>
             </div>
 
-            {/* Dynamic Soundwave Visualizer & Active Speakers */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              {/* Left 4 Cols: Active Speakers in Call */}
-              <div className="lg:col-span-4 p-4 rounded-xl border border-zinc-850 bg-zinc-950/70 flex flex-col justify-between space-y-3">
-                <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wide flex items-center justify-between">
-                  <span>Call Participants</span>
-                  <span className="text-white flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    3 Active
-                  </span>
+            {/* Visualizer & Dialogue Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Speakers Column */}
+              <div className="lg:col-span-4 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2.5 text-xs">
+                <div className="text-[11px] font-medium text-zinc-400 flex items-center justify-between">
+                  <span>Speakers</span>
+                  <span className="text-zinc-500">3 in call</span>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {[
-                    { name: 'Arron Parejas', role: 'System Architect', active: activeSpeakerIndex === 0 },
-                    { name: 'Elena Rostova', role: 'AI Specialist', active: activeSpeakerIndex === 1 },
-                    { name: 'Marcus Vance', role: 'Security Review', active: activeSpeakerIndex === 2 },
+                    { name: 'Arron Parejas', role: 'Host', active: activeSpeakerIndex === 0 },
+                    { name: 'Elena Rostova', role: 'Engineer', active: activeSpeakerIndex === 1 },
+                    { name: 'Marcus Vance', role: 'Reviewer', active: activeSpeakerIndex === 2 },
                   ].map((speaker, idx) => (
                     <div
                       key={idx}
-                      className={`p-2.5 rounded-lg border flex items-center justify-between transition-all ${
+                      className={`p-2 rounded border flex items-center justify-between transition-colors ${
                         speaker.active
-                          ? 'bg-zinc-900 border-zinc-400 text-white shadow-sm'
+                          ? 'bg-zinc-900 border-zinc-700 text-white'
                           : 'bg-zinc-950 border-zinc-850 text-zinc-400'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2">
                         <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center font-medium text-xs ${
                             speaker.active ? 'bg-white text-black' : 'bg-zinc-800 text-zinc-400'
                           }`}
                         >
                           {speaker.name[0]}
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-zinc-200">{speaker.name}</div>
+                          <div className="font-medium text-zinc-200">{speaker.name}</div>
                           <div className="text-[10px] text-zinc-500">{speaker.role}</div>
                         </div>
                       </div>
                       {speaker.active && (
-                        <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400">
-                          <Volume2 className="w-3.5 h-3.5 animate-pulse" />
-                          <span>Speaking</span>
-                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400">Speaking</span>
                       )}
                     </div>
                   ))}
                 </div>
-
-                <div className="pt-2 border-t border-zinc-850 text-[11px] text-zinc-500 flex items-center justify-between">
-                  <span>Input Volume:</span>
-                  <span className="font-mono text-zinc-300">Clean & Clear</span>
-                </div>
               </div>
 
-              {/* Right 8 Cols: Real-Time Audio Waves & Live Speech Transcript */}
-              <div className="lg:col-span-8 p-4 rounded-xl border border-zinc-850 bg-zinc-950 flex flex-col justify-between space-y-4">
-                {/* Visualizer Waveform Bar */}
-                <div className="p-3 rounded-lg bg-black border border-zinc-850 flex items-center justify-between gap-1 overflow-hidden h-16">
+              {/* Audio Wave & Transcript Stream */}
+              <div className="lg:col-span-8 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3 flex flex-col justify-between">
+                {/* Flat minimal sound wave */}
+                <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 flex items-center justify-between gap-1 h-12">
                   {audioWaves.map((height, i) => (
                     <div
                       key={i}
-                      className="flex-1 bg-gradient-to-t from-zinc-700 via-zinc-400 to-white rounded-full transition-all duration-200"
+                      className="flex-1 bg-zinc-500 rounded-sm transition-all duration-200"
                       style={{
                         height: `${height}%`,
-                        opacity: height > 70 ? 1 : 0.65,
+                        opacity: height > 50 ? 0.9 : 0.4,
                       }}
                     />
                   ))}
                 </div>
 
-                {/* Live Speech-to-Text Stream */}
-                <div className="space-y-3 font-mono text-xs">
-                  <div className="flex items-center justify-between text-zinc-500 border-b border-zinc-850 pb-1.5 text-[11px]">
-                    <span>REAL-TIME TRANSCRIPTION</span>
-                    <span className="text-zinc-400">Transcribed on Device</span>
+                {/* Clean Transcript Stream */}
+                <div className="space-y-2 text-xs">
+                  <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300">
+                    <span className="text-[10px] text-zinc-500 block mb-0.5">Arron Parejas:</span>
+                    "Let's ensure DomoNote keeps all audio buffers strictly in browser memory without sending files outside."
                   </div>
 
-                  <div className="space-y-2.5 max-h-[170px] overflow-y-auto pr-1">
-                    <div className="p-2 rounded bg-zinc-900/60 border border-zinc-800 text-zinc-300">
-                      <span className="text-zinc-500 text-[10px] block font-semibold mb-0.5">
-                        [00:14] Arron Parejas (System Architect):
-                      </span>
-                      "Let's ensure DomoNote keeps all audio buffers strictly in browser memory without streaming speech to any remote servers."
-                    </div>
-
-                    <div className="p-2 rounded bg-zinc-900/60 border border-zinc-850 text-zinc-300">
-                      <span className="text-zinc-500 text-[10px] block font-semibold mb-0.5">
-                        [00:26] Elena Rostova (AI Specialist):
-                      </span>
-                      "Confirmed. Speech-to-text transcription runs directly on your computer. We can feed the transcript buffer directly to Ollama Llama 3.2 for instant meeting takeaways."
-                    </div>
-
-                    <div className="p-2 rounded bg-zinc-900/90 border border-zinc-700 text-white flex items-center justify-between">
-                      <div>
-                        <span className="text-emerald-400 text-[10px] block font-semibold mb-0.5">
-                          [00:37] Marcus Vance (Security Review) • LIVE:
-                        </span>
-                        <span>
-                          "That completely eliminates data leakage risk for sensitive executive and team calls."
-                        </span>
-                        <span className="inline-block w-1.5 h-3.5 ml-1 bg-white animate-pulse align-middle" />
-                      </div>
-                    </div>
+                  <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300">
+                    <span className="text-[10px] text-zinc-500 block mb-0.5">Elena Rostova:</span>
+                    "Confirmed. Speech-to-text runs directly on your computer with instant summaries."
                   </div>
-                </div>
 
-                {/* Bottom Action Hint */}
-                <div className="pt-2 border-t border-zinc-850 flex items-center justify-between text-xs text-zinc-400">
-                  <span>Audio captured safely on your local device</span>
-                  <button
-                    onClick={() => handleStageSelect('summarizing')}
-                    className="text-xs text-white hover:text-zinc-300 flex items-center gap-1 font-semibold underline underline-offset-4"
-                  >
-                    <span>Next: Smart Summary</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="p-2 rounded bg-zinc-900 border border-zinc-750 text-white">
+                    <span className="text-[10px] text-emerald-400 block mb-0.5">Marcus Vance:</span>
+                    "That eliminates data leakage risk for sensitive meetings."
+                  </div>
                 </div>
               </div>
             </div>
@@ -466,201 +395,108 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
         {/* ================= STAGE 2: SMART SUMMARIZING ================= */}
         {activeStage === 'summarizing' && (
-          <div className="space-y-6">
-            {/* Header / Engine Status */}
-            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-5">
+            {/* Header */}
+            <div className="p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wide">
-                      Instant Smart Summary
-                    </span>
-                    <span className="text-xs text-zinc-400 font-mono">
-                      Local Llama 3.2
-                    </span>
+                    <span className="font-semibold text-white">Meeting Summary</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-400">Local Llama 3.2</span>
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-zinc-200 mt-0.5">
-                    Extracting Key Takeaways & Action Items from Meeting
-                  </h4>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Key decisions and action items extracted</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
-                  Runs Locally
-                </span>
-                <span className="text-xs font-mono px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-emerald-400">
-                  Private & Offline
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-zinc-300 text-[11px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>Ready to Export</span>
+              </span>
             </div>
 
-            {/* Synthesis Workspace */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              {/* Left 5 Cols: Raw Input Context Ingestion */}
-              <div className="lg:col-span-5 p-4 rounded-xl border border-zinc-850 bg-zinc-950/80 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
-                    <span className="font-semibold uppercase tracking-wider text-zinc-500">
-                      Meeting Conversation
-                    </span>
-                    <span className="font-mono text-[11px] text-zinc-400">
-                      1,420 words analyzed
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-black border border-zinc-850 text-xs font-mono text-zinc-400 space-y-2 h-[220px] overflow-hidden relative">
-                    <p className="opacity-60">
-                      [00:02] Arron: "Reviewing local-first data architecture..."
-                    </p>
-                    <p className="opacity-80">
-                      [00:14] Elena: "IndexedDB stores raw blobs and notes directly on device."
-                    </p>
-                    <p className="text-zinc-200 bg-zinc-900/80 p-1.5 rounded border border-zinc-700">
-                      [00:26] Marcus: "Everything is processed directly on your computer."
-                    </p>
-                    <p className="opacity-70">
-                      [00:39] Arron: "Let's automate document annotation with border-only boxes."
-                    </p>
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 text-xs text-zinc-400 space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span>Summary Generation</span>
-                    <span className="text-emerald-400 font-bold">Done</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                    <div className="h-full bg-white rounded-full w-full" />
-                  </div>
+            {/* Clean 2-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs">
+              {/* Left: Input snippets */}
+              <div className="lg:col-span-5 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2">
+                <div className="text-[11px] font-medium text-zinc-400">Conversation Highlights</div>
+                <div className="space-y-2 p-3 rounded bg-zinc-950 border border-zinc-850 text-zinc-400 text-[11px] leading-relaxed">
+                  <p>• Reviewed local-first storage architecture</p>
+                  <p>• IndexedDB stores documents and audio</p>
+                  <p>• Everything runs directly on your computer</p>
+                  <p>• Document highlighting ready for testing</p>
                 </div>
               </div>
 
-              {/* Right 7 Cols: Real-Time Structured Output */}
-              <div className="lg:col-span-7 p-4 rounded-xl border border-zinc-850 bg-zinc-950 flex flex-col justify-between space-y-4">
-                <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-850 pb-2">
-                  <span className="font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
-                    Structured Meeting Highlights
-                  </span>
-                  <span className="text-emerald-400 font-mono text-[11px]">
-                    Ready to Save
-                  </span>
+              {/* Right: Structured Notes */}
+              <div className="lg:col-span-7 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3">
+                <div className="text-[11px] font-medium text-zinc-300">Generated Highlights</div>
+
+                <div className="p-3 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 leading-relaxed text-xs">
+                  <div className="text-[10px] text-zinc-500 uppercase font-semibold mb-1">Overview</div>
+                  The team confirmed DomoNote's on-device setup. Speech transcripts, document highlights, and notes stay strictly on your device.
                 </div>
 
-                <div className="space-y-3 text-xs">
-                  {/* Executive Summary Card */}
-                  <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 leading-relaxed">
-                    <div className="text-[10px] font-mono text-zinc-400 uppercase font-semibold mb-1">
-                      Summary
-                    </div>
-                    "The team verified that meeting notes, document highlights, and audio recordings stay strictly on your device without sending any data to remote servers."
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
+                    <span>Private by Default: Safe for confidential internal discussions.</span>
                   </div>
-
-                  {/* 3 Pillar Takeaways */}
-                  <div className="space-y-2">
-                    <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-white shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-white">Private & Secure:</span>
-                        <span className="text-zinc-400 ml-1">
-                          Zero data sent outside your computer for confidential meetings.
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-white shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-white">Fast Local Execution:</span>
-                        <span className="text-zinc-400 ml-1">
-                          Llama 3.2 runs on your own hardware with instant answers.
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-white shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-white">Direct Document Link:</span>
-                        <span className="text-zinc-400 ml-1">
-                          Connects every decision directly to the exact source text.
-                        </span>
-                      </div>
-                    </div>
+                  <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
+                    <span>Fast Local AI: Instant answers without cloud latency.</span>
                   </div>
-                </div>
-
-                <div className="pt-2 border-t border-zinc-850 flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">Summary ready for your notes</span>
-                  <button
-                    onClick={() => handleStageSelect('annotation')}
-                    className="text-xs text-white hover:text-zinc-300 flex items-center gap-1 font-semibold underline underline-offset-4"
-                  >
-                    <span>Next: Document Highlights</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ================= STAGE 3: DOCUMENT ANNOTATION WITH CREATIVE ZOOM ANIMATION ================= */}
+        {/* ================= STAGE 3: DOCUMENT ANNOTATION (MINIMAL, NOT FUTURISTIC) ================= */}
         {activeStage === 'annotation' && (
-          <div className="space-y-6">
-            {/* Header with Zoom & Lens controls */}
-            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-5">
+            {/* Header */}
+            <div className="p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shrink-0">
-                  <Highlighter className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
+                  <Highlighter className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wide">
-                      Document Highlighting Demo
-                    </span>
-                    <span className="text-xs text-zinc-400 font-mono">
-                      PDF & Word Reader
-                    </span>
+                    <span className="font-semibold text-white">Document Viewer</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-400">Clean Sentence Outlines</span>
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-zinc-200 mt-0.5">
-                    Dynamic Zoom-In Bounding Box with Zero Text Occlusion
-                  </h4>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">High-precision border boxes without obscuring text</p>
                 </div>
               </div>
 
-              {/* Preset Selector & Zoom Toggle */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+              {/* Minimal Zoom Toggle & Presets */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsZoomMode(!isZoomMode)}
-                  className={`px-3 py-1 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-all ${
+                  className={`px-2.5 py-1 rounded text-xs border transition-colors flex items-center gap-1 ${
                     isZoomMode
-                      ? 'bg-white text-black border-white font-bold shadow'
-                      : 'bg-zinc-900 text-zinc-300 border-zinc-700 hover:text-white'
+                      ? 'bg-white text-black border-white font-medium'
+                      : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-white'
                   }`}
-                  title="Toggle Zoom-In Lens"
+                  title="Toggle subtle zoom"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
-                  <span>{isZoomMode ? 'Zoom: 1.25x Active' : 'Zoom In Box'}</span>
+                  <span>{isZoomMode ? 'Zoom: On' : 'Zoom In'}</span>
                 </button>
 
                 {annotationPresets.map((preset, idx) => (
                   <button
                     key={idx}
-                    onClick={() => {
-                      setSelectedAnnotationPreset(idx);
-                    }}
-                    className={`px-3 py-1 rounded-md text-xs font-medium border transition-colors whitespace-nowrap ${
+                    onClick={() => setSelectedAnnotationPreset(idx)}
+                    className={`px-2.5 py-1 rounded text-xs border transition-colors ${
                       selectedAnnotationPreset === idx
-                        ? 'bg-zinc-800 text-white border-zinc-600 font-bold'
-                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white'
+                        ? 'bg-zinc-800 text-white border-zinc-700 font-medium'
+                        : 'bg-zinc-950 text-zinc-400 border-zinc-850 hover:text-white'
                     }`}
                   >
                     {preset.title}
@@ -669,122 +505,65 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
               </div>
             </div>
 
-            {/* Document Reader Mockup with Dynamic Animated Bounding Box */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              {/* Left 7 Cols: High-Fidelity Document Page */}
-              <div className="lg:col-span-7 rounded-xl border border-zinc-800 bg-white text-zinc-900 p-5 sm:p-6 shadow-2xl relative select-none flex flex-col justify-between min-h-[320px] overflow-hidden">
-                {/* Document Topbar */}
-                <div className="flex items-center justify-between border-b border-zinc-200 pb-3 text-xs text-zinc-500 font-mono">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-zinc-600" />
-                    <span className="font-semibold text-zinc-800">Product_Architecture_Guide.pdf</span>
-                  </div>
-                  <span>Page 3 of 12</span>
+            {/* Clean Document Reader (Minimal Paper Style) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Left 7 Cols: Clean White Paper Document */}
+              <div className="lg:col-span-7 rounded-lg border border-zinc-300 bg-white text-zinc-900 p-5 shadow-sm text-xs leading-relaxed font-sans space-y-3">
+                <div className="flex items-center justify-between border-b border-zinc-200 pb-2 text-[11px] text-zinc-500 font-mono">
+                  <span className="font-medium text-zinc-700">Architecture_Overview.pdf</span>
+                  <span>Page 3 of 8</span>
                 </div>
 
-                {/* Document Text Body with Zoom-In Focus */}
-                <div className="space-y-3.5 my-3 text-xs sm:text-sm text-zinc-700 leading-relaxed font-sans relative">
-                  <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">
-                    Section 3.2 — Data Security on Device
+                <p className="text-zinc-600">
+                  DomoNote stores all your data directly on your device. Documents, audio notes, and transcripts are never uploaded to third-party web servers.
+                </p>
+
+                {/* MINIMAL, NON-FUTURISTIC ANNOTATION BOX */}
+                <div
+                  key={`${selectedAnnotationPreset}-${isZoomMode}`}
+                  className={`p-3 rounded border-2 border-zinc-900 bg-zinc-50/90 transition-all duration-200 animate-box-zoom ${
+                    isZoomMode ? 'scale-[1.02] shadow-md bg-white' : 'scale-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+                    <span className="font-semibold text-zinc-900">
+                      {annotationPresets[selectedAnnotationPreset].stepTag}
+                    </span>
+                    <span className="text-zinc-400">Cited Excerpt</span>
                   </div>
 
-                  <p className={`transition-opacity duration-300 ${isZoomMode ? 'opacity-40' : 'opacity-85'}`}>
-                    DomoNote saves your files directly on your computer. No network packets leave your machine
-                    during file reading or analysis.
-                  </p>
-
-                  {/* CREATIVE DYNAMIC BORDER-ONLY ANNOTATION BOX WITH ZOOM-IN ANIMATION */}
-                  <div
-                    key={`${selectedAnnotationPreset}-${isZoomMode}`}
-                    className={`relative p-3.5 rounded-lg border-2 border-black bg-black/[0.02] shadow-lg animate-box-zoom animate-box-glow transition-all duration-300 ${
-                      isZoomMode ? 'scale-[1.04] bg-white ring-4 ring-black/10' : 'scale-100'
-                    }`}
-                  >
-                    {/* Creative Corner Reticle Brackets ⌜ ⌝ ⌞ ⌟ */}
-                    <span className="absolute -top-1.5 -left-1.5 w-3 h-3 border-t-2 border-l-2 border-black" />
-                    <span className="absolute -top-1.5 -right-1.5 w-3 h-3 border-t-2 border-r-2 border-black" />
-                    <span className="absolute -bottom-1.5 -left-1.5 w-3 h-3 border-b-2 border-l-2 border-black" />
-                    <span className="absolute -bottom-1.5 -right-1.5 w-3 h-3 border-b-2 border-r-2 border-black" />
-
-                    {/* Floating Step Badge with Pulse */}
-                    <div className="absolute -top-3 left-3 px-2 py-0.5 bg-black text-white rounded text-[10px] font-mono font-bold tracking-wide flex items-center gap-1.5 shadow-md">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                      <span>{annotationPresets[selectedAnnotationPreset].stepTag}</span>
-                    </div>
-
-                    <p className="text-black font-semibold text-xs sm:text-sm leading-relaxed">
-                      "{annotationPresets[selectedAnnotationPreset].targetText}"
-                    </p>
-
-                    {/* Hover dismiss / verified check */}
-                    <div className="absolute -top-2.5 -right-2 w-5 h-5 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center shadow">
-                      ✓
-                    </div>
-                  </div>
-
-                  <p className={`transition-opacity duration-300 ${isZoomMode ? 'opacity-40' : 'opacity-85'}`}>
-                    This clean design highlights text without blocking the words beneath it.
+                  <p className="text-zinc-900 font-medium text-xs sm:text-sm">
+                    "{annotationPresets[selectedAnnotationPreset].targetText}"
                   </p>
                 </div>
 
-                {/* Document Footer */}
-                <div className="pt-3 border-t border-zinc-200 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-                  <span>Exact DOM Sentence Coordinates</span>
-                  <span className="text-zinc-600">DomoNote Native Viewer</span>
-                </div>
+                <p className="text-zinc-600">
+                  Clean border boxes let you read the original document naturally with clear references.
+                </p>
               </div>
 
-              {/* Right 5 Cols: Citation & Annotation Inspector */}
-              <div className="lg:col-span-5 p-4 rounded-xl border border-zinc-850 bg-zinc-950 flex flex-col justify-between space-y-4">
+              {/* Right 5 Cols: Minimal Inspector */}
+              <div className="lg:col-span-5 p-4 rounded-lg border border-zinc-850 bg-zinc-900/30 text-xs space-y-3 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-850 pb-2 mb-3">
-                    <span className="font-semibold uppercase tracking-wider text-zinc-300">
-                      Highlighted Note
-                    </span>
-                    <span className="font-mono text-white text-[11px] bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                      {annotationPresets[selectedAnnotationPreset].confidence}
-                    </span>
+                  <div className="font-medium text-zinc-300 pb-2 border-b border-zinc-850 mb-3">
+                    Citation Details
                   </div>
 
-                  <div className="space-y-3 text-xs">
-                    <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-1.5">
-                      <div className="text-[10px] font-mono text-zinc-400 uppercase font-semibold">
-                        Highlighted Text
-                      </div>
-                      <p className="text-zinc-200 italic font-serif">
-                        "{annotationPresets[selectedAnnotationPreset].targetText}"
-                      </p>
+                  <div className="space-y-3">
+                    <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 text-xs">
+                      <span className="text-[10px] text-zinc-500 block mb-1">Why this is highlighted:</span>
+                      {annotationPresets[selectedAnnotationPreset].note}
                     </div>
 
-                    <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 space-y-1">
-                      <div className="text-[10px] font-mono text-zinc-400 uppercase font-semibold">
-                        Why this matters
-                      </div>
-                      <p className="text-zinc-300">
-                        {annotationPresets[selectedAnnotationPreset].note}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                      <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-400">
-                        Source: Page 3
-                      </div>
-                      <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 font-semibold">
-                        Zoom-In: Active
-                      </div>
+                    <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-[11px] text-zinc-400 flex items-center justify-between">
+                      <span>Location</span>
+                      <span className="font-mono text-zinc-300">Page 3, Line 12</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-850 flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">Clean border-only rendering</span>
-                  <button
-                    onClick={() => handleStageSelect('notes')}
-                    className="text-xs text-white hover:text-zinc-300 flex items-center gap-1 font-semibold underline underline-offset-4"
-                  >
-                    <span>Next: Sample Meeting Notes</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                <div className="pt-2 border-t border-zinc-850 text-[11px] text-zinc-500">
+                  Click 'Zoom In' above for focused viewing
                 </div>
               </div>
             </div>
@@ -793,45 +572,38 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
         {/* ================= STAGE 4: SAMPLE MEETING NOTES ================= */}
         {activeStage === 'notes' && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Header */}
-            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
+                  <FileText className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wide">
-                      Meeting Note Artifact
-                    </span>
-                    <span className="text-xs text-zinc-400 font-mono">
-                      Saved in Your Vault
-                    </span>
+                    <span className="font-semibold text-white">Weekly Planning Note</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-400">Sep 14, 2026</span>
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-zinc-200 mt-0.5">
-                    Team Architecture & Local AI Sync
-                  </h4>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Stored in your local workspace</p>
                 </div>
               </div>
 
-              {/* Actions: Copy Markdown */}
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleCopyNotes}
-                  className="text-xs flex items-center gap-1.5"
+                  className="text-xs h-7 px-2.5"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
+                      <Check className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+                      <span className="text-emerald-400">Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                      <Copy className="w-3.5 h-3.5 mr-1 text-zinc-400" />
                       <span>Copy Markdown</span>
                     </>
                   )}
@@ -841,150 +613,74 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                   variant="primary"
                   size="sm"
                   onClick={onOpenWorkspace}
-                  className="text-xs flex items-center gap-1.5"
+                  className="text-xs h-7 px-2.5"
                 >
                   <span>Open Workspace</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3 h-3 ml-1" />
                 </Button>
               </div>
             </div>
 
-            {/* Rich Formatted Meeting Note Card */}
-            <div className="p-5 sm:p-7 rounded-xl border border-zinc-800 bg-zinc-950 text-left space-y-5">
-              {/* Metadata Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-850 text-xs text-zinc-400">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                    <span>Sep 14, 2026 • 42 mins</span>
-                  </span>
-                  <span>•</span>
-                  <span>Participants: Arron Parejas, Elena Rostova, Marcus Vance</span>
-                </div>
-
-                <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Personal Vault Note</span>
-                </span>
+            {/* Clean Note Content */}
+            <div className="p-4 sm:p-5 rounded-lg border border-zinc-850 bg-zinc-900/20 text-xs space-y-4">
+              <div className="flex items-center gap-2 text-zinc-400 text-[11px] pb-3 border-b border-zinc-850">
+                <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                <span>Duration: 42 mins</span>
+                <span>•</span>
+                <span>Attendees: Arron Parejas, Elena Rostova, Marcus Vance</span>
               </div>
 
-              {/* Note Content Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                {/* Left 6 Cols: Summary & Decisions */}
-                <div className="md:col-span-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                {/* Left 6: Summary & Decisions */}
+                <div className="md:col-span-6 space-y-3">
                   <div>
-                    <h5 className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-bold mb-2">
-                      1. Executive Summary
-                    </h5>
-                    <p className="text-xs text-zinc-300 leading-relaxed p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-850">
-                      The team verified DomoNote's local-first architecture. All speech transcripts, document highlights, and notes stay strictly on your device without sending any data to remote servers.
+                    <div className="font-semibold text-zinc-300 mb-1 text-xs">Summary</div>
+                    <p className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 text-xs leading-relaxed">
+                      The team confirmed DomoNote's local-first architecture. Transcripts, document highlights, and notes stay strictly on your device.
                     </p>
                   </div>
 
                   <div>
-                    <h5 className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-bold mb-2">
-                      2. Key Decisions Made
-                    </h5>
-                    <div className="space-y-2 text-xs">
-                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-start gap-2">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        <span className="text-zinc-200">
-                          Adopted border-only dynamic bounding box rendering for PDF citations.
-                        </span>
+                    <div className="font-semibold text-zinc-300 mb-1 text-xs">Decisions</div>
+                    <div className="space-y-1.5 text-xs">
+                      <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>Use clean border-only outlines for document citations.</span>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-start gap-2">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        <span className="text-zinc-200">
-                          Recommended Llama 3.2 3B as default offline model for 8GB+ memory systems.
-                        </span>
+                      <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>Llama 3.2 3B recommended for offline AI.</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right 6 Cols: Action Items Checklist */}
-                <div className="md:col-span-6 space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-bold">
-                        3. Action Items Checklist
-                      </h5>
-                      <span className="text-[11px] font-mono text-zinc-500">
-                        {Object.values(checkedTasks).filter(Boolean).length} of 3 completed
-                      </span>
-                    </div>
+                {/* Right 6: Action Items */}
+                <div className="md:col-span-6 space-y-2">
+                  <div className="font-semibold text-zinc-300 mb-1 text-xs">Action Items</div>
 
-                    <div className="space-y-2.5">
-                      {[
-                        {
-                          text: 'Implement dynamic border-only annotation algorithm',
-                          owner: '@Alex',
-                          status: 'P0 • Complete',
-                        },
-                        {
-                          text: 'Validate offline Ollama health check before workspace open',
-                          owner: '@Elena',
-                          status: 'P1 • In Progress',
-                        },
-                        {
-                          text: 'Publish standalone desktop packages for macOS, Windows, Linux',
-                          owner: '@Marcus',
-                          status: 'P1 • Scheduled',
-                        },
-                      ].map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => toggleTask(idx)}
-                          className="p-3 rounded-lg bg-zinc-900/80 border border-zinc-850 hover:border-zinc-700 cursor-pointer flex items-start gap-3 transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={!!checkedTasks[idx]}
-                            onChange={() => {}}
-                            className="mt-0.5 w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-white accent-white cursor-pointer"
-                          />
-                          <div className="min-w-0 flex-1 text-xs">
-                            <span
-                              className={`block font-medium ${
-                                checkedTasks[idx]
-                                  ? 'line-through text-zinc-500'
-                                  : 'text-zinc-200'
-                              }`}
-                            >
-                              {item.text}
-                            </span>
-                            <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-zinc-500">
-                              <span className="text-zinc-400">{item.owner}</span>
-                              <span>•</span>
-                              <span
-                                className={
-                                  checkedTasks[idx]
-                                    ? 'text-emerald-400'
-                                    : 'text-zinc-400'
-                                }
-                              >
-                                {item.status}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Attached Document Citation Badge */}
-                  <div className="p-3 rounded-lg bg-zinc-900/40 border border-dashed border-zinc-850 flex items-center justify-between text-xs text-zinc-400">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Referenced: Product_Architecture_Guide.pdf (Page 3)</span>
-                    </div>
-                    <button
-                      onClick={() => handleStageSelect('annotation')}
-                      className="text-white hover:underline text-[11px] font-mono"
+                  {[
+                    { text: 'Add border-only document citation boxes', owner: '@Alex' },
+                    { text: 'Verify offline Ollama model status', owner: '@Elena' },
+                    { text: 'Test macOS and Windows standalone downloads', owner: '@Marcus' },
+                  ].map((task, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => toggleTask(idx)}
+                      className="p-2.5 rounded bg-zinc-950 border border-zinc-850 hover:border-zinc-700 cursor-pointer flex items-center gap-2.5 text-xs"
                     >
-                      View Highlight
-                    </button>
-                  </div>
+                      <input
+                        type="checkbox"
+                        checked={!!checkedTasks[idx]}
+                        onChange={() => {}}
+                        className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-800 text-white accent-white cursor-pointer"
+                      />
+                      <span className={`flex-1 ${checkedTasks[idx] ? 'line-through text-zinc-500' : 'text-zinc-200'}`}>
+                        {task.text}
+                      </span>
+                      <span className="text-[10px] font-mono text-zinc-500">{task.owner}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -992,43 +688,32 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
         )}
       </div>
 
-      {/* Bottom Footer Information Bar with Carousel Indicators */}
-      <div className="p-4 border-t border-zinc-850 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-zinc-400 text-xs">
-        {/* Carousel indicator dots */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            {stages.map((stg, i) => (
-              <button
-                key={stg.id}
-                onClick={() => handleStageSelect(stg.id)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  activeStage === stg.id ? 'w-6 bg-white' : 'w-2 bg-zinc-700 hover:bg-zinc-500'
-                }`}
-                title={`Jump to ${stg.label}`}
-              />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-[11px]">
-            {activeStage === 'calls' && 'Stage 1 of 4: Call Recording'}
-            {activeStage === 'summarizing' && 'Stage 2 of 4: Smart Summary'}
-            {activeStage === 'annotation' && 'Stage 3 of 4: Document Highlights'}
-            {activeStage === 'notes' && 'Stage 4 of 4: Meeting Notes'}
-          </span>
+      {/* Bottom Footer Bar */}
+      <div className="p-3.5 border-t border-zinc-850 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-400">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span>Clean audio transcription, smart summaries, and document reader.</span>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleNextStage}
+            className="text-xs h-7 px-2.5"
           >
-            <span>Next Demo</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span>Next</span>
+            <ChevronRight className="w-3.5 h-3.5 ml-1" />
           </Button>
 
-          <Button variant="primary" size="sm" onClick={onOpenWorkspace}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onOpenWorkspace}
+            className="text-xs h-7 px-2.5"
+          >
             <span>Open Workspace</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 ml-1" />
           </Button>
         </div>
       </div>
