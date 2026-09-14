@@ -5,7 +5,7 @@ import { useWorkspace } from '../context/workspace-context';
 import { useAI } from '../context/ai-context';
 import type { Note, Meeting, DocumentEntity, Manual } from '../types';
 import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
+import { Card, TiltCard } from '../components/ui/card';
 import {
   FileText,
   Mic,
@@ -53,9 +53,9 @@ export const DashboardView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-200">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-500">
       {/* Sticky Greeting Header & Quick Actions */}
-      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-200">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors duration-500">
         <div>
           <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Your Workspace</h2>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
@@ -76,7 +76,7 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* Mascot Companion Welcome Banner */}
-      <div className="mb-8 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm dark:shadow-xl transition-colors duration-200">
+      <TiltCard maxTilt={3} scale={1.01} className="mb-8 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm dark:shadow-xl transition-colors duration-500">
         <div className="flex items-center gap-4">
           <PandaMascot size="sm" showSpeechBubble={false} />
           <div>
@@ -101,64 +101,74 @@ export const DashboardView: React.FC = () => {
           <Feather className="w-3.5 h-3.5" />
           <span>Launch Zen Focus</span>
         </Button>
-      </div>
+      </TiltCard>
 
       {/* Quick Action Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
-        <button
-          onClick={handleCreateNewNote}
-          className="p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
-        >
-          <FileText className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <div>
-            <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">New Note</div>
-            <span className="text-[10px] text-slate-500 dark:text-zinc-500">Markdown document</span>
-          </div>
-        </button>
+        <TiltCard maxTilt={7} scale={1.03} className="rounded-xl">
+          <button
+            onClick={handleCreateNewNote}
+            className="w-full p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
+          >
+            <FileText className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">New Note</div>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500">Markdown document</span>
+            </div>
+          </button>
+        </TiltCard>
 
-        <button
-          onClick={() => setActiveView('meetings')}
-          className="p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
-        >
-          <Mic className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <div>
-            <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Start Meeting</div>
-            <span className="text-[10px] text-slate-500 dark:text-zinc-500">Audio & transcript</span>
-          </div>
-        </button>
+        <TiltCard maxTilt={7} scale={1.03} className="rounded-xl">
+          <button
+            onClick={() => setActiveView('meetings')}
+            className="w-full p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
+          >
+            <Mic className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Start Meeting</div>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500">Audio & transcript</span>
+            </div>
+          </button>
+        </TiltCard>
 
-        <button
-          onClick={() => setActiveView('documents')}
-          className="p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
-        >
-          <FileUp className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <div>
-            <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Upload Doc</div>
-            <span className="text-[10px] text-slate-500 dark:text-zinc-500">PDF, PPTX, DOCX, TXT</span>
-          </div>
-        </button>
+        <TiltCard maxTilt={7} scale={1.03} className="rounded-xl">
+          <button
+            onClick={() => setActiveView('documents')}
+            className="w-full p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
+          >
+            <FileUp className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Upload Doc</div>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500">PDF, PPTX, DOCX, TXT</span>
+            </div>
+          </button>
+        </TiltCard>
 
-        <button
-          onClick={() => setActiveView('manuals')}
-          className="p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
-        >
-          <Video className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <div>
-            <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Capture Operation</div>
-            <span className="text-[10px] text-slate-500 dark:text-zinc-500">Step manual generator</span>
-          </div>
-        </button>
+        <TiltCard maxTilt={7} scale={1.03} className="rounded-xl">
+          <button
+            onClick={() => setActiveView('manuals')}
+            className="w-full p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
+          >
+            <Video className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Capture Operation</div>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500">Step manual generator</span>
+            </div>
+          </button>
+        </TiltCard>
 
-        <button
-          onClick={() => setActiveView('ai-workspace')}
-          className="p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
-        >
-          <Bot className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <div>
-            <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Ask AI</div>
-            <span className="text-[10px] text-slate-500 dark:text-zinc-500">Multi-context chat</span>
-          </div>
-        </button>
+        <TiltCard maxTilt={7} scale={1.03} className="rounded-xl">
+          <button
+            onClick={() => setActiveView('ai-workspace')}
+            className="w-full p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors text-left flex flex-col justify-between h-28 shadow-xs"
+          >
+            <Bot className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-zinc-100">Ask AI</div>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500">Multi-context chat</span>
+            </div>
+          </button>
+        </TiltCard>
       </div>
 
       {/* Main Content Area: Real Stored Activity */}
@@ -180,7 +190,7 @@ export const DashboardView: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Recent Notes */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
+          <TiltCard maxTilt={4} scale={1.01} className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -217,10 +227,10 @@ export const DashboardView: React.FC = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </TiltCard>
 
           {/* Recent Meetings */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
+          <TiltCard maxTilt={4} scale={1.01} className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -259,10 +269,10 @@ export const DashboardView: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+          </TiltCard>
 
           {/* Recent Documents */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
+          <TiltCard maxTilt={4} scale={1.01} className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -299,10 +309,10 @@ export const DashboardView: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+          </TiltCard>
 
           {/* Operation Manuals */}
-          <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-200">
+          <TiltCard maxTilt={4} scale={1.01} className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-5 flex flex-col justify-between shadow-xs transition-colors duration-500">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
@@ -339,7 +349,7 @@ export const DashboardView: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+          </TiltCard>
         </div>
       )}
     </div>

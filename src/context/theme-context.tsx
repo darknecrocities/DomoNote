@@ -49,23 +49,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       };
 
-      const prefersReducedMotion =
-        typeof window !== 'undefined' &&
-        window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      // Native circular view transition optimized for smooth 60-120 FPS on all platforms (including Windows)
-      if (
-        !prefersReducedMotion &&
-        typeof document !== 'undefined' &&
-        'startViewTransition' in document
-      ) {
+      // Native circular view transition with bidirectional sweep
+      if (typeof document !== 'undefined' && 'startViewTransition' in document) {
         const root = document.documentElement;
         root.classList.add('theme-transitioning');
 
-        // Radiate directly from the click origin / toggle position
-        const startX = origin?.x ?? window.innerWidth - 60;
-        const startY = origin?.y ?? 50;
+        const isSwitchingToDark = newTheme === 'dark';
+
+        // When returning to dark mode: reversal transition from bottom-left to top-right!
+        // When switching to light mode: transition from rope position (top-right) expanding to bottom-left!
+        const startX = isSwitchingToDark ? 0 : (origin?.x ?? window.innerWidth - 60);
+        const startY = isSwitchingToDark ? window.innerHeight : (origin?.y ?? 60);
 
         const endRadius = Math.hypot(
           Math.max(startX, window.innerWidth - startX),
@@ -90,8 +84,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 ],
               },
               {
-                duration: 320,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 700,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                 pseudoElement: '::view-transition-new(root)',
               }
             );

@@ -53,7 +53,7 @@ export const ChangelogView: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-200">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-5 mb-8">
         <div className="flex items-center gap-2 text-slate-950 dark:text-white">
           <GitCommit className="w-5 h-5 text-slate-700 dark:text-zinc-400" />
@@ -66,22 +66,22 @@ export const ChangelogView: React.FC = () => {
 
       {/* Local Storage Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-200">
+        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-500">
           <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase font-semibold">Notes Stored</span>
           <div className="text-2xl font-black text-slate-950 dark:text-white mt-1 font-mono">{stats.notes}</div>
           <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-600">Dexie db.notes</span>
         </div>
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-200">
+        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-500">
           <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase font-semibold">Meetings Captured</span>
           <div className="text-2xl font-black text-slate-950 dark:text-white mt-1 font-mono">{stats.meetings}</div>
           <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-600">Dexie db.meetings</span>
         </div>
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-200">
+        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-500">
           <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase font-semibold">PDF Documents</span>
           <div className="text-2xl font-black text-slate-950 dark:text-white mt-1 font-mono">{stats.documents}</div>
           <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-600">Dexie db.documents</span>
         </div>
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-200">
+        <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 shadow-xs dark:shadow-none transition-colors duration-500">
           <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-500 uppercase font-semibold">SOP Manuals</span>
           <div className="text-2xl font-black text-slate-950 dark:text-white mt-1 font-mono">{stats.manuals}</div>
           <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-600">Dexie db.manuals</span>
@@ -93,7 +93,7 @@ export const ChangelogView: React.FC = () => {
         {RELEASES.map((rel) => (
           <div
             key={rel.version}
-            className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-4 shadow-xs dark:shadow-xl transition-colors duration-200"
+            className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-4 shadow-xs dark:shadow-xl transition-colors duration-500"
           >
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3">
               <div className="flex items-center gap-2.5">

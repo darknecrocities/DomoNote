@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { TiltCard } from './tilt-card';
 
 interface CarouselPanel {
   id: string;
@@ -120,8 +121,10 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
           style={{ transform: `translateX(-${activeIndex * 100}%)` }}
         >
           {panels.map((panel) => (
-            <div
+            <TiltCard
               key={panel.id}
+              maxTilt={4}
+              scale={1.01}
               className="w-full shrink-0 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/95 shadow-lg dark:shadow-2xl flex flex-col justify-between min-h-[440px]"
             >
               <div>
@@ -146,7 +149,7 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
               <div className="w-full rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 p-4 font-mono text-xs overflow-hidden">
                 {panel.previewContent}
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
       </div>

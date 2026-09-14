@@ -37,6 +37,7 @@ import { ScrollReveal } from '../components/ui/scroll-reveal';
 import { SectionConstellation } from '../components/landing/section-constellation';
 import { HeroCloudBackground } from '../components/landing/hero-cloud-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
+import { TiltCard } from '../components/ui/tilt-card';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/official_domonote.png';
 
@@ -290,7 +291,7 @@ export const LandingPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-slate-200 dark:selection:bg-zinc-800 selection:text-slate-900 dark:selection:text-white relative overflow-x-clip transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-slate-200 dark:selection:bg-zinc-800 selection:text-slate-900 dark:selection:text-white relative overflow-x-clip transition-colors duration-500">
       {/* Subtle Noise Texture Overlay */}
       <NoiseTexture opacity={0.035} />
 
@@ -353,7 +354,7 @@ export const LandingPage: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
         {/* 2-Column Hero Section with Interactive Background */}
         <div
-          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-200"
+          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500"
           style={{
             background: theme === 'light'
               ? 'linear-gradient(160deg, #d4dce8 0%, #dce4ef 30%, #e5eaf5 65%, #edf1f8 100%)'
@@ -820,7 +821,7 @@ cd DomoNote
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card1Tag', 'Private by Default')}
                 </span>
@@ -830,9 +831,9 @@ cd DomoNote
                 <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   {t('landing.why.card1Desc', 'Everything is stored directly in your browser using IndexedDB. No remote servers ever read or store your content.')}
                 </p>
-              </div>
+              </TiltCard>
 
-              <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card2Tag', 'Zero Tracking')}
                 </span>
@@ -842,9 +843,9 @@ cd DomoNote
                 <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   {t('landing.why.card2Desc', 'No tracking scripts, cookies, or analytics. Your notes, meetings, and thoughts remain completely confidential.')}
                 </p>
-              </div>
+              </TiltCard>
 
-              <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card3Tag', 'Universal Formats')}
                 </span>
@@ -854,9 +855,9 @@ cd DomoNote
                 <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   {t('landing.why.card3Desc', 'Export your notes, meeting minutes, and manuals to clean Markdown and PDF files with one click.')}
                 </p>
-              </div>
+              </TiltCard>
 
-              <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card4Tag', 'Open Source')}
                 </span>
@@ -866,14 +867,14 @@ cd DomoNote
                 <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
                   {t('landing.why.card4Desc', 'Free to use under the MIT license. You can inspect the source code, run it anywhere, or contribute improvements.')}
                 </p>
-              </div>
+              </TiltCard>
             </div>
           </div>
         </ScrollReveal>
 
         {/* Final Launch Callout Card */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-left flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-xl dark:shadow-2xl">
+          <TiltCard maxTilt={3} scale={1.01} className="w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-left flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-xl dark:shadow-2xl">
             <div className="max-w-xl">
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
                 {t('landing.cta.title', 'Start taking notes with private local AI.')}
@@ -898,7 +899,7 @@ cd DomoNote
                 <span>{t('landing.cta.downloadApp', 'Download App')}</span>
               </Button>
             </div>
-          </div>
+          </TiltCard>
         </ScrollReveal>
       </main>
 

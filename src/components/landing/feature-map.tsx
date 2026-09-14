@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mic, FileUp, FileText, Video, Bot } from 'lucide-react';
+import { TiltCard } from '../ui/tilt-card';
 
 export const FeatureMap: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'meetings' | 'documents' | 'notes' | 'operations' | 'ai'>('meetings');
@@ -46,7 +47,11 @@ export const FeatureMap: React.FC = () => {
       </div>
 
       {/* Visual Content Display */}
-      <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-200">
+      <TiltCard
+        maxTilt={3}
+        scale={1.01}
+        className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-500"
+      >
         {activeTab === 'meetings' && (
           <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3">
@@ -162,7 +167,7 @@ export const FeatureMap: React.FC = () => {
           <span>Local browser storage</span>
           <span>No cloud tracking</span>
         </div>
-      </div>
+      </TiltCard>
     </section>
   );
 };

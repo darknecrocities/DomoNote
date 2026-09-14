@@ -170,9 +170,9 @@ Valid categories are: "meeting", "deep-work", "review", "manual". Return only th
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans transition-colors duration-200">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-6xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Sticky Top Header */}
-      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-5 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-500">
         <div>
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-slate-900 dark:text-white" />
@@ -290,7 +290,7 @@ Valid categories are: "meeting", "deep-work", "review", "manual". Return only th
           {/* Quick Add Form */}
           <form
             onSubmit={handleAddEvent}
-            className="p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 space-y-4 shadow-xs dark:shadow-xl transition-colors duration-200"
+            className="p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 space-y-4 shadow-xs dark:shadow-xl transition-colors duration-500"
           >
             <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight flex items-center gap-2">
               <Plus className="w-4 h-4 text-slate-500 dark:text-zinc-400" />

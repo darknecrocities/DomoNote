@@ -98,9 +98,9 @@ bash start.sh
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 md:p-10 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-200 font-sans">
+    <div className="flex-1 flex flex-col min-h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-6 md:p-10 overflow-y-auto max-w-6xl mx-auto w-full select-none transition-colors duration-500 font-sans">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-6 mb-8 transition-colors duration-200 relative">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-6 mb-8 transition-colors duration-500 relative">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveView('landing')}
@@ -148,7 +148,7 @@ bash start.sh
       </div>
 
       {/* Auto-Detected Operating System Banner */}
-      <div className="mb-8 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm dark:shadow-none transition-colors duration-200">
+      <div className="mb-8 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm dark:shadow-none transition-colors duration-500">
         <div className="flex items-center gap-3.5">
           <div className="p-3 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black shadow-md">
             {detectedOS === 'macos' && <AppleIcon className="w-6 h-6" />}
@@ -215,7 +215,7 @@ bash start.sh
       </div>
 
       {/* OS Filter Switcher */}
-      <div className="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-zinc-850 pb-4 transition-colors duration-200">
+      <div className="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-zinc-850 pb-4 transition-colors duration-500">
         <button
           onClick={() => setSelectedOS('macos')}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2.5 ${
@@ -288,7 +288,7 @@ bash start.sh
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-200">
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
                 <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
@@ -370,7 +370,7 @@ bash start.sh
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-200">
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
                 <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
@@ -452,7 +452,7 @@ bash start.sh
             </div>
 
             {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-200">
+            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
                 <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                 <span>Hardware Compatibility</span>
@@ -503,7 +503,7 @@ bash start.sh
       </div>
 
       {/* Terminal / One-Line Quick Install Section */}
-      <div className="rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 p-6 space-y-5 shadow-sm dark:shadow-none transition-colors duration-200">
+      <div className="rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 p-6 space-y-5 shadow-sm dark:shadow-none transition-colors duration-500">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Terminal className="w-4 h-4 text-slate-900 dark:text-white" />
@@ -516,7 +516,7 @@ bash start.sh
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Mac Terminal */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-200">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <AppleIcon className="w-3.5 h-3.5" /> macOS Terminal
@@ -540,7 +540,7 @@ bash start.sh
           </div>
 
           {/* Windows PowerShell */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-200">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <WindowsIcon className="w-3.5 h-3.5" /> Windows PowerShell
@@ -564,7 +564,7 @@ bash start.sh
           </div>
 
           {/* Linux Shell */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-200">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <LinuxTuxIcon className="w-3.5 h-3.5" /> Linux Bash
@@ -590,7 +590,7 @@ bash start.sh
       </div>
 
       {/* Footer verification note */}
-      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-zinc-500 transition-colors duration-200">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-zinc-500 transition-colors duration-500">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
           <span className="font-medium">All releases are cryptographically signed, secure, and open-source under the MIT License.</span>

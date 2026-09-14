@@ -163,7 +163,7 @@ export const DocumentsView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-black transition-colors duration-200 font-sans">
+    <div className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-black transition-colors duration-500 font-sans">
       <input
         type="file"
         ref={fileInputRef}
@@ -177,7 +177,7 @@ export const DocumentsView: React.FC = () => {
 
       {/* Left Sidebar: Document List */}
       {isListOpen && (
-        <div className="w-72 lg:w-80 border-r border-slate-200 dark:border-zinc-850 flex flex-col h-full bg-white dark:bg-zinc-950 shrink-0 select-none animate-fade-in z-10 transition-colors duration-200">
+        <div className="w-72 lg:w-80 border-r border-slate-200 dark:border-zinc-850 flex flex-col h-full bg-white dark:bg-zinc-950 shrink-0 select-none animate-fade-in z-10 transition-colors duration-500">
           <div className="p-3.5 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
             <span className="text-xs font-bold text-slate-800 dark:text-zinc-300 uppercase tracking-wider">
               Documents ({documents.length})

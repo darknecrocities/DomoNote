@@ -10,7 +10,7 @@ interface SpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const SpotlightCard: React.FC<SpotlightCardProps> = ({
   children,
   className,
-  enableTilt = false,
+  enableTilt = true,
   ...props
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
