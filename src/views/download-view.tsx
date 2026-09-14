@@ -118,7 +118,7 @@ bash start.sh
               </span>
             </h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Local-first desktop application with air-gapped Ollama AI, screen studio, and encrypted local storage.
+              Local-first desktop application with offline Ollama AI, screen recording, and secure local storage.
             </p>
           </div>
         </div>
@@ -592,7 +592,7 @@ bash start.sh
       <div className="mt-8 pt-6 border-t border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-zinc-400" />
-          <span>All releases are cryptographically signed, air-gapped, and open-source under the MIT License.</span>
+          <span>All releases are cryptographically signed, secure, and open-source under the MIT License.</span>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setActiveView('privacy')} className="hover:text-white transition-colors">

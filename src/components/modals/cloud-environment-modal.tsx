@@ -67,7 +67,7 @@ export const CloudEnvironmentModal: React.FC<CloudEnvironmentModalProps> = ({
               Local Desktop App Required
             </h2>
             <p className="text-xs text-zinc-400 mt-1">
-              DomoNote is an air-gapped, zero-cloud architecture designed to run exclusively on your physical hardware.
+              DomoNote is a private, local-first app designed to run exclusively on your physical computer.
             </p>
           </div>
         </div>

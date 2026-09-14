@@ -1,6 +1,6 @@
 /**
  * Environment detection for DomoNote.
- * DomoNote is an air-gapped, local-first workspace designed to run on the user's desktop hardware.
+ * DomoNote is a private, local-first workspace designed to run on the user's desktop hardware.
  */
 
 export interface DeploymentEnvironment {

@@ -32,6 +32,7 @@ import { LoopingTypewriter } from '../components/landing/looping-typewriter';
 import { ScrollReveal } from '../components/ui/scroll-reveal';
 import { NodeNetworkBackground } from '../components/landing/node-network-background';
 import { SectionConstellation } from '../components/landing/section-constellation';
+import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/domodomo.png';
 
@@ -212,7 +213,7 @@ const MASCOT_MESSAGES = [
   'All notes, recordings, and documents stay 100% private on your machine.',
   'Local AI runs directly on your computer hardware via Ollama.',
   'Upload PDF, Word (DOCX), PowerPoint (PPTX), or TXT for instant AI summaries!',
-  'Air-gapped and local-first by design — zero telemetry.',
+  'Private and local-first by design — runs entirely on your device.',
   'Click me again for more tips!',
 ];
 
@@ -222,6 +223,7 @@ export const LandingPage: React.FC = () => {
   const mascotRef = React.useRef<HTMLDivElement>(null);
   const [mascotMsgIdx, setMascotMsgIdx] = useState(0);
   const [showMascotBubble, setShowMascotBubble] = useState(false);
+  const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
 
   const handleOpenWorkspace = () => {
     if (isCloudHost) {
@@ -288,9 +290,9 @@ export const LandingPage: React.FC = () => {
               {/* Top Benefit Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 select-none shadow-sm backdrop-blur-sm">
                 <Shield className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="font-semibold text-white">100% Private</span>
+                <span className="font-semibold text-white">Private & On-Device</span>
                 <span className="text-zinc-600">•</span>
-                <span className="text-zinc-400">Air-Gapped Local AI</span>
+                <span className="text-zinc-400">Runs on Your Computer</span>
               </div>
 
               {/* Hero Headline with Looping Typewriter */}
@@ -433,67 +435,91 @@ export const LandingPage: React.FC = () => {
               <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                   <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                    Product Demo
+                    Interactive Live Demo
                   </span>
                   <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
                     See DomoNote in action
                   </h2>
                   <p className="text-sm text-zinc-400 mt-2 max-w-2xl leading-relaxed">
-                    Watch how real audio transcription, document analysis (PDF, DOCX, PPTX, TXT), screen guides,
-                    and local AI synthesis work seamlessly on your computer.
+                    Explore real-time call speech recording, local AI summarizing with Ollama, dynamic border-only
+                    document annotation, and structured meeting notes—all running locally on your device.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const img = document.getElementById('demo-video-img') as HTMLImageElement;
-                      if (img) img.src = `/domonote-demo.webp?t=${Date.now()}`;
-                    }}
+                {/* View Switcher: Interactive Studio vs Full Walkthrough */}
+                <div className="flex items-center gap-2 shrink-0 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800">
+                  <button
+                    onClick={() => setDemoMode('interactive')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      demoMode === 'interactive'
+                        ? 'bg-white text-black shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Replay</span>
-                  </Button>
+                    Interactive Studio
+                  </button>
+                  <button
+                    onClick={() => setDemoMode('video')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      demoMode === 'video'
+                        ? 'bg-white text-black shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Walkthrough Video
+                  </button>
                 </div>
               </div>
 
-              {/* Clean Demo Player Frame */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
-                <div className="p-3.5 border-b border-zinc-850 bg-zinc-900/60 flex items-center justify-between text-xs text-zinc-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
-                    <span className="ml-2 font-medium text-zinc-300">DomoNote Product Walkthrough</span>
+              {/* Interactive Demo Studio or Video Frame */}
+              {demoMode === 'interactive' ? (
+                <InteractiveFeatureDemo onOpenWorkspace={handleOpenWorkspace} />
+              ) : (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl animate-fade-in">
+                  <div className="p-3.5 border-b border-zinc-850 bg-zinc-900/60 flex items-center justify-between text-xs text-zinc-400">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                      <span className="ml-2 font-medium text-zinc-300">DomoNote Product Walkthrough</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => {
+                          const img = document.getElementById('demo-video-img') as HTMLImageElement;
+                          if (img) img.src = `/domonote-demo.webp?t=${Date.now()}`;
+                        }}
+                      >
+                        <RotateCcw className="w-3 h-3 mr-1" />
+                        <span>Replay</span>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>Interactive Demo</span>
-                  </div>
-                </div>
 
-                <div className="relative bg-black flex items-center justify-center p-2 min-h-[400px]">
-                  <img
-                    id="demo-video-img"
-                    src="/domonote-demo.webp"
-                    alt="DomoNote Product Walkthrough"
-                    className="w-full max-h-[640px] object-contain rounded-lg shadow-inner"
-                  />
-                </div>
-
-                <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 text-xs">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Real features running locally: audio capture, document reader, IndexedDB storage, and local AI.</span>
+                  <div className="relative bg-black flex items-center justify-center p-2 min-h-[400px]">
+                    <img
+                      id="demo-video-img"
+                      src="/domonote-demo.webp"
+                      alt="DomoNote Product Walkthrough"
+                      className="w-full max-h-[640px] object-contain rounded-lg shadow-inner"
+                    />
                   </div>
-                  <Button variant="primary" size="sm" onClick={() => setActiveView('dashboard')}>
-                    <span>Open Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
+
+                  <div className="p-4 border-t border-zinc-850 bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-zinc-400 text-xs">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Recorded on macOS desktop running local WebAudio, PDF reader, and Ollama.</span>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={handleOpenWorkspace}>
+                      <span>Open Workspace</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </ScrollReveal>
