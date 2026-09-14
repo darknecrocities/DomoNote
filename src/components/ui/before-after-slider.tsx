@@ -52,13 +52,13 @@ export const BeforeAfterSlider: React.FC = () => {
       {/* Interactive Controls & Mode Presets */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         {/* Preset Switcher Buttons */}
-        <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-zinc-800">
+        <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
           <button
             onClick={() => setSliderPos(80)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
               sliderPos > 65
-                ? 'bg-zinc-800 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
             <Mic className="w-3.5 h-3.5" />
@@ -69,8 +69,8 @@ export const BeforeAfterSlider: React.FC = () => {
             onClick={() => setSliderPos(50)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
               sliderPos >= 40 && sliderPos <= 60
-                ? 'bg-zinc-800 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
@@ -81,19 +81,19 @@ export const BeforeAfterSlider: React.FC = () => {
             onClick={() => setSliderPos(20)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
               sliderPos < 35
-                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/80 shadow-sm'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>AI Summary (After)</span>
           </button>
         </div>
 
         {/* Hint Caption */}
-        <div className="flex items-center gap-2 text-zinc-500 font-mono text-[11px]">
+        <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-500 font-mono text-[11px]">
           <span className="hidden sm:inline">Drag divider or tap presets to compare</span>
-          <span className="text-zinc-400 font-semibold">{Math.round(sliderPos)}% / {100 - Math.round(sliderPos)}%</span>
+          <span className="text-slate-700 dark:text-zinc-400 font-semibold">{Math.round(sliderPos)}% / {100 - Math.round(sliderPos)}%</span>
         </div>
       </div>
 
@@ -102,11 +102,11 @@ export const BeforeAfterSlider: React.FC = () => {
         ref={containerRef}
         onClick={handleTrackClick}
         onTouchMove={handleTouchMove}
-        className="relative w-full min-h-[480px] rounded-2xl overflow-hidden border border-zinc-800 bg-[#070709] shadow-2xl cursor-ew-resize select-none"
+        className="relative w-full min-h-[480px] rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#070709] shadow-xl dark:shadow-2xl cursor-ew-resize select-none"
       >
         {/* Left Side: Raw Audio Transcript Buffer */}
         <div
-          className={`absolute inset-y-0 left-0 overflow-hidden bg-[#0c0c0e] border-r border-zinc-700 text-zinc-300 z-10 select-none shadow-[6px_0_24px_rgba(0,0,0,0.7)] ${
+          className={`absolute inset-y-0 left-0 overflow-hidden bg-slate-50 dark:bg-[#0c0c0e] border-r border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-300 z-10 select-none shadow-[6px_0_24px_rgba(0,0,0,0.1)] dark:shadow-[6px_0_24px_rgba(0,0,0,0.7)] ${
             isDraggingState ? '' : 'transition-[width] duration-300 ease-out'
           }`}
           style={{ width: `${sliderPos}%` }}
@@ -114,20 +114,20 @@ export const BeforeAfterSlider: React.FC = () => {
           <div className="h-full p-5 sm:p-7 flex flex-col justify-between overflow-y-auto">
             <div>
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 pb-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <Volume2 className="w-4 h-4 text-zinc-400 shrink-0" />
-                  <span className="font-bold text-xs tracking-tight text-zinc-200 uppercase font-mono">
+                  <Volume2 className="w-4 h-4 text-slate-500 dark:text-zinc-400 shrink-0" />
+                  <span className="font-bold text-xs tracking-tight text-slate-800 dark:text-zinc-200 uppercase font-mono">
                     Raw Audio Speech Stream
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded shrink-0">
+                <span className="text-[11px] font-mono text-slate-600 dark:text-zinc-400 bg-slate-200/70 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 px-2 py-0.5 rounded shrink-0">
                   00:14:32
                 </span>
               </div>
 
               {/* Monospace Raw Dialogue List */}
-              <div className="text-xs text-zinc-300 space-y-2.5 font-mono leading-relaxed bg-zinc-950/70 p-4 rounded-xl border border-zinc-850">
+              <div className="text-xs text-slate-700 dark:text-zinc-300 space-y-2.5 font-mono leading-relaxed bg-white dark:bg-zinc-950/70 p-4 rounded-xl border border-slate-200 dark:border-zinc-850">
                 <div className="flex items-start gap-2">
                   <span className="text-zinc-500 shrink-0 font-semibold">00:02</span>
                   <p><strong className="text-zinc-400 font-semibold">speaker:</strong> hey so about the deployment we were talking earlier...</p>
@@ -161,7 +161,7 @@ export const BeforeAfterSlider: React.FC = () => {
 
         {/* Right Side: Structured AI Summary & Tasks */}
         <div
-          className={`absolute inset-y-0 right-0 overflow-hidden bg-[#070709] text-zinc-100 select-none ${
+          className={`absolute inset-y-0 right-0 overflow-hidden bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-zinc-100 select-none ${
             isDraggingState ? '' : 'transition-[left,width] duration-300 ease-out'
           }`}
           style={{ left: `${sliderPos}%`, width: `${100 - sliderPos}%` }}
@@ -169,14 +169,14 @@ export const BeforeAfterSlider: React.FC = () => {
           <div className="h-full p-5 sm:p-7 flex flex-col justify-between overflow-y-auto">
             <div>
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-zinc-850 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-xs tracking-tight text-white uppercase font-mono">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+                  <span className="font-bold text-xs tracking-tight text-slate-900 dark:text-white uppercase font-mono">
                     Synthesized Minutes & Deliverables
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded shrink-0">
+                <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 px-2 py-0.5 rounded shrink-0">
                   Local AI Model
                 </span>
               </div>
@@ -184,46 +184,46 @@ export const BeforeAfterSlider: React.FC = () => {
               {/* Cards Container */}
               <div className="space-y-3.5">
                 {/* Decision Card */}
-                <div className="p-4 rounded-xl bg-zinc-900/90 border border-zinc-750 shadow-sm space-y-1.5">
+                <div className="p-4 rounded-xl bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-750 shadow-sm space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-emerald-400 text-[11px] uppercase tracking-wider font-mono">
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-[11px] uppercase tracking-wider font-mono">
                       Key Decision
                     </span>
-                    <span className="text-[10px] font-mono text-zinc-400">Consensus reached</span>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400">Consensus reached</span>
                   </div>
-                  <p className="text-xs text-zinc-200 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-800 dark:text-zinc-200 leading-relaxed font-medium">
                     "Release scheduled for Friday 18:00 UTC with zero-downtime canary rollout. Local IndexedDB persistence approved with zero cloud dependencies."
                   </p>
                 </div>
 
                 {/* Action Items Card */}
-                <div className="p-4 rounded-xl bg-zinc-900/90 border border-zinc-750 shadow-sm space-y-2.5">
+                <div className="p-4 rounded-xl bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-750 shadow-sm space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-zinc-200 text-[11px] uppercase tracking-wider font-mono">
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200 text-[11px] uppercase tracking-wider font-mono">
                       Extracted Action Items
                     </span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-900/50">
+                    <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-900/50">
                       2 tasks assigned
                     </span>
                   </div>
 
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/90 border border-zinc-800 text-zinc-200">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-950/90 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-200">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <span className="truncate">Prepare canary rollout manifests</span>
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-300 bg-zinc-850 px-2 py-0.5 rounded ml-2 shrink-0 border border-zinc-750">
+                      <span className="text-[10px] font-mono text-slate-700 dark:text-zinc-300 bg-slate-200 dark:bg-zinc-850 px-2 py-0.5 rounded ml-2 shrink-0 border border-slate-300 dark:border-zinc-750">
                         @Arron
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/90 border border-zinc-800 text-zinc-200">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-950/90 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-200">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <CheckSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="truncate">Verify database schema migrations</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">Verify zero-drop database migrations</span>
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-300 bg-zinc-850 px-2 py-0.5 rounded ml-2 shrink-0 border border-zinc-750">
+                      <span className="text-[10px] font-mono text-slate-700 dark:text-zinc-300 bg-slate-200 dark:bg-zinc-850 px-2 py-0.5 rounded ml-2 shrink-0 border border-slate-300 dark:border-zinc-750">
                         @DevOps
                       </span>
                     </div>
@@ -233,9 +233,9 @@ export const BeforeAfterSlider: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="text-[11px] font-mono text-zinc-400 pt-3 border-t border-zinc-850 flex items-center justify-between mt-4">
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 pt-3 border-t border-slate-200 dark:border-zinc-850 flex items-center justify-between mt-4">
               <span>Saved locally in IndexedDB</span>
-              <span className="text-zinc-500">2 deliverables created</span>
+              <span className="text-slate-400 dark:text-zinc-500">2 deliverables created</span>
             </div>
           </div>
         </div>

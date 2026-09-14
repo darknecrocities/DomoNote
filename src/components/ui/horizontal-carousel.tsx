@@ -64,16 +64,16 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
       {/* Top Header & Minimalist Progress Track */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-zinc-300">
+          <span className="font-mono text-xs text-slate-600 dark:text-zinc-300">
             0{activeIndex + 1} / 0{panels.length}
           </span>
-          <div className="w-28 sm:w-40 h-1 bg-zinc-850 rounded-full overflow-hidden relative">
+          <div className="w-28 sm:w-40 h-1 bg-slate-200 dark:bg-zinc-850 rounded-full overflow-hidden relative">
             <div
-              className="h-full bg-white transition-all duration-300"
+              className="h-full bg-slate-900 dark:bg-white transition-all duration-300"
               style={{ width: `${((activeIndex + 1) / panels.length) * 100}%` }}
             />
           </div>
-          <span className="text-[11px] font-mono text-zinc-400">
+          <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400">
             Feature Showcase
           </span>
         </div>
@@ -87,8 +87,8 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
                 onClick={() => setActiveIndex(idx)}
                 className={`px-2 py-0.5 text-[11px] font-mono rounded transition-colors ${
                   idx === activeIndex
-                    ? 'bg-zinc-800 text-white border border-zinc-700 font-semibold'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-slate-200 dark:bg-zinc-800 text-slate-900 dark:text-white border border-slate-300 dark:border-zinc-700 font-semibold'
+                    : 'text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
                 }`}
               >
                 0{idx + 1}
@@ -98,14 +98,14 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
 
           <button
             onClick={prevSlide}
-            className="p-2 rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors shadow-sm"
+            className="p-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors shadow-sm"
             aria-label="Previous feature"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={nextSlide}
-            className="p-2 rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors shadow-sm"
+            className="p-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors shadow-sm"
             aria-label="Next feature"
           >
             <ChevronRight className="w-4 h-4" />
@@ -122,28 +122,28 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
           {panels.map((panel) => (
             <div
               key={panel.id}
-              className="w-full shrink-0 p-6 sm:p-8 rounded-2xl border border-zinc-800 bg-zinc-950/95 shadow-2xl flex flex-col justify-between min-h-[440px]"
+              className="w-full shrink-0 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/95 shadow-lg dark:shadow-2xl flex flex-col justify-between min-h-[440px]"
             >
               <div>
-                <div className="flex items-center justify-between border-b border-zinc-850 pb-3 mb-6">
-                  <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3 mb-6">
+                  <span className="text-xs font-mono tracking-widest text-slate-500 dark:text-zinc-400 uppercase">
                     {panel.tag}
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800">
+                  <span className="text-[11px] font-mono text-slate-600 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-900 px-2.5 py-1 rounded border border-slate-200 dark:border-zinc-800">
                     {panel.meta}
                   </span>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-3">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
                   {panel.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-2xl mb-6">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-6">
                   {panel.description}
                 </p>
               </div>
 
               {/* In-Panel Preview Content */}
-              <div className="w-full rounded-xl border border-zinc-850 bg-zinc-900/50 p-4 font-mono text-xs overflow-hidden">
+              <div className="w-full rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 p-4 font-mono text-xs overflow-hidden">
                 {panel.previewContent}
               </div>
             </div>

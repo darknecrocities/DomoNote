@@ -12,7 +12,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const isFullWidthPage = activeView === 'landing' || activeView === 'download';
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-black text-zinc-100 antialiased font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-black text-slate-900 dark:text-zinc-100 antialiased font-sans transition-colors duration-200">
       {!isFullWidthPage && <Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
@@ -27,22 +27,22 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => {
           const icons = {
-            success: <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />,
-            error: <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />,
-            warning: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />,
-            info: <Info className="w-4 h-4 text-zinc-300 shrink-0" />,
+            success: <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />,
+            error: <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />,
+            warning: <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />,
+            info: <Info className="w-4 h-4 text-zinc-500 dark:text-zinc-300 shrink-0" />,
           };
 
           return (
             <div
               key={toast.id}
-              className="pointer-events-auto flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 shadow-xl text-xs text-zinc-200 animate-fade-in max-w-sm"
+              className="pointer-events-auto flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl text-xs text-slate-800 dark:text-zinc-200 animate-fade-in max-w-sm"
             >
               {icons[toast.type]}
               <span className="flex-1 leading-normal">{toast.message}</span>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors"
+                className="text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300 p-0.5 rounded transition-colors"
                 aria-label="Dismiss toast"
               >
                 <X className="w-3.5 h-3.5" />
