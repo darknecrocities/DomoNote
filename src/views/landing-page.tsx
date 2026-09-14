@@ -330,7 +330,7 @@ export const LandingPage: React.FC = () => {
       <NoiseTexture opacity={0.035} />
 
       {/* Top Navigation - Sticky Appbar */}
-      <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 py-3 transition-all shadow-sm dark:shadow-lg">
+      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 py-3 transition-all shadow-sm dark:shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain" />
@@ -493,17 +493,25 @@ export const LandingPage: React.FC = () => {
             {/* Right Column: Standalone Mascot in Circular Gray-White Frame with Blended Edges */}
             <div className="lg:col-span-6 flex items-center justify-center relative select-none">
               {/* Outer Ambient Blended Edge Halo */}
-              <div className="absolute w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] rounded-full bg-[radial-gradient(circle_at_center,rgba(241,245,249,0.95)_0,rgba(226,232,240,0.6)_50%,transparent_75%)] dark:bg-[radial-gradient(circle_at_center,rgba(39,39,42,0.8)_0,rgba(24,24,27,0.4)_50%,transparent_75%)] pointer-events-none blur-3xl" />
+              <div className="absolute w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] rounded-full pointer-events-none blur-3xl transition-colors duration-500"
+                style={{ background: theme === 'light'
+                  ? 'radial-gradient(circle at center, rgba(241,245,249,0.95) 0, rgba(226,232,240,0.6) 50%, transparent 75%)'
+                  : 'radial-gradient(circle at center, rgba(39,39,42,0.8) 0, rgba(24,24,27,0.4) 50%, transparent 75%)'
+                }}
+              />
 
-              {/* Circular Gray-White Frame */}
+              {/* Circular Gray-White Frame — speech bubble lives HERE so overflow-hidden doesn't clip it */}
               <div
                 ref={mascotRef}
-                className="relative z-10 cursor-pointer transition-transform duration-300 hover:scale-105 group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full p-3 sm:p-4 bg-gradient-to-b from-white/95 via-slate-100/90 to-slate-200/80 dark:from-zinc-800/90 dark:via-zinc-900/85 dark:to-zinc-950/90 border-2 border-slate-300/80 dark:border-zinc-700/70 shadow-[0_20px_50px_rgba(148,163,184,0.3)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+                className="relative z-10 cursor-pointer group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full p-3 sm:p-4 border-2 backdrop-blur-xl transition-all duration-300 hover:scale-105"
                 style={{
-                  boxShadow:
-                    theme === 'light'
-                      ? '0 0 50px 15px rgba(255,255,255,0.9), 0 20px 40px -15px rgba(100,116,139,0.25)'
-                      : '0 0 50px 15px rgba(0,0,0,0.5), 0 25px 60px -15px rgba(0,0,0,0.8)',
+                  background: theme === 'light'
+                    ? 'linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(241,245,249,0.9), rgba(226,232,240,0.8))'
+                    : 'linear-gradient(to bottom, rgba(39,39,42,0.9), rgba(24,24,27,0.85), rgba(9,9,11,0.9))',
+                  borderColor: theme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(63,63,70,0.7)',
+                  boxShadow: theme === 'light'
+                    ? '0 0 50px 15px rgba(255,255,255,0.9), 0 20px 40px -15px rgba(100,116,139,0.25)'
+                    : '0 0 50px 15px rgba(0,0,0,0.5), 0 25px 60px -15px rgba(0,0,0,0.8)',
                 }}
                 onClick={() => {
                   playPop();
@@ -519,26 +527,43 @@ export const LandingPage: React.FC = () => {
                 }}
                 title="Click to interact with DomoNote Mascot"
               >
-                {/* Inner Bezel Ring with Inset Highlight */}
-                <div className="w-full h-full rounded-full p-2 sm:p-3 border border-white/80 dark:border-zinc-700/50 bg-gradient-to-b from-slate-100/50 via-slate-50/30 to-slate-200/40 dark:from-zinc-900/60 dark:to-black/80 overflow-hidden flex items-center justify-center relative">
-                  {/* Circular Backdrop Vignette that softly feathers into the frame */}
-                  <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,#09090b_38%,#1e293b_68%,transparent_100%)] dark:bg-[radial-gradient(circle_at_center,#000000_45%,#18181b_75%,transparent_100%)]" />
+                {/* Speech Reaction Chip — OUTSIDE overflow-hidden so it is never clipped */}
+                <div
+                  className={`absolute -top-6 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 rounded-full text-[11px] font-mono shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
+                    showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
+                  }`}
+                  style={{
+                    background: theme === 'light' ? 'rgba(15,23,42,0.92)' : 'rgba(9,9,11,0.95)',
+                    border: `1px solid ${theme === 'light' ? 'rgba(51,65,85,0.5)' : 'rgba(63,63,70,0.8)'}`,
+                    color: theme === 'light' ? '#f1f5f9' : '#e4e4e7',
+                  }}
+                >
+                  <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
+                </div>
 
-                  {/* Interactive Speech Reaction Chip */}
-                  <div
-                    className={`absolute top-4 sm:top-6 z-20 px-3.5 py-1.5 rounded-full bg-zinc-950/95 border border-zinc-700 text-[11px] font-mono text-zinc-200 shadow-2xl backdrop-blur-md transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-none ${
-                      showMascotBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
-                    }`}
-                  >
-                    <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span>{activeMascotList[mascotMsgIdx % activeMascotList.length]}</span>
-                  </div>
+                {/* Inner Bezel Ring */}
+                <div className="w-full h-full rounded-full p-2 sm:p-3 overflow-hidden flex items-center justify-center relative transition-colors duration-300"
+                  style={{
+                    border: `1px solid ${theme === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(63,63,70,0.5)'}`,
+                    background: theme === 'light'
+                      ? 'linear-gradient(to bottom, rgba(241,245,249,0.5), rgba(248,250,252,0.3), rgba(226,232,240,0.4))'
+                      : 'linear-gradient(to bottom, rgba(24,24,27,0.6), rgba(0,0,0,0.8))',
+                  }}
+                >
+                  {/* Backdrop vignette — adapts per theme */}
+                  <div className="absolute inset-0 rounded-full transition-opacity duration-300"
+                    style={{ background: theme === 'light'
+                      ? 'radial-gradient(circle at center, rgba(241,245,249,0.7) 30%, rgba(203,213,225,0.5) 65%, transparent 100%)'
+                      : 'radial-gradient(circle at center, #09090b 38%, #1e293b 68%, transparent 100%)'
+                    }}
+                  />
 
-                  {/* Panda Mascot with Circular Feathered Edge Masking */}
+                  {/* Mascot GIF with feathered mask */}
                   <img
                     src="/domoreading.gif"
                     alt="DomoNote Mascot Reading"
-                    className="w-[125%] max-w-none h-auto object-contain relative z-10 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] animate-float"
+                    className="w-[125%] max-w-none h-auto object-contain relative z-10 drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] animate-float"
                     style={{
                       maskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',
                       WebkitMaskImage: 'radial-gradient(circle at 50% 50%, black 50%, rgba(0,0,0,0.8) 62%, transparent 74%)',

@@ -20,23 +20,25 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
 
   // Physics constants
   const NUM_POINTS = 9;
-  const L_REST = 54; // Resting cord length
-  const L_EXTENDED_CLICK = 98; // Instant click stretch
-  const L_MAX_DRAG = 130; // Max stretch limit
+  const L_REST = 54;
+  const L_EXTENDED_CLICK = 95;
+  const L_MAX_DRAG = 130;
   const ANCHOR_X = 50;
-  const ANCHOR_Y = 10; // Eyelet center inside the one-piece fixture
+  const ANCHOR_Y = 10;
 
-  // Simulation physics state
+  // Simulation state refs
   const phaseRef = useRef<'idle' | 'pulling' | 'recoiling' | 'dragging'>('idle');
   const isDraggingRef = useRef(false);
   const dragTargetRef = useRef({ x: ANCHOR_X, y: ANCHOR_Y + L_REST });
-  const themeFiredInDragRef = useRef(false);
+  const themeFiredRef = useRef(false);
 
-  // Immediate click snap timing
+  // Click timing — the fix for "click not firing theme":
+  // Track when pointerDown happened; if pointerUp is within 200ms, treat as a tap.
+  const pointerDownTimeRef = useRef(0);
+
   const clickStartRef = useRef(0);
-  const clickStartLenRef = useRef(L_REST);
+  const clickStartLenRef = useRef(ANCHOR_Y + L_REST);
 
-  // Rope points: [0] = anchor, [8] = handle bob
   const pointsRef = useRef(
     Array.from({ length: NUM_POINTS }, (_, i) => ({
       x: ANCHOR_X,
@@ -48,13 +50,14 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     }))
   );
 
-  // Trigger the theme change INSTANTLY with exact coordinates for circular transition
+  // Fire theme switch immediately with origin coords for circular transition
   const fireThemeSwitch = useCallback(() => {
+    if (themeFiredRef.current) return;
+    themeFiredRef.current = true;
+
     try {
       playPop();
-    } catch {
-      // audio optional
-    }
+    } catch { /* audio optional */ }
 
     const rect = containerRef.current?.getBoundingClientRect();
     const origin = rect
@@ -64,11 +67,10 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     toggleTheme(origin);
   }, [toggleTheme, playPop]);
 
-  // Main continuous physics simulation loop (direct DOM manipulation for lag-free 120 FPS)
+  // Physics simulation – direct DOM updates for lag-free 120 FPS
   useEffect(() => {
     let animId: number;
-
-    const K_SPRING_Y = 0.26; // High responsiveness
+    const K_SPRING_Y = 0.26;
     const DAMPING_Y = 0.82;
     const K_PENDULUM_X = 0.09;
     const DAMPING_X = 0.93;
@@ -79,31 +81,25 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       const lastIdx = NUM_POINTS - 1;
       const handle = points[lastIdx];
 
-      // 1. TOP ANCHOR: Fixed inside one-piece fixture
       points[0].x = ANCHOR_X;
       points[0].y = ANCHOR_Y;
       points[0].vx = 0;
       points[0].vy = 0;
 
-      // 2. Physics calculation
       if (phaseRef.current === 'dragging') {
         const target = dragTargetRef.current;
-        const dx = target.x - handle.x;
-        const dy = target.y - handle.y;
-
-        handle.vx = dx * 0.55;
-        handle.vy = dy * 0.55;
+        handle.vx = (target.x - handle.x) * 0.55;
+        handle.vy = (target.y - handle.y) * 0.55;
         handle.x += handle.vx;
         handle.y += handle.vy;
 
-        // Instant trigger the moment threshold is reached
-        const pullDistance = handle.y - (ANCHOR_Y + L_REST);
-        if (pullDistance > 28 && !themeFiredInDragRef.current) {
-          themeFiredInDragRef.current = true;
+        // Fire theme if dragged down far enough (drag-and-release gesture)
+        const pullDist = handle.y - (ANCHOR_Y + L_REST);
+        if (pullDist > 32 && !themeFiredRef.current) {
           fireThemeSwitch();
         }
       } else if (phaseRef.current === 'pulling') {
-        // Snappy click snap (instant response, 90ms swift downward pull then recoil)
+        // Animated visual snap-pull after an instant tap
         const PULL_DURATION = 90;
         const elapsed = now - clickStartRef.current;
         const progress = Math.min(1, elapsed / PULL_DURATION);
@@ -115,15 +111,14 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
         if (progress >= 1) {
           phaseRef.current = 'recoiling';
           handle.vy = -20;
-          handle.vx = (Math.random() > 0.5 ? 1 : -1) * 7.5; // realistic lateral whip momentum
-
+          handle.vx = (Math.random() > 0.5 ? 1 : -1) * 7.5;
           for (let i = 1; i < lastIdx; i++) {
             const wave = Math.sin((i / NUM_POINTS) * Math.PI * 2) * 7;
             points[i].waveVx = (i % 2 === 0 ? 1 : -1) * wave;
           }
         }
       } else {
-        // Recoil & Idle: 2D Spring + Pendulum Physics
+        // Recoil & Idle spring physics
         const dispY = handle.y - (ANCHOR_Y + L_REST);
         const springForceY = -K_SPRING_Y * dispY;
         handle.vy = (handle.vy + springForceY) * DAMPING_Y;
@@ -135,10 +130,8 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
         handle.x += handle.vx;
 
         if (
-          Math.abs(dispY) < 0.18 &&
-          Math.abs(handle.vy) < 0.15 &&
-          Math.abs(dispX) < 0.18 &&
-          Math.abs(handle.vx) < 0.15
+          Math.abs(dispY) < 0.2 && Math.abs(handle.vy) < 0.15 &&
+          Math.abs(dispX) < 0.2 && Math.abs(handle.vx) < 0.15
         ) {
           handle.y = ANCHOR_Y + L_REST;
           handle.x = ANCHOR_X;
@@ -148,21 +141,17 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
         }
       }
 
-      // 3. Update intermediate points with transverse waves
+      // Intermediate rope points with transverse waves
       for (let i = 1; i < lastIdx; i++) {
-        const fraction = i / lastIdx;
-        const baseX = ANCHOR_X + (handle.x - ANCHOR_X) * fraction;
-        const baseY = ANCHOR_Y + (handle.y - ANCHOR_Y) * fraction;
-
+        const f = i / lastIdx;
         const pt = points[i];
         pt.waveVx = (pt.waveVx - pt.waveX * 0.3) * 0.85;
         pt.waveX += pt.waveVx;
-
-        pt.x = baseX + pt.waveX;
-        pt.y = baseY;
+        pt.x = ANCHOR_X + (handle.x - ANCHOR_X) * f + pt.waveX;
+        pt.y = ANCHOR_Y + (handle.y - ANCHOR_Y) * f;
       }
 
-      // 4. Construct smooth Bezier SVG curve
+      // Build Bezier SVG path
       let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
       for (let i = 1; i < lastIdx; i++) {
         const xc = ((points[i].x + points[i + 1].x) / 2).toFixed(1);
@@ -171,22 +160,19 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       }
       d += ` L ${handle.x.toFixed(1)} ${handle.y.toFixed(1)}`;
 
-      // 5. Dynamic handle angle
-      const prevNode = points[lastIdx - 1];
-      const rad = Math.atan2(handle.y - prevNode.y, handle.x - prevNode.x);
-      const deg = (rad * 180) / Math.PI - 90;
-      const clampedAngle = Math.max(-32, Math.min(32, deg));
+      // Handle angle
+      const prev = points[lastIdx - 1];
+      const deg = (Math.atan2(handle.y - prev.y, handle.x - prev.x) * 180) / Math.PI - 90;
+      const angle = Math.max(-32, Math.min(32, deg));
 
-      // 6. Direct DOM update: 0 React re-renders for buttery 120 FPS
-      if (pathShadowRef.current) pathShadowRef.current.setAttribute('d', d);
-      if (pathCoreRef.current) pathCoreRef.current.setAttribute('d', d);
-      if (pathAccentRef.current) pathAccentRef.current.setAttribute('d', d);
-      if (handleGroupRef.current) {
-        handleGroupRef.current.setAttribute(
-          'transform',
-          `translate(${handle.x.toFixed(1)}, ${handle.y.toFixed(1)}) rotate(${clampedAngle.toFixed(1)})`
-        );
-      }
+      // Direct DOM writes – no React re-render needed
+      pathShadowRef.current?.setAttribute('d', d);
+      pathCoreRef.current?.setAttribute('d', d);
+      pathAccentRef.current?.setAttribute('d', d);
+      handleGroupRef.current?.setAttribute(
+        'transform',
+        `translate(${handle.x.toFixed(1)}, ${handle.y.toFixed(1)}) rotate(${angle.toFixed(1)})`
+      );
 
       animId = requestAnimationFrame(simulate);
     };
@@ -195,21 +181,19 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     return () => cancelAnimationFrame(animId);
   }, [fireThemeSwitch]);
 
-  // Pointer Drag Handlers
+  // --- Pointer Handlers ---
+
   const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
 
-    try {
-      playThock(1.2);
-    } catch {
-      // audio optional
-    }
+    try { playThock(1.2); } catch { /* optional */ }
 
+    pointerDownTimeRef.current = performance.now();
     isDraggingRef.current = true;
+    themeFiredRef.current = false;
     setIsDragging(true);
     phaseRef.current = 'dragging';
-    themeFiredInDragRef.current = false;
 
     updatePointerTarget(e);
   };
@@ -217,16 +201,12 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
   const updatePointerTarget = (e: React.PointerEvent) => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const scaleX = 100 / rect.width;
-    const scaleY = 190 / rect.height;
-
-    const svgX = (e.clientX - rect.left) * scaleX;
-    const svgY = (e.clientY - rect.top) * scaleY;
-
-    const clampedX = Math.max(20, Math.min(80, svgX));
-    const clampedY = Math.max(ANCHOR_Y + L_REST - 6, Math.min(ANCHOR_Y + L_MAX_DRAG, svgY));
-
-    dragTargetRef.current = { x: clampedX, y: clampedY };
+    const svgX = (e.clientX - rect.left) * (100 / rect.width);
+    const svgY = (e.clientY - rect.top) * (190 / rect.height);
+    dragTargetRef.current = {
+      x: Math.max(20, Math.min(80, svgX)),
+      y: Math.max(ANCHOR_Y + L_REST - 6, Math.min(ANCHOR_Y + L_MAX_DRAG, svgY)),
+    };
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -238,32 +218,32 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     setIsDragging(false);
+    try { (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); } catch { /* ignore */ }
 
-    try {
-      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch {
-      // ignore
-    }
-
+    const elapsed = performance.now() - pointerDownTimeRef.current;
     const handle = pointsRef.current[NUM_POINTS - 1];
-    const pullDistance = handle.y - (ANCHOR_Y + L_REST);
 
-    if (pullDistance < 14 && !themeFiredInDragRef.current) {
-      // Instant click: Fire theme transition immediately without any delay!
+    // KEY FIX: If pointer was held < 200ms, always treat as a tap/click.
+    // This avoids the false "dragged too far" reading from a single RAF tick.
+    if (elapsed < 200) {
+      // Fire theme switch immediately on tap
       fireThemeSwitch();
 
-      // Trigger crisp snap recoil animation
+      // Visual snap-pull animation (purely cosmetic after theme fires)
       phaseRef.current = 'pulling';
       clickStartRef.current = performance.now();
       clickStartLenRef.current = handle.y - ANCHOR_Y;
     } else {
+      // Long press / drag release
+      if (!themeFiredRef.current) {
+        // Didn't drag far enough — just snap back
+      }
       phaseRef.current = 'recoiling';
       handle.vy = -19;
       handle.vx = (handle.x - ANCHOR_X) * -0.4;
     }
   };
 
-  // Hover sway nudge
   const handleMouseEnter = () => {
     setIsHovered(true);
     if (phaseRef.current === 'idle') {
@@ -284,12 +264,6 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       title={`Pull cord: Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
       aria-label="Physics pull-cord lampshade switch under appbar"
     >
-      {/* 
-        ONE-PIECE INTEGRATED FIXTURE & ROPE:
-        The ceiling/appbar mounting bracket, collar, eyelet, braided cord, 
-        and bell handle are all unified inside a single pixel-perfect SVG 
-        starting at y=0 flush with the appbar bottom border!
-      */}
       <div className="relative w-[76px] h-[190px] pointer-events-auto">
         <svg
           ref={svgRef}
@@ -301,152 +275,117 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
           onPointerCancel={handlePointerUp}
           style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
-          {/* DEFINITIONS FOR REALISTIC METALLIC LIGHTING */}
           <defs>
-            <linearGradient id="fixtureMetallic" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={isDark ? '#27272a' : '#94a3b8'} />
-              <stop offset="35%" stopColor={isDark ? '#52525b' : '#cbd5e1'} />
-              <stop offset="65%" stopColor={isDark ? '#71717a' : '#e2e8f0'} />
+            <linearGradient id="ropeFixtureMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor={isDark ? '#27272a' : '#94a3b8'} />
+              <stop offset="35%"  stopColor={isDark ? '#52525b' : '#e2e8f0'} />
+              <stop offset="65%"  stopColor={isDark ? '#71717a' : '#f1f5f9'} />
               <stop offset="100%" stopColor={isDark ? '#27272a' : '#94a3b8'} />
             </linearGradient>
-            <linearGradient id="bellMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isDark ? '#ffffff' : '#1e293b'} />
-              <stop offset="50%" stopColor={isDark ? '#e4e4e7' : '#0f172a'} />
+            <linearGradient id="ropeBellMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stopColor={isDark ? '#f4f4f5' : '#1e293b'} />
+              <stop offset="50%"  stopColor={isDark ? '#d4d4d8' : '#0f172a'} />
               <stop offset="100%" stopColor={isDark ? '#a1a1aa' : '#020617'} />
             </linearGradient>
           </defs>
 
-          {/* 
-            ONE-PIECE CEILING / APPBAR MOUNT FIXTURE
-            Flush against appbar bottom border (starts at y=0)
-          */}
-          <g className="one-piece-lamp-base">
-            {/* Top flush mounting plate sitting seamlessly on navbar line */}
+          {/* ONE-PIECE MOUNTING FIXTURE – flush against the appbar bottom */}
+          <g>
+            {/* Top flush plate (y=0, flush with the appbar border-bottom) */}
             <path
-              d="M 32 0 L 68 0 C 68 2.5 66 3.5 64 3.5 L 36 3.5 C 34 3.5 32 2.5 32 0 Z"
-              fill="url(#fixtureMetallic)"
+              d="M 30 0 L 70 0 C 70 3 67 4 64 4 L 36 4 C 33 4 30 3 30 0 Z"
+              fill="url(#ropeFixtureMetal)"
             />
-            {/* Fastener screw rivets on mounting plate */}
-            <circle cx="36" cy="1.8" r="0.9" fill={isDark ? '#18181b' : '#64748b'} />
-            <circle cx="64" cy="1.8" r="0.9" fill={isDark ? '#18181b' : '#64748b'} />
-
-            {/* Seamless tapered socket collar (continuous with top plate) */}
+            {/* Screw rivets */}
+            <circle cx="37" cy="2" r="1" fill={isDark ? '#18181b' : '#64748b'} />
+            <circle cx="63" cy="2" r="1" fill={isDark ? '#18181b' : '#64748b'} />
+            {/* Tapered collar */}
             <path
-              d="M 42 3.5 L 58 3.5 L 54 8 L 46 8 Z"
+              d="M 43 4 L 57 4 L 54 9 L 46 9 Z"
               fill={isDark ? '#3f3f46' : '#cbd5e1'}
               stroke={isDark ? '#27272a' : '#94a3b8'}
-              strokeWidth="0.6"
+              strokeWidth="0.5"
             />
-
-            {/* Solid eyelet grommet from which cord emerges at (50, 10) */}
-            <circle
-              cx="50"
-              cy="10"
-              r="3.2"
-              fill={isDark ? '#27272a' : '#94a3b8'}
-            />
-            <circle
-              cx="50"
-              cy="10"
-              r="1.8"
-              fill={isDark ? '#09090b' : '#334155'}
-            />
+            {/* Eyelet grommet */}
+            <circle cx="50" cy="10" r="3" fill={isDark ? '#27272a' : '#94a3b8'} />
+            <circle cx="50" cy="10" r="1.6" fill={isDark ? '#09090b' : '#334155'} />
           </g>
 
-          {/* Flexible Hanging Braided Cord (Shadow Layer) */}
+          {/* Rope shadow */}
           <path
             ref={pathShadowRef}
-            stroke={isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.14)'}
+            stroke={isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.12)'}
             strokeWidth="3.5"
             strokeLinecap="round"
             fill="none"
-            transform="translate(1, 2)"
+            transform="translate(1,2)"
           />
 
-          {/* Flexible Rope Core */}
+          {/* Rope core */}
           <path
             ref={pathCoreRef}
             stroke={isDark ? '#71717a' : '#64748b'}
-            strokeWidth="2.5"
+            strokeWidth="2.4"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
           />
 
-          {/* Braided Cord Spiral Texture Accent */}
+          {/* Rope braided accent */}
           <path
             ref={pathAccentRef}
-            stroke={isDark ? '#f4f4f5' : '#0f172a'}
-            strokeWidth="1"
+            stroke={isDark ? '#f4f4f5' : '#1e293b'}
+            strokeWidth="0.9"
             strokeDasharray="2.5 3.5"
             strokeLinecap="round"
             fill="none"
-            opacity={isDark ? 0.75 : 0.45}
+            opacity={isDark ? 0.7 : 0.35}
           />
 
-          {/* Dynamic Brass Bell Pull Handle + Mode Indicator Badge */}
+          {/* Bell handle group – moved by physics via direct DOM */}
           <g
             ref={handleGroupRef}
-            transform="translate(50, 64) rotate(0)"
-            className="transition-filter duration-150"
-            style={{ filter: isHovered || isDragging ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.35))' : 'drop-shadow(0 3px 6px rgba(0,0,0,0.2))' }}
+            transform={`translate(${ANCHOR_X}, ${ANCHOR_Y + L_REST}) rotate(0)`}
+            style={{
+              filter: isHovered || isDragging
+                ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.35))'
+                : 'drop-shadow(0 3px 6px rgba(0,0,0,0.2))',
+              transition: 'filter 0.15s ease',
+            }}
           >
-            {/* Metallic Top Ring Collar */}
-            <rect
-              x="-3"
-              y="-1"
-              width="6"
-              height="3"
-              rx="1"
-              fill={isDark ? '#a1a1aa' : '#475569'}
-            />
+            {/* Ring collar */}
+            <rect x="-3" y="-1" width="6" height="3" rx="1"
+              fill={isDark ? '#a1a1aa' : '#475569'} />
 
-            {/* Brass / Chrome Bell Weight */}
+            {/* Bell body */}
             <path
               d="M -6.5 2 L 6.5 2 L 8 16 C 8 21.5 -8 21.5 -8 16 Z"
-              fill="url(#bellMetallic)"
+              fill="url(#ropeBellMetal)"
               stroke={isDark ? '#52525b' : '#334155'}
               strokeWidth="1.2"
             />
-
-            {/* Decorative Inset Grooves */}
-            <rect
-              x="-2"
-              y="5"
-              width="4"
-              height="7"
-              rx="1"
-              fill={isDark ? '#18181b' : '#ffffff'}
-              opacity="0.85"
-            />
+            {/* Center groove */}
+            <rect x="-2" y="5" width="4" height="7" rx="1"
+              fill={isDark ? '#18181b' : '#ffffff'} opacity="0.85" />
             <circle cx="0" cy="18" r="1.8" fill={isDark ? '#27272a' : '#cbd5e1'} />
 
-            {/* Attached Mode Indicator Badge (Swings dynamically with the bell handle) */}
-            <g transform="translate(0, 31)">
-              {/* Badge Background Capsule */}
+            {/* DARK / LIGHT badge */}
+            <g transform="translate(0, 30)">
               <rect
-                x="-22"
-                y="-9"
-                width="44"
-                height="18"
-                rx="9"
-                fill={isDark ? '#18181b' : '#ffffff'}
+                x="-24" y="-9" width="48" height="18" rx="9"
+                fill={isDark ? '#18181b' : '#f8fafc'}
                 stroke={isDark ? '#3f3f46' : '#cbd5e1'}
                 strokeWidth="1.2"
-                className="shadow-sm"
               />
-
-              {/* Badge Text */}
               <text
-                x="0"
-                y="3.5"
+                x="0" y="3.5"
                 textAnchor="middle"
                 fill={isDark ? '#f4f4f5' : '#0f172a'}
                 fontSize="7.5"
                 fontWeight="800"
                 fontFamily="system-ui, -apple-system, sans-serif"
                 letterSpacing="0.12em"
-                className="select-none pointer-events-none"
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
               >
                 {isDark ? 'LIGHT' : 'DARK'}
               </text>
