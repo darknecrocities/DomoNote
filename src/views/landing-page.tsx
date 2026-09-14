@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useWorkspace } from '../context/workspace-context';
 import { useSound } from '../context/sound-context';
 import { Button } from '../components/ui/button';
@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Sparkles,
   Download,
+  Star,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { NoiseTexture } from '../components/ui/noise-texture';
@@ -224,6 +225,41 @@ export const LandingPage: React.FC = () => {
   const [mascotMsgIdx, setMascotMsgIdx] = useState(0);
   const [showMascotBubble, setShowMascotBubble] = useState(false);
   const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
+  const [starCount, setStarCount] = useState<number | null>(() => {
+    try {
+      const cached = sessionStorage.getItem('github_stars_domonote');
+      return cached !== null ? parseInt(cached, 10) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchStars = async () => {
+      try {
+        const cached = sessionStorage.getItem('github_stars_domonote');
+        if (cached !== null) {
+          setStarCount(parseInt(cached, 10));
+          return;
+        }
+        const res = await fetch('https://api.github.com/repos/darknecrocities/DomoNote');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && typeof data.stargazers_count === 'number') {
+            setStarCount(data.stargazers_count);
+            sessionStorage.setItem('github_stars_domonote', data.stargazers_count.toString());
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch github stars', err);
+      }
+    };
+    fetchStars();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenWorkspace = () => {
     if (isCloudHost) {
@@ -247,11 +283,6 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-xs text-zinc-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>100% Private & Offline</span>
-            </div>
-
             <button
               onClick={() => setActiveView('download')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-300 hover:text-white transition-colors"
@@ -260,14 +291,21 @@ export const LandingPage: React.FC = () => {
               <span className="hidden sm:inline">Download</span>
             </button>
 
+            {/* GitHub Star Count Button */}
             <a
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all shadow-sm group"
+              title="Star DomoNote on GitHub"
             >
-              <GithubIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">GitHub</span>
+              <GithubIcon className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors" />
+              <span className="font-medium hidden sm:inline">Star</span>
+              <span className="h-3 w-[1px] bg-zinc-800 hidden sm:inline" />
+              <span className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 group-hover:text-amber-400 transition-colors">
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                <span>{starCount !== null ? starCount.toLocaleString() : 'Star'}</span>
+              </span>
             </a>
 
             <Button variant="primary" size="sm" onClick={handleOpenWorkspace}>
