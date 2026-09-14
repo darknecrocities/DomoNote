@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "ローカルファースト AI ナレッジワークスペース"
+    "tagline": "あなたのローカル AI 秘書"
   },
   "nav": {
     "home": "ホーム",
@@ -143,7 +143,7 @@
       "downloadApp": "アプリをダウンロード"
     },
     "footer": {
-      "copyright": "DomoNote. ローカルファースト AI ナレッジワークスペース。",
+      "copyright": "DomoNote. あなたのローカル AI 秘書。",
       "privacyNotice": "100% 端末内処理。アカウント不要、テレメトリなし、サーバー依存ゼロ。",
       "licenseNotice": "MIT ライセンス • オープンソース • お使いの端末で動作",
       "privateByDefault": "完全プライベート設計"

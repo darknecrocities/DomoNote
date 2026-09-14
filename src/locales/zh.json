@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "本地优先的 AI 知识工作区"
+    "tagline": "您的本地 AI 智能秘书"
   },
   "nav": {
     "home": "首页",
@@ -143,7 +143,7 @@
       "downloadApp": "下载客户端"
     },
     "footer": {
-      "copyright": "DomoNote. 本地优先的 AI 知识工作区。",
+      "copyright": "DomoNote. 您的本地 AI 智能秘书。",
       "privacyNotice": "100% 本地设备计算，无账户注册，无后台埋点，无服务器依赖。",
       "licenseNotice": "MIT 协议 • 开源免费 • 运行于您的设备",
       "privateByDefault": "默认绝对私有"

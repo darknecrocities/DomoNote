@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "Local-First AI Knowledge Workspace"
+    "tagline": "Your Local AI Secretary"
   },
   "nav": {
     "home": "Home",
@@ -143,7 +143,7 @@
       "downloadApp": "Download App"
     },
     "footer": {
-      "copyright": "DomoNote. Local-first AI knowledge workspace.",
+      "copyright": "DomoNote. Your Local AI Secretary.",
       "privacyNotice": "100% on-device processing. No accounts, telemetry, or server dependencies.",
       "licenseNotice": "MIT License • Open Source • Runs on Your Device",
       "privateByDefault": "Private by Default"

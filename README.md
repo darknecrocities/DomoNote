@@ -1,8 +1,8 @@
-# DomoNote
+# DomoNote — Your Local AI Secretary
 
 > Capture it. Understand it. Keep it.
 
-DomoNote is a production-quality, local-first AI note-taking and knowledge workspace. It captures what happens across meetings, documents, computer operations, and notes, organizing and synthesizing them using local AI models without sacrificing user privacy.
+DomoNote is a production-quality, local AI secretary for note-taking, meetings, documents, and operations. It captures what happens across meetings, documents, computer operations, and notes, organizing and synthesizing them using local AI models without sacrificing user privacy.
 
 Repository: https://github.com/darknecrocities/DomoNote
 

@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "Espace de travail de connaissances IA local-first"
+    "tagline": "Votre secrétaire IA locale"
   },
   "nav": {
     "home": "Accueil",
@@ -143,7 +143,7 @@
       "downloadApp": "Télécharger l'application"
     },
     "footer": {
-      "copyright": "DomoNote. Espace de travail de connaissances IA local-first.",
+      "copyright": "DomoNote. Votre secrétaire IA locale.",
       "privacyNotice": "Traitement 100% sur l'appareil. Pas de compte, pas de télémétrie, aucune dépendance serveur.",
       "licenseNotice": "Licence MIT • Open Source • Exécuté sur votre appareil",
       "privateByDefault": "Privé par défaut"

@@ -9,9 +9,9 @@ Status: Canonical Architecture and Technical Specification
 
 ## 1. Product Statement
 
-DomoNote is an open-source, local-first AI note-taking and knowledge workspace.
+DomoNote is an open-source, local-first AI secretary and note-taking workspace.
 Tagline: "Capture it. Understand it. Keep it."
-Secondary description: "Your local-first AI workspace for meetings, documents, and notes."
+Secondary description: "DomoNote - Your Local AI Secretary for meetings, documents, and notes."
 
 DomoNote integrates four primary knowledge modalities into a unified workspace:
 1. Markdown and Structured Notes

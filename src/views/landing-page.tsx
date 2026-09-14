@@ -38,7 +38,7 @@ import { SectionConstellation } from '../components/landing/section-constellatio
 import { HeroCloudBackground } from '../components/landing/hero-cloud-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import pandaImg from '../assets/panda-mascot.png';
-import logoImg from '../assets/domodomo.png';
+import logoImg from '../assets/official_domonote.png';
 
 const TYPEWRITER_PHRASES: Record<string, string[]> = {
   en: [
@@ -298,7 +298,7 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
         <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-between relative">
           <div className="flex items-center gap-3">
-            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain" />
+            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shadow-xs" />
             <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">DomoNote</span>
           </div>
 
@@ -907,9 +907,9 @@ cd DomoNote
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <img src={logoImg} alt="DomoNote" className="w-6 h-6 rounded object-contain" />
+              <img src={logoImg} alt="DomoNote" className="w-6 h-6 rounded-md object-contain shadow-xs" />
               <span className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">DomoNote</span>
-              <span className="text-xs text-slate-500 dark:text-zinc-500">• {t('app.tagline', 'Local-First AI Knowledge Workspace')}</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-500">• {t('app.tagline', 'Your Local AI Secretary')}</span>
             </div>
             <p className="text-slate-500 dark:text-zinc-500 text-xs max-w-sm">
               Built with React, TypeScript, IndexedDB, and local Ollama intelligence.

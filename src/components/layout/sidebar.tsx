@@ -24,7 +24,7 @@ import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
 import { useLanguage } from '../../context/language-context';
 import { useAI } from '../../context/ai-context';
-import logoImg from '../../assets/domodomo.png';
+import logoImg from '../../assets/official_domonote.png';
 
 export const Sidebar: React.FC = () => {
   const { activeView, setActiveView, isMobileSidebarOpen, setIsMobileSidebarOpen } = useWorkspace();
@@ -216,7 +216,7 @@ export const Sidebar: React.FC = () => {
             className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
             title="DomoNote Landing Page"
           >
-            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
+            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shrink-0 shadow-xs" />
             {!isCollapsed && (
               <div className="truncate">
                 <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight leading-none truncate">
@@ -261,7 +261,7 @@ export const Sidebar: React.FC = () => {
                 }}
                 className="flex items-center gap-2.5 cursor-pointer"
               >
-                <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded object-contain shrink-0" />
+                <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shrink-0 shadow-xs" />
                 <div>
                   <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight">DomoNote</div>
                   <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-500 font-semibold">{t('nav.localAi')}</div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ExternalLink, RotateCcw, Sparkles, Video, CheckCircle } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { PandaMascot } from '../components/ui/panda-mascot';
-import logoImg from '../assets/domodomo.png';
+import logoImg from '../assets/official_domonote.png';
 import demoWalkthrough from '../assets/domonote-demo.webp';
 
 export const AboutView: React.FC = () => {
@@ -17,11 +17,11 @@ export const AboutView: React.FC = () => {
       {/* Brand Header */}
       <div className="border-b border-slate-200 dark:border-zinc-850 pb-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <img src={logoImg} alt="DomoNote" className="w-12 h-12 rounded-xl object-contain" />
+          <img src={logoImg} alt="DomoNote" className="w-12 h-12 rounded-xl object-contain shadow-sm" />
           <div>
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">About DomoNote</h1>
             <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
-              Local-first notes, meetings, and documents.
+              Your Local AI Secretary for meetings, notes, and documents.
             </p>
           </div>
         </div>
