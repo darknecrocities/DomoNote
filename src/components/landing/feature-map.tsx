@@ -139,7 +139,7 @@ export const FeatureMap: React.FC = () => {
               <span className="text-xs text-emerald-400">Runs 100% Offline</span>
             </div>
             <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-2xl">
-              Ask questions grounded in your notes, meetings, and documents. Runs directly on your machine via Ollama with zero external telemetry.
+              Ask questions grounded in your notes, meetings, and documents. Runs directly on your machine via Ollama without sending data to outside servers.
             </p>
             <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-900/60 text-xs space-y-2 text-zinc-300">
               <div className="flex items-center gap-2 text-xs text-zinc-400">
@@ -160,7 +160,7 @@ export const FeatureMap: React.FC = () => {
 
         <div className="pt-4 border-t border-zinc-850 flex items-center justify-between text-xs text-zinc-500">
           <span>Local browser storage</span>
-          <span>Zero cloud telemetry</span>
+          <span>No cloud tracking</span>
         </div>
       </div>
     </section>

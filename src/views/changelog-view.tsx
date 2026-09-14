@@ -24,7 +24,7 @@ const RELEASES = [
       'Local-first client-side architecture using Dexie IndexedDB.',
       'Meeting Secretary with real browser MediaRecorder speech recognition and clickable timeline milestones.',
       'Document Intelligence powered by PDF.js with coordinate-anchored annotations and Turn into Steps.',
-      'Direct REST integration with local Ollama models on port 11434 with zero cloud telemetry.',
+      'Direct local integration with Ollama models on port 11434 with 100% private execution.',
       'Automated single-click Ollama setup script (setup-ollama.sh and start.sh).',
       'Client-side PDF and Markdown export engines.',
     ],
@@ -64,7 +64,7 @@ export const ChangelogView: React.FC = () => {
         </p>
       </div>
 
-      {/* Local Storage Telemetry Cards */}
+      {/* Local Storage Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         <div className="p-4 rounded-xl border border-zinc-850 bg-zinc-950">
           <span className="text-[10px] font-mono text-zinc-500 uppercase">Notes Stored</span>

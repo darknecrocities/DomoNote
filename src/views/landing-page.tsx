@@ -159,7 +159,7 @@ const CAROUSEL_PANELS = [
           <span>Local Documents & Audio Recordings</span>
           <span className="font-mono text-emerald-400 font-bold">100% On-Device</span>
         </div>
-        <div className="text-[11px] text-zinc-500 font-mono">Zero trackers • Zero cookies • No remote telemetry</div>
+        <div className="text-[11px] text-zinc-500 font-mono">Zero trackers • Zero cookies • Stays on your machine</div>
       </div>
     ),
   },
@@ -752,7 +752,7 @@ cd DomoNote
 
               <div className="p-6 rounded-xl border border-zinc-850 bg-zinc-950 space-y-2">
                 <span className="text-xs font-bold text-zinc-400 uppercase">Zero Tracking</span>
-                <h3 className="text-sm font-bold text-white">No Ads or Telemetry</h3>
+                <h3 className="text-sm font-bold text-white">No Ads or Tracking</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   No tracking scripts, cookies, or analytics. Your notes, meetings, and thoughts remain completely confidential.
                 </p>
@@ -867,8 +867,8 @@ cd DomoNote
         </div>
 
         <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-600">
-          <span>MIT License • Open Source • 100% Private</span>
-          <span className="mt-2 sm:mt-0">Zero Cloud Telemetry</span>
+          <span>MIT License • Open Source • Runs on Your Device</span>
+          <span className="mt-2 sm:mt-0">Private by Default</span>
         </div>
       </footer>
     </div>

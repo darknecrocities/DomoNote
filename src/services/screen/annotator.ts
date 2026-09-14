@@ -234,7 +234,7 @@ export class ScreenAnnotatorService {
     md += `- [ ] Step log registered in local DomoNote Knowledge Base.\n\n`;
 
     md += `## 5. Security & Privacy Audit\n\n`;
-    md += `All screenshots, action coordinates, and documentation in this document were processed strictly on the client device. Zero telemetry or visual frames were transmitted to external cloud servers.\n`;
+    md += `All screenshots, action coordinates, and documentation in this document were processed strictly on your computer. No screenshots or recordings were sent to external servers.\n`;
 
     return md;
   }

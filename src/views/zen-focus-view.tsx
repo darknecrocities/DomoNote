@@ -26,7 +26,7 @@ export const ZenFocusView: React.FC = () => {
 
   const [title, setTitle] = useState('Deep Focus Notes');
   const [content, setContent] = useState(
-    '# Deep Focus\n\nQuiet the noise. Capture your thoughts directly to local IndexedDB storage.\n\n- Zero cloud telemetry\n- Pure markdown formatting\n- Real-time offline autosave\n\nStart typing below...'
+    '# Deep Focus\n\nQuiet the noise. Capture your thoughts directly to local IndexedDB storage.\n\n- No tracking or ads\n- Pure markdown formatting\n- Real-time offline autosave\n\nStart typing below...'
   );
   const [currentNoteId, setCurrentNoteId] = useState<string>(activeNoteId || `zen-${Date.now()}`);
   const [showPreview, setShowPreview] = useState(false);

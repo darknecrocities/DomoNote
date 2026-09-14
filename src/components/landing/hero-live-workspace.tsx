@@ -49,7 +49,7 @@ export const HeroLiveWorkspace: React.FC = () => {
                 }`}
               />
               <span className="relative z-10">
-                "No communication with remote language services is permitted. All inference runs locally on device."
+                "No communication with remote services is permitted. All processing runs locally on your computer."
               </span>
 
               {/* Numbered Badge */}
@@ -104,7 +104,7 @@ export const HeroLiveWorkspace: React.FC = () => {
 
                 <div className="text-xs text-zinc-400 font-semibold uppercase">Analysis</div>
                 <p className="text-zinc-200 leading-relaxed text-xs">
-                  This guarantees absolute privacy. DomoNote routes synthesis solely to your local computer's processor.
+                  This guarantees absolute privacy. DomoNote runs entirely on your local computer processor.
                 </p>
 
                 {stage >= 4 && (

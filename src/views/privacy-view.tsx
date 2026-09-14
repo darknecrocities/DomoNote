@@ -68,15 +68,15 @@ export const PrivacyView: React.FC = () => {
           </ul>
         </div>
 
-        {/* Telemetry */}
+        {/* No Tracking */}
         <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 space-y-3">
           <div className="flex items-center gap-2.5 text-zinc-100 font-semibold text-sm">
             <EyeOff className="w-4 h-4 text-zinc-300" />
-            <span>Zero Third-Party Telemetry</span>
+            <span>Zero Third-Party Tracking</span>
           </div>
           <p className="text-zinc-400">
             DomoNote includes no Google Analytics, no tracking pixels, no advertising scripts, and no
-            behavior telemetry. Your operational procedures and notes remain solely your own.
+            data collectors. Your notes, recordings, and files remain solely your own.
           </p>
         </div>
       </div>

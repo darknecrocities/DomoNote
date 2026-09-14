@@ -131,7 +131,7 @@ Date: September 14, 2026 | Duration: 42m | Participants: Alex Chen, Elena Rostov
 The team verified DomoNote's local-first architecture. All speech transcripts, document highlights, and notes stay strictly on your device without sending any data to remote servers.
 
 ## Key Decisions
-- [x] Zero Remote Telemetry: Private and secure for sensitive calls.
+- [x] Private by Default: Safe for confidential team meetings.
 - [x] Recommended Model: Llama 3.2 3B runs locally with fast sub-second answers.
 - [x] Dynamic Border-Only Highlights: Preserves complete document readability.
 
@@ -521,7 +521,7 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                       [00:14] Elena: "IndexedDB stores raw blobs and notes directly on device."
                     </p>
                     <p className="text-zinc-200 bg-zinc-900/80 p-1.5 rounded border border-zinc-700">
-                      [00:26] Marcus: "Zero external network calls required for speech or text synthesis."
+                      [00:26] Marcus: "Everything is processed directly on your computer."
                     </p>
                     <p className="opacity-70">
                       [00:39] Arron: "Let's automate document annotation with border-only boxes."

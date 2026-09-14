@@ -370,7 +370,7 @@ Valid categories are: "meeting", "deep-work", "review", "manual". Return only th
               cloud servers.
             </p>
             <div className="pt-2 text-[10px] text-zinc-500">
-              STATUS: LOCAL CRON ACTIVE • 0 TELEMETRY
+              STATUS: LOCAL CRON ACTIVE • 100% OFFLINE
             </div>
           </div>
         </div>

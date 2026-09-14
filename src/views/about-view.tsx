@@ -75,7 +75,7 @@ export const AboutView: React.FC = () => {
               <span>Full product walkthrough: Notes, Meetings, Documents, Zen Mode & Mascot</span>
             </div>
             <div className="text-zinc-500 text-xs">
-              Runs entirely on your device without cloud telemetry.
+              Runs entirely on your device with no data sent outside.
             </div>
           </div>
         </section>
