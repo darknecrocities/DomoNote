@@ -73,10 +73,10 @@ export const PandaMascot: React.FC<PandaMascotProps> = ({
         />
 
         {/* Animated Pencil & Notepad Scribble Effect */}
-        {(scribbleActive || isWriting) && (
+        {size !== 'sm' && (scribbleActive || isWriting) && (
           <div className="absolute bottom-5 right-6 pointer-events-none flex items-center gap-1 bg-zinc-950/80 border border-zinc-800 px-2 py-0.5 rounded-full shadow-lg animate-fade-in">
             <Edit3 className="w-3 h-3 text-white animate-bounce" />
-            <span className="text-[9px] font-mono text-zinc-300 tracking-wider">
+            <span className="text-[9px] font-mono text-zinc-300 tracking-wider whitespace-nowrap">
               taking notes...
             </span>
           </div>

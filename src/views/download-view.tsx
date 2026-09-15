@@ -74,17 +74,100 @@ export const DownloadView: React.FC = () => {
   };
 
   const handleDownload = (filename: string, osName: string) => {
-    const blobContent = `#!/usr/bin/env bash
-# DomoNote Installer Bootstrap for ${osName}
-# Repository: https://github.com/darknecrocities/DomoNote
-echo "[DomoNote] Installing DomoNote Desktop..."
-if [ ! -d "$HOME/.domonote" ]; then
-  git clone https://github.com/darknecrocities/DomoNote.git "$HOME/.domonote"
+    // For macOS, download the real verified DMG bundle with native DomoNote app
+    if (filename.endsWith('.dmg')) {
+      const a = document.createElement('a');
+      a.href = `/downloads/${filename}`;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      addToast(`Downloading native DomoNote DMG (${filename}). Double-click to open and drag into Applications.`, 'success');
+      return;
+    }
+
+    const isWindows = osName.toLowerCase().includes('windows') || filename.endsWith('.bat') || filename.endsWith('.exe');
+    let blobContent = '';
+    let mimeType = 'text/plain';
+
+    if (isWindows) {
+      mimeType = 'application/x-bat';
+      blobContent = `@echo off
+rem ========================================================
+rem   DomoNote Desktop - Local AI Secretary
+rem   App Icon: official_domonote.png
+rem   Repository: https://github.com/darknecrocities/DomoNote
+rem ========================================================
+title DomoNote Desktop Setup
+echo.
+echo  ========================================================
+echo    DomoNote Desktop - Local-First AI Secretary
+echo    Setting up DomoNote for Windows...
+echo  ========================================================
+echo.
+
+where git >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+  echo [Error] Git is required. Please install Git from https://git-scm.com/
+  pause
+  exit /b 1
+)
+
+where node >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+  echo [Error] Node.js is required. Please install Node.js from https://nodejs.org/
+  pause
+  exit /b 1
+)
+
+set INSTALL_DIR=%USERPROFILE%\\.domonote
+if not exist "%INSTALL_DIR%" (
+  echo [DomoNote] Downloading DomoNote to %INSTALL_DIR%...
+  git clone https://github.com/darknecrocities/DomoNote.git "%INSTALL_DIR%"
+) else (
+  echo [DomoNote] Updating existing DomoNote in %INSTALL_DIR%...
+  cd /d "%INSTALL_DIR%"
+  git pull
+)
+
+cd /d "%INSTALL_DIR%"
+echo [DomoNote] Installing dependencies...
+call npm install
+echo [DomoNote] Starting DomoNote Desktop with app icon...
+call npm run dev
+`;
+    } else {
+      mimeType = 'application/x-sh';
+      blobContent = `#!/usr/bin/env bash
+# ========================================================
+#   DomoNote Desktop - Local AI Secretary
+#   Target OS: ${osName}
+#   App Icon: official_domonote.png
+#   Repository: https://github.com/darknecrocities/DomoNote
+# ========================================================
+set -e
+
+echo "========================================================"
+echo "  DomoNote Desktop - Local-First AI Secretary"
+echo "  Setting up DomoNote for ${osName}..."
+echo "========================================================"
+
+INSTALL_DIR="$HOME/.domonote"
+if [ ! -d "$INSTALL_DIR" ]; then
+  echo "[DomoNote] Cloning DomoNote repository to $INSTALL_DIR..."
+  git clone https://github.com/darknecrocities/DomoNote.git "$INSTALL_DIR"
+else
+  echo "[DomoNote] Existing installation found at $INSTALL_DIR, updating..."
+  cd "$INSTALL_DIR" && git pull || true
 fi
-cd "$HOME/.domonote"
+
+cd "$INSTALL_DIR"
+echo "[DomoNote] Launching DomoNote with official app icon..."
 bash start.sh
 `;
-    const blob = new Blob([blobContent], { type: 'application/octet-stream' });
+    }
+
+    const blob = new Blob([blobContent], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -94,7 +177,7 @@ bash start.sh
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    addToast(`Downloading ${filename}. Open and run to launch DomoNote.`, 'success');
+    addToast(`Downloading ${filename} for ${osName} with DomoNote app logo. Run script to launch.`, 'success');
   };
 
   return (
@@ -109,6 +192,11 @@ bash start.sh
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
+          <img
+            src="/official_domonote.png"
+            alt="DomoNote Logo"
+            className="w-10 h-10 rounded-xl shadow-md border border-slate-200 dark:border-zinc-800"
+          />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
               Download DomoNote Desktop
@@ -150,10 +238,17 @@ bash start.sh
       {/* Auto-Detected Operating System Banner */}
       <div className="mb-8 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm dark:shadow-none transition-colors duration-500">
         <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black shadow-md">
-            {detectedOS === 'macos' && <AppleIcon className="w-6 h-6" />}
-            {detectedOS === 'windows' && <WindowsIcon className="w-6 h-6" />}
-            {detectedOS === 'linux' && <LinuxTuxIcon className="w-6 h-6" />}
+          <div className="relative shrink-0">
+            <img
+              src="/official_domonote.png"
+              alt="DomoNote App Logo"
+              className="w-12 h-12 rounded-xl shadow-md border border-slate-200 dark:border-zinc-800 object-cover"
+            />
+            <div className="absolute -bottom-1 -right-1 p-1 rounded-md bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
+              {detectedOS === 'macos' && <AppleIcon className="w-3.5 h-3.5" />}
+              {detectedOS === 'windows' && <WindowsIcon className="w-3.5 h-3.5" />}
+              {detectedOS === 'linux' && <LinuxTuxIcon className="w-3.5 h-3.5" />}
+            </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -266,8 +361,15 @@ bash start.sh
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
-                <AppleIcon className="w-7 h-7" />
+              <div className="flex items-center gap-3">
+                <img
+                  src="/official_domonote.png"
+                  alt="DomoNote macOS"
+                  className="w-10 h-10 rounded-xl shadow-md border border-slate-200 dark:border-zinc-800 object-cover"
+                />
+                <div className="p-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
+                  <AppleIcon className="w-6 h-6" />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'macos' && (
@@ -334,6 +436,9 @@ bash start.sh
               <Download className="w-3.5 h-3.5" />
               <span>Download Intel Mac (DMG)</span>
             </button>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-500 leading-tight text-center pt-1 font-mono">
+              Tip: On first launch, right-click DomoNote → Open, run the included <span className="text-slate-700 dark:text-zinc-300 font-semibold">Open DomoNote.command</span>, or run <span className="text-slate-700 dark:text-zinc-300 font-semibold">xattr -cr /Applications/DomoNote.app</span>.
+            </p>
           </div>
         </div>
 
@@ -348,8 +453,15 @@ bash start.sh
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
-                <WindowsIcon className="w-7 h-7" />
+              <div className="flex items-center gap-3">
+                <img
+                  src="/official_domonote.png"
+                  alt="DomoNote Windows"
+                  className="w-10 h-10 rounded-xl shadow-md border border-slate-200 dark:border-zinc-800 object-cover"
+                />
+                <div className="p-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
+                  <WindowsIcon className="w-6 h-6" />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'windows' && (
@@ -430,8 +542,15 @@ bash start.sh
           <div className="space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between">
-              <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
-                <LinuxTuxIcon className="w-7 h-7" />
+              <div className="flex items-center gap-3">
+                <img
+                  src="/official_domonote.png"
+                  alt="DomoNote Linux"
+                  className="w-10 h-10 rounded-xl shadow-md border border-slate-200 dark:border-zinc-800 object-cover"
+                />
+                <div className="p-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-sm">
+                  <LinuxTuxIcon className="w-6 h-6" />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {detectedOS === 'linux' && (

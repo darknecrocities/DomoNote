@@ -148,13 +148,13 @@ export const ModeSwitcher: React.FC = () => {
 
       {/* Sleek Floating Menu Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-72 rounded-xl bg-white dark:bg-zinc-950/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-1.5 z-50 animate-fade-in divide-y divide-slate-100 dark:divide-zinc-900">
-          <div className="px-3 py-2 text-[10px] font-mono text-slate-700 dark:text-zinc-500 uppercase tracking-wider flex items-center justify-between font-bold">
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-80 sm:w-96 rounded-xl bg-white dark:bg-[#111114] backdrop-blur-2xl border border-slate-200 dark:border-white/15 shadow-2xl p-2 z-50 animate-fade-in divide-y divide-slate-100 dark:divide-white/10">
+          <div className="px-3 py-2 text-[10px] font-mono text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center justify-between font-bold">
             <span>Workspace Modes</span>
-            <span className="text-[9px] text-slate-500 dark:text-zinc-600">Quick Switch</span>
+            <span className="text-[10px] text-slate-500 dark:text-zinc-400">Quick Switch</span>
           </div>
 
-          <div className="py-1 space-y-0.5">
+          <div className="py-1.5 space-y-1">
             {modes.map((mode) => {
               const Icon = mode.icon;
               const isActive = activeView === mode.id;
@@ -166,31 +166,31 @@ export const ModeSwitcher: React.FC = () => {
                   onMouseEnter={() => playThock()}
                   className={`w-full flex items-start gap-3 p-2.5 rounded-lg text-left transition-colors ${
                     isActive
-                      ? 'bg-slate-100 dark:bg-zinc-850/90 text-black dark:text-white font-bold shadow-sm'
-                      : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-900/80'
+                      ? 'bg-slate-100 dark:bg-white/10 text-black dark:text-white font-bold shadow-xs'
+                      : 'text-slate-900 dark:text-zinc-200 hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5'
                   }`}
                 >
                   <div
-                    className={`mt-0.5 p-1.5 rounded-md ${
-                      isActive ? 'bg-slate-200 dark:bg-zinc-800 text-black dark:text-white' : 'bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-400'
+                    className={`mt-0.5 p-2 rounded-lg shrink-0 ${
+                      isActive ? 'bg-slate-200 dark:bg-white/20 text-black dark:text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-zinc-300'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-4 h-4" />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className={`text-xs ${isActive ? 'font-bold text-black dark:text-white' : 'font-semibold text-slate-900 dark:text-zinc-200'}`}>
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <span className={`text-xs ${isActive ? 'font-bold text-black dark:text-white' : 'font-semibold text-slate-900 dark:text-zinc-100'}`}>
                         {mode.label}
                       </span>
-                      <kbd className="text-[9px] font-mono text-slate-700 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 px-1 py-0.5 rounded border border-slate-200 dark:border-zinc-850 font-semibold">
+                      <kbd className="text-[10px] font-mono text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/15 font-semibold shrink-0">
                         {mode.hotkey}
                       </kbd>
                     </div>
-                    <p className="text-[11px] text-slate-600 dark:text-zinc-500 line-clamp-1 leading-snug">{mode.desc}</p>
+                    <p className="text-xs text-slate-600 dark:text-zinc-300 leading-snug whitespace-normal">{mode.desc}</p>
                   </div>
 
-                  {isActive && <Check className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 mt-1 shrink-0" />}
+                  {isActive && <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400 mt-1 shrink-0" />}
                 </button>
               );
             })}

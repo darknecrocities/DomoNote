@@ -29,7 +29,10 @@ import {
   Tag as TagIcon,
   X,
   ChevronLeft,
+  Mic,
+  MicOff,
 } from 'lucide-react';
+import { LiveSpeechTranscriber } from '../../services/audio/transcriber';
 
 interface NoteEditorProps {
   noteId: string;
@@ -47,8 +50,10 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('edit');
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [isDictating, setIsDictating] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const autosaveTimeoutRef = useRef<any>(null);
+  const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
 
   // Load note from DB
   useEffect(() => {
@@ -156,6 +161,52 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
     const nextTags = tags.filter((t) => t !== tagToRemove);
     setTags(nextTags);
     performSave(title, content, nextTags);
+  };
+
+  // Voice Dictation effect & listener
+  useEffect(() => {
+    speechTranscriberRef.current = new LiveSpeechTranscriber();
+
+    const handleGlobalDictation = (e: any) => {
+      const text = e.detail?.text;
+      if (text) {
+        setContent((prev) => {
+          const next = prev ? `${prev} ${text}` : text;
+          performSave(title, next, tags);
+          return next;
+        });
+      }
+    };
+
+    window.addEventListener('domonote:voice-dictation', handleGlobalDictation);
+
+    return () => {
+      speechTranscriberRef.current?.stop();
+      window.removeEventListener('domonote:voice-dictation', handleGlobalDictation);
+    };
+  }, [title, tags, performSave]);
+
+  // Toggle local voice dictation in note editor
+  const toggleDictation = async () => {
+    if (isDictating) {
+      speechTranscriberRef.current?.stop();
+      setIsDictating(false);
+      addToast('Voice dictation stopped.', 'info');
+    } else {
+      try {
+        await speechTranscriberRef.current?.start((seg) => {
+          setContent((prev) => {
+            const next = prev ? `${prev} ${seg.text}` : seg.text;
+            performSave(title, next, tags);
+            return next;
+          });
+        });
+        setIsDictating(true);
+        addToast('Voice dictation active. Speak to dictate into note...', 'success');
+      } catch {
+        addToast('Could not access microphone for dictation.', 'error');
+      }
+    }
   };
 
   // Markdown Formatting Helper
@@ -287,6 +338,18 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onDeleted, onBac
               <Eye className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          {/* Voice Dictation Button */}
+          <Button
+            size="sm"
+            variant={isDictating ? 'primary' : 'outline'}
+            onClick={toggleDictation}
+            title={isDictating ? 'Stop Voice Dictation' : 'Start Voice Dictation'}
+            className={isDictating ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' : ''}
+          >
+            {isDictating ? <Mic className="w-3.5 h-3.5 text-white" /> : <Mic className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{isDictating ? 'Listening...' : 'Dictate'}</span>
+          </Button>
 
           <Button
             size="sm"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { TranscriptSegment, Meeting } from '../../types';
+import type { TranscriptSegment, Meeting, MeetingScreenshot } from '../../types';
 import { AudioRecorder } from '../../services/audio/recorder';
 import { LiveSpeechTranscriber, formatSecondsToTime, synthesizeMeetingAI } from '../../services/audio/transcriber';
 import { db } from '../../db';
@@ -8,6 +8,8 @@ import { useWorkspace } from '../../context/workspace-context';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { GoogleMeetGuideModal } from './google-meet-guide-modal';
+import { FloatingMeetingController } from './floating-meeting-controller';
+import { ScreenSnipperOverlay, type CropRect } from './screen-snipper-overlay';
 import {
   Mic,
   MicOff,
@@ -16,6 +18,9 @@ import {
   FileText,
   Clock,
   Sparkles,
+  Camera,
+  X,
+  Image,
 } from 'lucide-react';
 
 interface MeetingRecorderProps {
@@ -35,11 +40,18 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [meetingTitle, setMeetingTitle] = useState('Product & Engineering Sync');
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [isMeetModalOpen, setIsMeetModalOpen] = useState(false);
+  const [screenshots, setScreenshots] = useState<MeetingScreenshot[]>([]);
+  const [previewScreenshot, setPreviewScreenshot] = useState<MeetingScreenshot | null>(null);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isSnipping, setIsSnipping] = useState(false);
 
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
   const timerIntervalRef = useRef<any>(null);
   const transcriptBottomRef = useRef<HTMLDivElement>(null);
+  const screenVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Initialize instances
   useEffect(() => {
@@ -52,6 +64,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         audioRecorderRef.current.stop();
       }
       speechTranscriberRef.current?.stop();
+      if (screenStream) {
+        screenStream.getTracks().forEach((t) => t.stop());
+      }
     };
   }, []);
 
@@ -62,10 +77,25 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     }
   }, [transcript]);
 
+  // Timer interval handling pause / resume
+  useEffect(() => {
+    if (!isRecording || isPaused) {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      return;
+    }
+    timerIntervalRef.current = setInterval(() => {
+      setElapsedSeconds((s) => s + 1);
+    }, 1000);
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [isRecording, isPaused]);
+
   const startRecording = async () => {
     try {
       setTranscript([]);
       setElapsedSeconds(0);
+      setScreenshots([]);
 
       // Start audio stream & visualizer
       await audioRecorderRef.current?.start((level) => {
@@ -111,8 +141,25 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         return;
       }
 
+      // Keep the screen stream for screenshot capture
+      setScreenStream(stream);
+
+      // Setup hidden video element for frame capture
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.muted = true;
+      video.play();
+      screenVideoRef.current = video;
+
+      // Listen for stream end (user stops sharing)
+      stream.getVideoTracks()[0]?.addEventListener('ended', () => {
+        setScreenStream(null);
+        screenVideoRef.current = null;
+      });
+
       setTranscript([]);
       setElapsedSeconds(0);
+      setScreenshots([]);
       setIsRecording(true);
 
       timerIntervalRef.current = setInterval(() => {
@@ -129,10 +176,201 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     }
   };
 
+  /**
+   * Capture a screenshot from the active screen share or prompt for one.
+   * Uses the existing screen stream if available (from tab capture),
+   * otherwise prompts for a new screen share to take a single snapshot.
+   */
+  const handleTakeScreenshot = async () => {
+    try {
+      let videoEl = screenVideoRef.current;
+
+      // If no active screen share, prompt for one
+      if (!videoEl || !videoEl.videoWidth) {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: 'monitor' } as any,
+          audio: false,
+        });
+
+        videoEl = document.createElement('video');
+        videoEl.srcObject = stream;
+        videoEl.muted = true;
+        await videoEl.play();
+
+        // Wait a frame for video to render
+        await new Promise((r) => requestAnimationFrame(r));
+        await new Promise((r) => requestAnimationFrame(r));
+
+        // Take the snapshot
+        const canvas = document.createElement('canvas');
+        canvas.width = videoEl.videoWidth || 1920;
+        canvas.height = videoEl.videoHeight || 1080;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        }
+        const dataUrl = canvas.toDataURL('image/png');
+
+        // Stop the temporary stream
+        stream.getTracks().forEach((t) => t.stop());
+        videoEl.srcObject = null;
+
+        const screenshot: MeetingScreenshot = {
+          id: `ss-${Date.now()}`,
+          timestampSeconds: elapsedSeconds,
+          dataUrl,
+        };
+        setScreenshots((prev) => [...prev, screenshot]);
+        addToast(`Screenshot captured at ${formatSecondsToTime(elapsedSeconds)}.`, 'success');
+        return;
+      }
+
+      // Active screen share — capture frame directly
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth || 1920;
+      canvas.height = videoEl.videoHeight || 1080;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      }
+      const dataUrl = canvas.toDataURL('image/png');
+
+      const screenshot: MeetingScreenshot = {
+        id: `ss-${Date.now()}`,
+        timestampSeconds: elapsedSeconds,
+        dataUrl,
+      };
+      setScreenshots((prev) => [...prev, screenshot]);
+      addToast(`Screenshot captured at ${formatSecondsToTime(elapsedSeconds)}.`, 'success');
+    } catch (err: any) {
+      console.warn('[DomoNote] Screenshot capture cancelled:', err?.message);
+      addToast('Screenshot capture was cancelled or denied.', 'warning');
+    }
+  };
+
+  const removeScreenshot = (id: string) => {
+    setScreenshots((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleTogglePause = () => {
+    const nextPaused = !isPaused;
+    setIsPaused(nextPaused);
+    if (nextPaused) {
+      speechTranscriberRef.current?.stop();
+      addToast('Meeting recording paused.', 'info');
+    } else {
+      speechTranscriberRef.current?.start((seg) => {
+        setTranscript((prev) => [...prev, seg]);
+      });
+      addToast('Meeting recording resumed.', 'info');
+    }
+  };
+
+  const handleToggleMicMute = () => {
+    const nextMuted = !isMicMuted;
+    setIsMicMuted(nextMuted);
+    audioRecorderRef.current?.setMuted(nextMuted);
+    addToast(nextMuted ? 'Microphone muted.' : 'Microphone unmuted.', 'info');
+  };
+
+  const handleAddBookmark = (type: 'decision' | 'action' | 'highlight', note?: string) => {
+    const timeStr = formatSecondsToTime(elapsedSeconds);
+    const label = note || (type === 'decision' ? 'Agreed decision' : type === 'action' ? 'Action item' : 'Key highlight');
+    setManualNotes((prev) => prev ? `${prev}\n- [${timeStr}] [${type.toUpperCase()}]: ${label}` : `- [${timeStr}] [${type.toUpperCase()}]: ${label}`);
+    addToast(`Bookmarked [${type.toUpperCase()}] at ${timeStr}.`, 'success');
+  };
+
+  const handleAddQuickNote = (note: string) => {
+    const timeStr = formatSecondsToTime(elapsedSeconds);
+    setManualNotes((prev) => prev ? `${prev}\n- [${timeStr}] ${note}` : `- [${timeStr}] ${note}`);
+    addToast(`Note added at ${timeStr}.`, 'success');
+  };
+
+  const handleCapturePortion = async (cropRect: CropRect) => {
+    setIsSnipping(false);
+    try {
+      let videoEl = screenVideoRef.current;
+      let tempStream: MediaStream | null = null;
+
+      if (!videoEl || !videoEl.videoWidth) {
+        tempStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: 'monitor' } as any,
+          audio: false,
+        });
+        videoEl = document.createElement('video');
+        videoEl.srcObject = tempStream;
+        videoEl.muted = true;
+        await videoEl.play();
+        await new Promise((r) => requestAnimationFrame(r));
+        await new Promise((r) => requestAnimationFrame(r));
+      }
+
+      const fullWidth = videoEl.videoWidth || window.innerWidth;
+      const fullHeight = videoEl.videoHeight || window.innerHeight;
+
+      // Scale coordinates from viewport to video resolution
+      const scaleX = fullWidth / cropRect.viewportWidth;
+      const scaleY = fullHeight / cropRect.viewportHeight;
+
+      const sourceX = cropRect.x * scaleX;
+      const sourceY = cropRect.y * scaleY;
+      const sourceWidth = cropRect.width * scaleX;
+      const sourceHeight = cropRect.height * scaleY;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(sourceWidth));
+      canvas.height = Math.max(1, Math.round(sourceHeight));
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(
+          videoEl,
+          sourceX,
+          sourceY,
+          sourceWidth,
+          sourceHeight,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+      }
+
+      if (tempStream) {
+        tempStream.getTracks().forEach((t) => t.stop());
+      }
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const screenshot: MeetingScreenshot = {
+        id: `snip-${Date.now()}`,
+        timestampSeconds: elapsedSeconds,
+        dataUrl,
+        type: 'portion',
+        cropDimensions: {
+          width: Math.round(cropRect.width),
+          height: Math.round(cropRect.height),
+        },
+        caption: `Portion Snip (${Math.round(cropRect.width)}×${Math.round(cropRect.height)}px)`,
+      };
+
+      setScreenshots((prev) => [...prev, screenshot]);
+      addToast(`Portion snip captured at ${formatSecondsToTime(elapsedSeconds)}.`, 'success');
+    } catch (err: any) {
+      console.warn('[DomoNote] Portion snip cancelled or failed:', err);
+      addToast('Portion snip was cancelled.', 'info');
+    }
+  };
+
   const stopAndSaveMeeting = async () => {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setIsRecording(false);
     setIsProcessingAI(true);
+
+    // Stop screen stream if active
+    if (screenStream) {
+      screenStream.getTracks().forEach((t) => t.stop());
+      setScreenStream(null);
+      screenVideoRef.current = null;
+    }
 
     try {
       // Stop audio recording and get blob
@@ -193,6 +431,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         manualNotes,
         timeline: timelineData,
         summary: summaryData,
+        screenshots,
         createdAt: now,
       };
 
@@ -234,6 +473,15 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                   <span className="text-zinc-300">AI: {selectedModel}</span>
                 </>
               )}
+              {screenshots.length > 0 && (
+                <>
+                  <span>•</span>
+                  <span className="text-zinc-300 flex items-center gap-1">
+                    <Image className="w-3 h-3" />
+                    {screenshots.length} screenshot{screenshots.length !== 1 ? 's' : ''}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -269,15 +517,29 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                 )}
               </div>
             ) : (
-              <Button
-                variant="danger"
-                size="md"
-                onClick={stopAndSaveMeeting}
-                disabled={isProcessingAI}
-              >
-                <Square className="w-4 h-4 fill-current" />
-                <span>End Meeting</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                {/* Screenshot Capture Button */}
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={handleTakeScreenshot}
+                  title="Capture a screenshot of the current screen"
+                  className="border-zinc-700 hover:border-zinc-500"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span className="hidden sm:inline">Screenshot</span>
+                </Button>
+
+                <Button
+                  variant="danger"
+                  size="md"
+                  onClick={stopAndSaveMeeting}
+                  disabled={isProcessingAI}
+                >
+                  <Square className="w-4 h-4 fill-current" />
+                  <span>End Meeting</span>
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -299,6 +561,49 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                   />
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Screenshot Thumbnail Strip */}
+        {screenshots.length > 0 && (
+          <div className="pt-4 border-t border-zinc-850 mt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Camera className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                Captured Screenshots ({screenshots.length})
+              </span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {screenshots.map((ss) => (
+                <div key={ss.id} className="relative group shrink-0">
+                  <button
+                    onClick={() => setPreviewScreenshot(ss)}
+                    className="block rounded-lg overflow-hidden border border-zinc-800 hover:border-zinc-600 transition-colors"
+                  >
+                    <img
+                      src={ss.dataUrl}
+                      alt={`Screenshot at ${formatSecondsToTime(ss.timestampSeconds)}`}
+                      className="h-16 w-28 object-cover"
+                    />
+                  </button>
+                  <span className="absolute bottom-1 left-1 text-[9px] font-mono bg-black/80 text-zinc-300 px-1.5 py-0.5 rounded">
+                    {formatSecondsToTime(ss.timestampSeconds)}
+                  </span>
+                  {isRecording && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeScreenshot(ss.id);
+                      }}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900 hover:border-red-700"
+                      title="Remove screenshot"
+                    >
+                      <X className="w-3 h-3 text-zinc-300" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -380,12 +685,68 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         </div>
       )}
 
+      {/* Screenshot Preview Lightbox */}
+      {previewScreenshot && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 cursor-pointer"
+          onClick={() => setPreviewScreenshot(null)}
+        >
+          <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-zinc-400 font-mono">
+                Screenshot at {formatSecondsToTime(previewScreenshot.timestampSeconds)}
+              </span>
+              <button
+                onClick={() => setPreviewScreenshot(null)}
+                className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <img
+              src={previewScreenshot.dataUrl}
+              alt={`Screenshot at ${formatSecondsToTime(previewScreenshot.timestampSeconds)}`}
+              className="w-full rounded-lg border border-zinc-800 shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Google Meet Guide Modal */}
       {isMeetModalOpen && (
         <GoogleMeetGuideModal
           isOpen={isMeetModalOpen}
           onClose={() => setIsMeetModalOpen(false)}
           onStartTabCapture={handleStartTabCapture}
+        />
+      )}
+
+      {/* Floating Meeting HUD Controller (Monochrome Glassmorphism) */}
+      {isRecording && (
+        <FloatingMeetingController
+          elapsedSeconds={elapsedSeconds}
+          isRecording={isRecording}
+          isPaused={isPaused}
+          isMicMuted={isMicMuted}
+          audioLevel={audioLevel}
+          transcript={transcript}
+          screenshots={screenshots}
+          onStopAndCompile={stopAndSaveMeeting}
+          onTogglePause={handleTogglePause}
+          onToggleMicMute={handleToggleMicMute}
+          onTakeFullScreenshot={handleTakeScreenshot}
+          onStartPortionSnip={() => setIsSnipping(true)}
+          onAddBookmark={handleAddBookmark}
+          onAddQuickNote={handleAddQuickNote}
+          onRemoveScreenshot={removeScreenshot}
+        />
+      )}
+
+      {/* Interactive Portion Snip Tool Overlay */}
+      {isSnipping && (
+        <ScreenSnipperOverlay
+          onCapture={handleCapturePortion}
+          onCancel={() => setIsSnipping(false)}
         />
       )}
     </div>

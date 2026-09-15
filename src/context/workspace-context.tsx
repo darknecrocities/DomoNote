@@ -103,7 +103,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return requestedView;
       }
     }
-    return 'landing';
+    return 'dashboard';
   });
 
   // If on cloud and navigated directly to workspace param, prompt modal

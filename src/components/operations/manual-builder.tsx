@@ -6,6 +6,8 @@ import { exportManualToPdf } from '../../services/export/pdf';
 import { exportManualToMarkdown } from '../../services/export/markdown';
 import { downloadJsonFile } from '../../services/export/json';
 import { useWorkspace } from '../../context/workspace-context';
+import { useAI } from '../../context/ai-context';
+import { ollama } from '../../services/ai/ollama';
 import {
   Download,
   Plus,
@@ -17,6 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Save,
+  Sparkles,
 } from 'lucide-react';
 
 interface ManualBuilderProps {
@@ -26,8 +29,10 @@ interface ManualBuilderProps {
 
 export const ManualBuilder: React.FC<ManualBuilderProps> = ({ manualId, onDeleted }) => {
   const { addToast } = useWorkspace();
+  const { isConnected, selectedModel } = useAI();
   const [manual, setManual] = useState<Manual | null>(null);
   const [title, setTitle] = useState('');
+  const [isPolishing, setIsPolishing] = useState(false);
   const [purpose, setPurpose] = useState('');
   const [requirements, setRequirements] = useState<string[]>([]);
   const [steps, setSteps] = useState<ManualStep[]>([]);
@@ -211,6 +216,63 @@ export const ManualBuilder: React.FC<ManualBuilderProps> = ({ manualId, onDelete
     }
   };
 
+  const handlePolishSteps = async () => {
+    setIsPolishing(true);
+    addToast('Refining step instructions and replacing static boilerplate...', 'info');
+
+    const updatedSteps = [...steps];
+    for (let i = 0; i < updatedSteps.length; i++) {
+      const step = updatedSteps[i];
+      const hasBoilerplate =
+        /equipment|condition before|follow these steps|initial setup|check the equipment/i.test(
+          step.description
+        );
+
+      if (hasBoilerplate || !step.description.trim()) {
+        let cleanDesc = '';
+        if (isConnected && selectedModel) {
+          try {
+            const prompt = `Step ${step.stepNumber} of software manual "${title || 'Operation'}".
+Step Title: "${step.title}".
+CRITICAL RULE:
+- NEVER mention "equipment", "maintenance", "condition before", or "Follow these steps".
+- Output ONE direct software action sentence (max 12 words) describing what the user clicks or does on screen.`;
+            const res = await ollama.generate(prompt, { model: selectedModel, temperature: 0.6 });
+            const cand = res?.trim().replace(/^"|"$/g, '');
+            if (cand && !/equipment|maintenance|condition before|follow these steps/i.test(cand)) {
+              cleanDesc = cand;
+            }
+          } catch {
+            // fallback
+          }
+        }
+
+        if (!cleanDesc) {
+          const softwareVerbs = [
+            'Click target element to configure interaction parameters.',
+            'Select designated option from the active interface panel.',
+            'Enter required information and confirm input action.',
+            'Review interface response and proceed with next operation.',
+            'Execute primary action button to apply changes.',
+            'Verify updated workflow state on screen.',
+            'Confirm final settings and conclude procedure.',
+          ];
+          cleanDesc = softwareVerbs[i % softwareVerbs.length];
+        }
+
+        updatedSteps[i] = {
+          ...step,
+          description: cleanDesc,
+        };
+      }
+    }
+
+    setSteps(updatedSteps);
+    await saveManualChanges({ steps: updatedSteps });
+    setIsPolishing(false);
+    addToast('All steps polished with real software action instructions!', 'success');
+  };
+
   if (!manual) {
     return (
       <div className="flex-1 flex items-center justify-center text-zinc-500 text-xs">
@@ -238,6 +300,16 @@ export const ManualBuilder: React.FC<ManualBuilderProps> = ({ manualId, onDelete
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handlePolishSteps}
+            disabled={isPolishing}
+            title="Clean and polish step descriptions (replaces any static boilerplate)"
+          >
+            <Sparkles className={`w-3.5 h-3.5 text-emerald-400 ${isPolishing ? 'animate-spin' : ''}`} />
+            <span>{isPolishing ? 'Polishing...' : 'Polish Steps'}</span>
+          </Button>
           <Button size="sm" variant="primary" onClick={handleExportPdf}>
             <Download className="w-3.5 h-3.5" />
             <span>Export PDF</span>

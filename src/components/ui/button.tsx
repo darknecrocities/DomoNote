@@ -13,11 +13,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed select-none';
 
     const variants = {
-      primary: 'bg-white text-black hover:bg-zinc-200 active:bg-zinc-300 shadow-sm',
-      secondary: 'bg-zinc-900 text-zinc-100 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 active:bg-zinc-850',
-      outline: 'bg-transparent text-zinc-300 border border-zinc-700 hover:bg-zinc-900 hover:text-white',
-      ghost: 'bg-transparent text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900',
-      danger: 'bg-zinc-900 text-red-400 border border-red-900/50 hover:bg-red-950/40 hover:border-red-800',
+      primary:
+        'bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 active:scale-[0.98] shadow-sm',
+      secondary:
+        'bg-white text-slate-950 border border-slate-300 hover:bg-slate-100 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 active:bg-slate-200 dark:active:bg-zinc-850',
+      outline:
+        'bg-white text-slate-950 border border-slate-300 hover:bg-slate-100 hover:text-black dark:bg-transparent dark:text-zinc-100 dark:border-white/20 dark:hover:bg-white/10 dark:hover:text-white',
+      ghost:
+        'bg-transparent text-slate-900 hover:text-black hover:bg-slate-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900',
+      danger:
+        'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-zinc-900 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-950/40 dark:hover:border-red-800',
     };
 
     const sizes = {

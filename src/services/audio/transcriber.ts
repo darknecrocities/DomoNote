@@ -1,12 +1,37 @@
 import type { TranscriptSegment, MeetingSummary, TimelineItem } from '../../types';
+export type { TranscriptSegment, MeetingSummary, TimelineItem };
 import { ollama } from '../ai/ollama';
 
+/**
+ * LiveSpeechTranscriber provides real-time speech-to-text transcription
+ * using the browser's Web Speech API (SpeechRecognition).
+ *
+ * Features:
+ * - Continuous listening with automatic restart on speech end
+ * - Configurable language (defaults to 'en-US')
+ * - Timestamped transcript segments relative to recording start
+ * - Graceful degradation when SpeechRecognition is unsupported
+ *
+ * Usage:
+ * ```ts
+ * const transcriber = new LiveSpeechTranscriber();
+ * transcriber.start((segment) => {
+ *   console.log(segment.text); // live transcribed text
+ * });
+ * // later...
+ * transcriber.stop();
+ * ```
+ */
 export class LiveSpeechTranscriber {
   private recognition: any = null;
   private isListening: boolean = false;
   private startTime: number = 0;
   private onSegmentCallback: ((segment: TranscriptSegment) => void) | null = null;
+  private onInterimCallback: ((interimText: string) => void) | null = null;
   private segmentCounter: number = 0;
+  private restartAttempts: number = 0;
+  private maxRestartAttempts: number = 50;
+  private language: string = 'en-US';
 
   constructor() {
     const SpeechRecognition =
@@ -15,50 +40,126 @@ export class LiveSpeechTranscriber {
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = true;
-      this.recognition.interimResults = false;
-      this.recognition.lang = 'en-US';
+      this.recognition.interimResults = true;
+      this.recognition.lang = this.language;
 
       this.recognition.onresult = (event: any) => {
-        const lastIdx = event.results.length - 1;
-        const text = event.results[lastIdx][0]?.transcript?.trim();
-        if (text && this.onSegmentCallback) {
-          const elapsed = Math.max(0, Math.floor((Date.now() - this.startTime) / 1000));
-          this.onSegmentCallback({
-            id: `seg-${++this.segmentCounter}-${Date.now()}`,
-            timestampSeconds: elapsed,
-            speaker: 'Speaker',
-            text,
-          });
+        let interimAccumulator = '';
+        const elapsed = Math.max(0, Math.floor((Date.now() - this.startTime) / 1000));
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const result = event.results[i];
+          const text = result[0]?.transcript?.trim();
+          if (!text) continue;
+
+          if (result.isFinal) {
+            this.restartAttempts = 0; // Reset on successful result
+            if (this.onSegmentCallback) {
+              this.onSegmentCallback({
+                id: `seg-${++this.segmentCounter}-${Date.now()}`,
+                timestampSeconds: elapsed,
+                speaker: 'Speaker',
+                text,
+              });
+            }
+          } else {
+            interimAccumulator += (interimAccumulator ? ' ' : '') + text;
+          }
+        }
+
+        if (this.onInterimCallback) {
+          this.onInterimCallback(interimAccumulator);
         }
       };
 
       this.recognition.onerror = (event: any) => {
-        console.warn('[DomoNote] Speech recognition event:', event?.error);
+        const errorType = event?.error;
+        console.warn('[DomoNote] Speech recognition event:', errorType);
+
+        // Handle specific error types
+        switch (errorType) {
+          case 'no-speech':
+            // Normal — user is silent, will auto-restart via onend
+            break;
+          case 'audio-capture':
+            console.error('[DomoNote] Microphone not available or disconnected.');
+            break;
+          case 'not-allowed':
+            console.error('[DomoNote] Microphone permission denied by user or browser.');
+            this.isListening = false; // Stop trying to restart
+            break;
+          case 'network':
+            console.warn('[DomoNote] Network error in speech recognition. Will retry.');
+            break;
+          case 'aborted':
+            // Recognition was aborted, may auto-restart
+            break;
+          default:
+            console.warn('[DomoNote] Unknown speech recognition error:', errorType);
+        }
       };
 
       this.recognition.onend = () => {
-        // Auto-restart if we are still marked listening
-        if (this.isListening) {
-          try {
-            this.recognition.start();
-          } catch {
-            // ignore
-          }
+        // Auto-restart if we are still marked listening and haven't exceeded retry limit
+        if (this.isListening && this.restartAttempts < this.maxRestartAttempts) {
+          this.restartAttempts++;
+          // Small delay to prevent tight restart loops under browser throttling
+          const delay = Math.min(100 * this.restartAttempts, 2000);
+          setTimeout(() => {
+            if (this.isListening) {
+              try {
+                this.recognition.start();
+              } catch {
+                // ignore — may already be started
+              }
+            }
+          }, delay);
+        } else if (this.restartAttempts >= this.maxRestartAttempts) {
+          console.warn('[DomoNote] Speech recognition exceeded max restart attempts. Stopping.');
+          this.isListening = false;
         }
       };
     }
   }
 
+  /**
+   * Check whether the browser supports the Web Speech API.
+   * @returns `true` if SpeechRecognition is available.
+   */
   isSupported(): boolean {
     return !!this.recognition;
   }
 
-  start(onSegment: (segment: TranscriptSegment) => void): void {
+  /**
+   * Set the language code for speech recognition.
+   * Must be called before `start()`. Defaults to 'en-US'.
+   * @param lang - BCP 47 language tag (e.g., 'en-US', 'fil-PH', 'ja-JP')
+   */
+  setLanguage(lang: string): void {
+    this.language = lang;
+    if (this.recognition) {
+      this.recognition.lang = lang;
+    }
+  }
+
+  /**
+   * Begin live speech transcription.
+   * Each recognized phrase calls `onSegment` with a timestamped `TranscriptSegment`.
+   * Optionally streams interim speech in real time as the user speaks.
+   * @param onSegment - Callback invoked with each finalized transcribed segment.
+   * @param onInterim - Optional callback invoked in real time with interim spoken words.
+   */
+  start(
+    onSegment: (segment: TranscriptSegment) => void,
+    onInterim?: (interimText: string) => void
+  ): void {
     if (!this.recognition) return;
     this.isListening = true;
     this.startTime = Date.now();
     this.segmentCounter = 0;
+    this.restartAttempts = 0;
     this.onSegmentCallback = onSegment;
+    this.onInterimCallback = onInterim || null;
     try {
       this.recognition.start();
     } catch {
@@ -66,9 +167,14 @@ export class LiveSpeechTranscriber {
     }
   }
 
+  /**
+   * Stop live speech transcription and release resources.
+   * Safe to call multiple times.
+   */
   stop(): void {
     this.isListening = false;
     this.onSegmentCallback = null;
+    this.restartAttempts = 0;
     if (this.recognition) {
       try {
         this.recognition.stop();
@@ -79,12 +185,37 @@ export class LiveSpeechTranscriber {
   }
 }
 
+/**
+ * Format a duration in seconds to a human-readable `MM:SS` string.
+ * @param totalSeconds - Total seconds elapsed.
+ * @returns Formatted time string (e.g., '05:32').
+ */
 export function formatSecondsToTime(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Synthesize AI-powered meeting insights from transcript and manual notes.
+ *
+ * Sends the full transcript and manual notes to the local Ollama model,
+ * which extracts:
+ * - Executive overview
+ * - Key decisions
+ * - Action items with owners
+ * - Discussion topics
+ * - Follow-up tasks
+ * - Timeline milestones
+ *
+ * Falls back to a deterministic summary if AI is unavailable or returns
+ * malformed JSON.
+ *
+ * @param transcript - Array of timestamped transcript segments.
+ * @param manualNotes - Free-text notes taken during the meeting.
+ * @param modelName - Ollama model name to use for synthesis.
+ * @returns Structured summary and timeline milestones.
+ */
 export async function synthesizeMeetingAI(
   transcript: TranscriptSegment[],
   manualNotes: string,

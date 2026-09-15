@@ -55,6 +55,40 @@ describe('Markdown Exporters', () => {
     expect(md).toContain('Remember to check environment keys.');
   });
 
+  it('exports meeting with screenshots and follow-up tasks', () => {
+    const meeting: Meeting = {
+      id: 'meet-screenshots',
+      title: 'Design Review',
+      startTime: 1700000000000,
+      durationSeconds: 180,
+      transcript: [],
+      manualNotes: 'Architecture look good.',
+      timeline: [],
+      screenshots: [
+        {
+          id: 'ss-1',
+          timestampSeconds: 45,
+          dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          caption: 'Slide 3 - Architecture Diagram',
+        },
+      ],
+      summary: {
+        overview: 'Reviewed new schema and architecture.',
+        decisions: ['Approved new diagram.'],
+        actionItems: [],
+        topics: ['Design'],
+        followUpTasks: ['Send recording link to team'],
+      },
+      createdAt: 1700000000000,
+    };
+
+    const md = exportMeetingToMarkdown(meeting);
+    expect(md).toContain('## Screenshots');
+    expect(md).toContain('[00:45] Slide 3 - Architecture Diagram');
+    expect(md).toContain('## Follow-Up Tasks');
+    expect(md).toContain('- [ ] Send recording link to team');
+  });
+
   it('exports manual with steps and prerequisites', () => {
     const manual: Manual = {
       id: 'man-1',
@@ -83,5 +117,55 @@ describe('Markdown Exporters', () => {
     expect(md).toContain('- Root access');
     expect(md).toContain('### Step 1: Drain node');
     expect(md).toContain('Do not reboot during migration.');
+  });
+});
+
+describe('PDF Exporters', () => {
+  it('exports meeting to PDF with cover, summary, and transcript', async () => {
+    const { exportMeetingToPdf } = await import('../src/services/export/pdf');
+
+    const meeting: Meeting = {
+      id: 'meet-pdf-test',
+      title: 'Board Meeting Q3',
+      startTime: 1700000000000,
+      durationSeconds: 300,
+      transcript: [
+        {
+          id: 't-1',
+          timestampSeconds: 10,
+          speaker: 'Presenter',
+          text: 'Welcome to the Q3 financial review.',
+        },
+      ],
+      manualNotes: 'Key milestone achieved.',
+      timeline: [
+        {
+          id: 'time-1',
+          timestampSeconds: 60,
+          title: 'Revenue Milestones',
+          description: 'Achieved 200% growth.',
+        },
+      ],
+      screenshots: [
+        {
+          id: 'ss-1',
+          timestampSeconds: 30,
+          dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          caption: 'Financial Dashboard',
+        },
+      ],
+      summary: {
+        overview: 'Strong quarter with accelerated progress.',
+        decisions: ['Approve budget expansion.'],
+        actionItems: [{ task: 'File quarterly compliance report', owner: 'Finance' }],
+        topics: ['Revenue', 'Expansion'],
+        followUpTasks: ['Distribute slide deck'],
+      },
+      createdAt: 1700000000000,
+    };
+
+    const doc = exportMeetingToPdf(meeting);
+    expect(doc).toBeDefined();
+    expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
 });

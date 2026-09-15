@@ -1,18 +1,11 @@
-import React, { useState } from 'react';
-import { ExternalLink, RotateCcw, Sparkles, Video, CheckCircle } from 'lucide-react';
+import React from 'react';
+import { ExternalLink, Sparkles } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { PandaMascot } from '../components/ui/panda-mascot';
 import { TiltCard } from '../components/ui/tilt-card';
 import logoImg from '../assets/official_domonote.png';
-import demoWalkthrough from '../assets/domonote-demo.webp';
 
 export const AboutView: React.FC = () => {
-  const [key, setKey] = useState(0);
-
-  const handleRestart = () => {
-    setKey((prev) => prev + 1);
-  };
-
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Brand Header */}
@@ -42,44 +35,7 @@ export const AboutView: React.FC = () => {
       </div>
 
       <div className="space-y-10 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-        {/* Product Demo Video Section */}
-        <section className="rounded-2xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs dark:shadow-2xl transition-colors duration-500">
-          <div className="p-4 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between bg-slate-50 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-2 text-slate-950 dark:text-white text-xs">
-              <Video className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
-              <span className="font-bold">Product Walkthrough</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleRestart}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs transition-colors font-medium"
-                title="Replay product demo"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Replay</span>
-              </button>
-            </div>
-          </div>
 
-          <div className="relative bg-slate-950 flex items-center justify-center p-2">
-            <img
-              key={key}
-              src={demoWalkthrough}
-              alt="DomoNote Product Walkthrough"
-              className="w-full max-h-[520px] object-contain rounded-lg shadow-inner"
-            />
-          </div>
-
-          <div className="p-4 border-t border-slate-200 dark:border-zinc-850 bg-slate-50/80 dark:bg-zinc-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-slate-600 dark:text-zinc-400 text-xs">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Full product walkthrough: Notes, Meetings, Documents, Zen Mode & Mascot</span>
-            </div>
-            <div className="text-slate-500 dark:text-zinc-500 text-xs">
-              Runs entirely on your device with no data sent outside.
-            </div>
-          </div>
-        </section>
 
         {/* Mascot Showcase Section */}
         <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xs dark:shadow-xl transition-colors duration-500">

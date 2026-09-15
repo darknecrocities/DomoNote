@@ -37,7 +37,10 @@ import {
   PanelRightOpen,
   FileText,
   Download,
+  Mic,
+  MicOff,
 } from 'lucide-react';
+import { LiveSpeechTranscriber } from '../../services/audio/transcriber';
 
 interface PDFViewerProps {
   document: DocumentEntity;
@@ -83,12 +86,39 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [autoBoxoutEnabled, setAutoBoxoutEnabled] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isQuestionDictating, setIsQuestionDictating] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const textDocRef = useRef<HTMLDivElement>(null);
   const textContentRef = useRef<HTMLDivElement>(null);
+  const questionTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
+
+  useEffect(() => {
+    questionTranscriberRef.current = new LiveSpeechTranscriber();
+    return () => {
+      questionTranscriberRef.current?.stop();
+    };
+  }, []);
+
+  const toggleQuestionDictation = async () => {
+    if (isQuestionDictating) {
+      questionTranscriberRef.current?.stop();
+      setIsQuestionDictating(false);
+      addToast('Document question dictation stopped.', 'info');
+    } else {
+      try {
+        await questionTranscriberRef.current?.start((seg) => {
+          setAiQuestion((prev) => (prev ? `${prev} ${seg.text}` : seg.text));
+        });
+        setIsQuestionDictating(true);
+        addToast('Listening... Speak your document question.', 'success');
+      } catch {
+        addToast('Microphone access denied.', 'error');
+      }
+    }
+  };
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 600, height: 800 });
 
   const [isTextDocument, setIsTextDocument] = useState<boolean>(false);
@@ -1071,6 +1101,18 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
                 disabled={isAiLoading}
                 className="flex-1 bg-transparent text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={toggleQuestionDictation}
+                className={`p-1.5 rounded transition-all ${
+                  isQuestionDictating
+                    ? 'bg-red-950/80 border border-red-700 text-white animate-pulse'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title={isQuestionDictating ? 'Stop speech dictation' : 'Dictate question with mic'}
+              >
+                {isQuestionDictating ? <Mic className="w-3.5 h-3.5 text-red-400" /> : <Mic className="w-3.5 h-3.5" />}
+              </button>
               <button
                 onClick={() => {
                   askDocumentAI(aiQuestion);

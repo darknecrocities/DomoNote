@@ -16,7 +16,10 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  Mic,
+  MicOff,
 } from 'lucide-react';
+import { LiveSpeechTranscriber } from '../services/audio/transcriber';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -32,6 +35,8 @@ export const ZenFocusView: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [lastSaved, setLastSaved] = useState<number | null>(null);
+  const [isDictating, setIsDictating] = useState(false);
+  const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
 
   // Focus Timer state (Pomodoro style 25m or countup)
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -121,6 +126,43 @@ export const ZenFocusView: React.FC = () => {
     addToast('Zen note saved to IndexedDB.', 'success');
   };
 
+  // Voice Dictation effect & listener for Zen Focus
+  useEffect(() => {
+    speechTranscriberRef.current = new LiveSpeechTranscriber();
+
+    const handleGlobalDictation = (e: any) => {
+      const text = e.detail?.text;
+      if (text) {
+        setContent((prev) => (prev ? `${prev}\n\n${text}` : text));
+      }
+    };
+
+    window.addEventListener('domonote:voice-dictation', handleGlobalDictation);
+
+    return () => {
+      speechTranscriberRef.current?.stop();
+      window.removeEventListener('domonote:voice-dictation', handleGlobalDictation);
+    };
+  }, []);
+
+  const toggleDictation = async () => {
+    if (isDictating) {
+      speechTranscriberRef.current?.stop();
+      setIsDictating(false);
+      addToast('Zen voice dictation paused.', 'info');
+    } else {
+      try {
+        await speechTranscriberRef.current?.start((seg) => {
+          setContent((prev) => (prev ? `${prev} ${seg.text}` : seg.text));
+        });
+        setIsDictating(true);
+        addToast('Zen voice dictation active. Speak freely...', 'success');
+      } catch {
+        addToast('Microphone access denied.', 'error');
+      }
+    }
+  };
+
   return (
     <div className="relative w-full h-full min-h-screen bg-[#050505] text-zinc-100 flex flex-col font-sans select-none overflow-hidden">
       {/* Subtle Top Minimal Navigation Bar */}
@@ -161,6 +203,20 @@ export const ZenFocusView: React.FC = () => {
             title={showPreview ? 'Hide preview' : 'Show markdown preview'}
           >
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+
+          {/* Zen Voice Dictation Button */}
+          <button
+            onClick={toggleDictation}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono border transition-all ${
+              isDictating
+                ? 'bg-red-950/80 border-red-700 text-white animate-pulse'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
+            }`}
+            title={isDictating ? 'Pause Voice Dictation' : 'Start Zen Voice Dictation'}
+          >
+            {isDictating ? <Mic className="w-3.5 h-3.5 text-red-400" /> : <Mic className="w-3.5 h-3.5" />}
+            <span>{isDictating ? 'DICTATING' : 'DICTATE'}</span>
           </button>
 
           {/* Manual Save */}

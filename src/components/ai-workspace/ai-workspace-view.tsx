@@ -21,7 +21,10 @@ import {
   AlertTriangle,
   Lightbulb,
   Trash2,
+  Mic,
+  MicOff,
 } from 'lucide-react';
+import { LiveSpeechTranscriber } from '../../services/audio/transcriber';
 
 export const AIWorkspaceView: React.FC = () => {
   const { isConnected, selectedModel } = useAI();
@@ -31,7 +34,34 @@ export const AIWorkspaceView: React.FC = () => {
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
+
+  useEffect(() => {
+    speechTranscriberRef.current = new LiveSpeechTranscriber();
+    return () => {
+      speechTranscriberRef.current?.stop();
+    };
+  }, []);
+
+  const toggleVoiceInput = async () => {
+    if (isListening) {
+      speechTranscriberRef.current?.stop();
+      setIsListening(false);
+      addToast('Voice prompt input stopped.', 'info');
+    } else {
+      try {
+        await speechTranscriberRef.current?.start((seg) => {
+          setInputText((prev) => (prev ? `${prev} ${seg.text}` : seg.text));
+        });
+        setIsListening(true);
+        addToast('Listening... Speak your prompt into the microphone.', 'success');
+      } catch {
+        addToast('Microphone access denied.', 'error');
+      }
+    }
+  };
 
   // Auto-scroll messages
   useEffect(() => {
@@ -286,6 +316,19 @@ export const AIWorkspaceView: React.FC = () => {
             disabled={!isConnected || isStreaming}
             className="flex-1 bg-transparent text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={toggleVoiceInput}
+            className={`p-2 rounded-lg border transition-all ${
+              isListening
+                ? 'bg-red-950/80 border-red-700 text-white animate-pulse'
+                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700'
+            }`}
+            title={isListening ? 'Stop voice input' : 'Speak prompt with microphone'}
+          >
+            {isListening ? <Mic className="w-3.5 h-3.5 text-red-400" /> : <Mic className="w-3.5 h-3.5" />}
+          </button>
+
           <Button
             size="sm"
             variant="primary"

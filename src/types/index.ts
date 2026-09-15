@@ -46,6 +46,16 @@ export interface MeetingSummary {
   followUpTasks: string[];
 }
 
+/** A screenshot captured during a live meeting recording session. */
+export interface MeetingScreenshot {
+  id: string;
+  timestampSeconds: number;
+  dataUrl: string;
+  caption?: string;
+  type?: 'full' | 'portion';
+  cropDimensions?: { width: number; height: number };
+}
+
 export interface Meeting {
   id: string;
   title: string;
@@ -57,6 +67,7 @@ export interface Meeting {
   manualNotes: string;
   timeline: TimelineItem[];
   summary?: MeetingSummary;
+  screenshots: MeetingScreenshot[];
   createdAt: number;
 }
 

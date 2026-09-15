@@ -38,3 +38,11 @@ local-companion/.venv
 
 # Chrome Extension builds
 browser-extension/*.zip
+
+# Desktop & Native builds
+*.app
+*.dmg
+public/downloads/
+desktop/DomoNote
+AppIcon.iconset/
+*.pdf

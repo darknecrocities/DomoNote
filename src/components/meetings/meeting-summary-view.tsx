@@ -4,7 +4,9 @@ import { db } from '../../db';
 import { Button } from '../ui/button';
 import { formatSecondsToTime } from '../../services/audio/transcriber';
 import { exportMeetingToMarkdown } from '../../services/export/markdown';
+import { exportMeetingToPdf } from '../../services/export/pdf';
 import { useWorkspace } from '../../context/workspace-context';
+import { MeetingSingleReport } from './meeting-single-report';
 import {
   Clock,
   CheckSquare,
@@ -16,6 +18,10 @@ import {
   Bookmark,
   Share2,
   ChevronLeft,
+  Camera,
+  Crop,
+  Image,
+  X,
 } from 'lucide-react';
 
 interface MeetingSummaryViewProps {
@@ -30,8 +36,9 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
   onBackToList,
 }) => {
   const { addToast, setActiveView, setActiveNoteId } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'timeline'>('summary');
+  const [activeTab, setActiveTab] = useState<'report' | 'summary' | 'transcript' | 'timeline' | 'screenshots'>('report');
   const [highlightTimestamp, setHighlightTimestamp] = useState<number | null>(null);
+  const [lightboxScreenshot, setLightboxScreenshot] = useState<string | null>(null);
 
   const handleExportMarkdown = () => {
     const md = exportMeetingToMarkdown(meeting);
@@ -44,6 +51,16 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
     a.click();
     URL.revokeObjectURL(url);
     addToast('Meeting exported to Markdown.', 'success');
+  };
+
+  const handleExportPdf = () => {
+    try {
+      exportMeetingToPdf(meeting);
+      addToast('Meeting exported to PDF with full notes and screenshots.', 'success');
+    } catch (err: any) {
+      console.error('[DomoNote] PDF export failed:', err);
+      addToast('Failed to generate PDF export.', 'error');
+    }
   };
 
   const handleConvertToNote = async () => {
@@ -83,6 +100,8 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
     setActiveTab('transcript');
   };
 
+  const screenshotCount = meeting.screenshots?.length || 0;
+
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-4 sm:p-8 overflow-y-auto max-w-5xl mx-auto w-full transition-colors duration-500 font-sans">
       {/* Header */}
@@ -110,6 +129,15 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
             </span>
             <span>•</span>
             <span>{meeting.transcript.length} transcript segments</span>
+            {screenshotCount > 0 && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Camera className="w-3 h-3" />
+                  {screenshotCount} screenshot{screenshotCount !== 1 ? 's' : ''}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -122,6 +150,10 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
             <Download className="w-3.5 h-3.5" />
             <span>Export MD</span>
           </Button>
+          <Button size="sm" variant="primary" onClick={handleExportPdf}>
+            <Download className="w-3.5 h-3.5" />
+            <span>Export PDF</span>
+          </Button>
           <Button size="icon" variant="ghost" onClick={handleDelete} title="Delete Meeting">
             <Trash2 className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400" />
           </Button>
@@ -129,10 +161,21 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-slate-200 dark:border-zinc-850 mb-6 gap-2">
+      <div className="flex items-center border-b border-slate-200 dark:border-zinc-850 mb-6 gap-2 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('report')}
+          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'report'
+              ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
+              : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Single Report</span>
+        </button>
         <button
           onClick={() => setActiveTab('summary')}
-          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
+          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors shrink-0 ${
             activeTab === 'summary'
               ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
               : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -142,7 +185,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('transcript')}
-          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
+          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors shrink-0 ${
             activeTab === 'transcript'
               ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
               : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -152,7 +195,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
-          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${
+          className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors shrink-0 ${
             activeTab === 'timeline'
               ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
               : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -160,7 +203,25 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
         >
           Milestone Timeline ({meeting.timeline.length})
         </button>
+        {screenshotCount > 0 && (
+          <button
+            onClick={() => setActiveTab('screenshots')}
+            className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'screenshots'
+                ? 'border-slate-900 text-slate-950 dark:border-white dark:text-white font-bold'
+                : 'border-transparent text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
+          >
+            <Image className="w-3.5 h-3.5" />
+            Screenshots ({screenshotCount})
+          </button>
+        )}
       </div>
+
+      {/* Tab: Single Compiled Report */}
+      {activeTab === 'report' && (
+        <MeetingSingleReport meeting={meeting} onBack={onBackToList} />
+      )}
 
       {/* Tab: Summary */}
       {activeTab === 'summary' && (
@@ -320,6 +381,80 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* Tab: Screenshots */}
+      {activeTab === 'screenshots' && (
+        <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 shadow-xs dark:shadow-none transition-colors duration-500">
+          {!meeting.screenshots || meeting.screenshots.length === 0 ? (
+            <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
+              No screenshots were captured during this session.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {meeting.screenshots.map((ss, idx) => (
+                <div
+                  key={ss.id}
+                  className="group rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-600 transition-colors cursor-pointer"
+                  onClick={() => setLightboxScreenshot(ss.dataUrl)}
+                >
+                  <div className="relative">
+                    <img
+                      src={ss.dataUrl}
+                      alt={ss.caption || `Screenshot ${idx + 1}`}
+                      className="w-full h-40 object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-white/90 font-semibold">
+                          {formatSecondsToTime(ss.timestampSeconds)}
+                        </span>
+                        <span className="text-[10px] text-white/80 font-medium flex items-center gap-1">
+                          {ss.type === 'portion' ? (
+                            <>
+                              <Crop className="w-2.5 h-2.5" />
+                              <span>Portion</span>
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-2.5 h-2.5" />
+                              <span>Full</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      {ss.caption && (
+                        <p className="text-[11px] text-white/80 mt-1 line-clamp-1">{ss.caption}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Screenshot Lightbox */}
+      {lightboxScreenshot && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setLightboxScreenshot(null)}
+        >
+          <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setLightboxScreenshot(null)}
+              className="absolute -top-10 right-0 p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-400 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <img
+              src={lightboxScreenshot}
+              alt="Screenshot preview"
+              className="w-full rounded-lg border border-zinc-800 shadow-2xl"
+            />
+          </div>
         </div>
       )}
     </div>

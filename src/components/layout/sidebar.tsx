@@ -40,6 +40,18 @@ export const Sidebar: React.FC = () => {
     localStorage.setItem('domonote_sidebar_collapsed', String(isCollapsed));
   }, [isCollapsed]);
 
+  // Global Cmd+B shortcut to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setIsCollapsed((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const navItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'dashboard', label: t('nav.home'), icon: Home },
     { id: 'notes', label: t('nav.notes'), icon: FileText },
@@ -69,9 +81,9 @@ export const Sidebar: React.FC = () => {
   const renderNavContent = (collapsed: boolean) => (
     <>
       {/* Navigation List */}
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-none">
+      <nav className="flex-1 px-2.5 py-2 space-y-1 overflow-y-auto scrollbar-none">
         {!collapsed && (
-          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-900/80 dark:text-zinc-400 uppercase font-bold">
+          <div className="px-3 pt-2 pb-1.5 text-[10px] font-mono tracking-widest text-slate-800 dark:text-zinc-400 uppercase font-bold">
             Workspace
           </div>
         )}
@@ -83,23 +95,39 @@ export const Sidebar: React.FC = () => {
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`w-full flex items-center ${
-                collapsed ? 'justify-center px-2' : 'px-2.5'
-              } py-2 rounded-lg text-xs transition-all ${
+              className={`group relative w-full flex items-center ${
+                collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+              } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
                 isActive
-                  ? 'bg-slate-200/90 dark:bg-zinc-850 text-black dark:text-white font-bold shadow-sm border border-slate-300 dark:border-zinc-700'
-                  : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium'
+                  ? 'bg-slate-950 text-white dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-900 dark:border-white/20 backdrop-blur-md'
+                  : 'text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent'
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="ml-2.5 truncate">{item.label}</span>}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-400 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+              )}
+
+              <Icon
+                className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
+                  isActive
+                    ? 'text-emerald-400 dark:text-white'
+                    : 'text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-zinc-100'
+                }`}
+              />
+              {!collapsed && (
+                <span className={`ml-3 truncate tracking-tight text-[13px] ${
+                  isActive ? 'font-semibold text-white' : 'font-semibold'
+                }`}>
+                  {item.label}
+                </span>
+              )}
             </button>
           );
         })}
 
-        <div className="pt-4" />
+        <div className="pt-2" />
         {!collapsed && (
-          <div className="px-2 pb-1.5 text-[9px] font-mono tracking-widest text-slate-900/80 dark:text-zinc-400 uppercase font-bold">
+          <div className="px-3 pt-2 pb-1.5 text-[10px] font-mono tracking-widest text-slate-800 dark:text-zinc-400 uppercase font-bold">
             System
           </div>
         )}
@@ -111,23 +139,39 @@ export const Sidebar: React.FC = () => {
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`w-full flex items-center ${
-                collapsed ? 'justify-center px-2' : 'px-2.5'
-              } py-2 rounded-lg text-xs transition-all ${
+              className={`group relative w-full flex items-center ${
+                collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+              } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
                 isActive
-                  ? 'bg-slate-200/90 dark:bg-zinc-850 text-black dark:text-white font-bold shadow-sm border border-slate-300 dark:border-zinc-700'
-                  : 'text-slate-900 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 font-medium'
+                  ? 'bg-slate-950 text-white dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-900 dark:border-white/20 backdrop-blur-md'
+                  : 'text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent'
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="ml-2.5 truncate">{item.label}</span>}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-400 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+              )}
+
+              <Icon
+                className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
+                  isActive
+                    ? 'text-emerald-400 dark:text-white'
+                    : 'text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-zinc-100'
+                }`}
+              />
+              {!collapsed && (
+                <span className={`ml-3 truncate tracking-tight text-[13px] ${
+                  isActive ? 'font-semibold text-white' : 'font-semibold'
+                }`}>
+                  {item.label}
+                </span>
+              )}
             </button>
           );
         })}
       </nav>
 
       {/* Local AI Status Hardware Card */}
-      <div className="p-2.5 border-t border-slate-200 dark:border-zinc-850 bg-slate-50/80 dark:bg-[#070707] transition-colors">
+      <div className="p-2.5 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#070707] transition-colors">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2 py-2">
             <span
@@ -145,7 +189,7 @@ export const Sidebar: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="p-2.5 rounded-lg bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-850 shadow-sm">
+          <div className="p-2.5 rounded-lg bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-white/10 shadow-sm">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span
@@ -184,7 +228,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Footer Meta */}
         {!collapsed && (
-          <div className="flex items-center justify-between mt-2.5 px-1 text-[10px] font-mono text-slate-600 dark:text-zinc-500 font-semibold">
+          <div className="flex items-center justify-between mt-2 px-1 text-[10px] font-mono text-slate-600 dark:text-zinc-500 font-semibold">
             <span>{t('nav.localWorkspace')}</span>
             <a
               href="https://github.com/darknecrocities/DomoNote"
@@ -205,25 +249,29 @@ export const Sidebar: React.FC = () => {
     <>
       {/* Desktop Sidebar (hidden on mobile) */}
       <aside
-        className={`hidden md:flex flex-col h-screen select-none shrink-0 transition-all duration-200 z-30 ${
-          isCollapsed ? 'w-16' : 'w-64'
-        } bg-white dark:bg-[#0A0A0A] border-r border-slate-200 dark:border-zinc-850`}
+        className={`hidden md:flex flex-col h-screen select-none shrink-0 transition-all duration-300 ease-in-out z-30 ${
+          isCollapsed ? 'w-16' : 'w-60 lg:w-64'
+        } bg-white dark:bg-[#070707] border-r border-slate-200 dark:border-white/10`}
       >
+        {/* macOS Titlebar & Traffic Light Clearance Area */}
+        <div className="h-8 w-full shrink-0 flex items-center px-4 select-none [app-region:drag] [-webkit-app-region:drag]" />
+
         {/* Brand Header */}
-        <div className="p-3 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
+        <div className="px-3.5 pb-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div
-            onClick={() => setActiveView('landing')}
-            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
-            title="DomoNote Landing Page"
+            onClick={() => setActiveView('dashboard')}
+            className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 transition-opacity min-w-0"
+            title="DomoNote Dashboard"
           >
-            <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shrink-0 shadow-xs" />
+            <img src={logoImg} alt="DomoNote" className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md border border-slate-200 dark:border-white/10" />
             {!isCollapsed && (
               <div className="truncate">
-                <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight leading-none truncate">
+                <div className="font-bold text-sm text-slate-950 dark:text-white tracking-tight leading-none truncate">
                   DomoNote
                 </div>
-                <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-500 font-semibold mt-1 tracking-tight truncate">
-                  {t('nav.localAi')}
+                <div className="text-[10px] font-mono text-slate-800 dark:text-zinc-300 font-bold mt-1 tracking-tight truncate flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
+                  <span>Personal Secretary</span>
                 </div>
               </div>
             )}
@@ -231,8 +279,8 @@ export const Sidebar: React.FC = () => {
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded text-slate-500 dark:text-zinc-500 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors"
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            title={isCollapsed ? 'Expand sidebar (Cmd+B)' : 'Collapse sidebar (Cmd+B)'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -264,7 +312,10 @@ export const Sidebar: React.FC = () => {
                 <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shrink-0 shadow-xs" />
                 <div>
                   <div className="font-bold text-xs text-slate-950 dark:text-white tracking-tight">DomoNote</div>
-                  <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-500 font-semibold">{t('nav.localAi')}</div>
+                  <div className="text-[10px] font-mono text-slate-800 dark:text-zinc-300 font-bold mt-0.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
+                    <span>Personal Secretary</span>
+                  </div>
                 </div>
               </div>
 

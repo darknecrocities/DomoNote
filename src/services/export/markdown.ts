@@ -51,10 +51,29 @@ export function exportMeetingToMarkdown(meeting: Meeting): string {
       });
       md += `\n`;
     }
+
+    if (meeting.summary.followUpTasks.length > 0) {
+      md += `## Follow-Up Tasks\n\n`;
+      meeting.summary.followUpTasks.forEach((task) => {
+        md += `- [ ] ${task}\n`;
+      });
+      md += `\n`;
+    }
   }
 
   if (meeting.manualNotes.trim()) {
     md += `## Meeting Notes\n\n${meeting.manualNotes}\n\n`;
+  }
+
+  // Screenshots references
+  if (meeting.screenshots && meeting.screenshots.length > 0) {
+    md += `## Screenshots\n\n`;
+    meeting.screenshots.forEach((ss, idx) => {
+      const timeLabel = formatSecondsToTime(ss.timestampSeconds);
+      const caption = ss.caption || `Screenshot ${idx + 1}`;
+      md += `### [${timeLabel}] ${caption}\n\n`;
+      md += `![${caption}](screenshot_${idx + 1}_at_${timeLabel.replace(':', 'm')}s.png)\n\n`;
+    });
   }
 
   if (meeting.transcript.length > 0) {
