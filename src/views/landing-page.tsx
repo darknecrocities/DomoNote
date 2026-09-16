@@ -913,7 +913,7 @@ cd DomoNote
               <span className="text-xs text-slate-500 dark:text-zinc-500">• {t('app.tagline', 'Your Local AI Secretary')}</span>
             </div>
             <p className="text-slate-500 dark:text-zinc-500 text-xs max-w-sm">
-              Built with React, TypeScript, IndexedDB, and local Ollama intelligence.
+              {t('landing.footer.privacyNotice', '100% on-device processing. No accounts, telemetry, or server dependencies.')}
             </p>
           </div>
 
