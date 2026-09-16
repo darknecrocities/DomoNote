@@ -173,7 +173,7 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
     <div className="w-full rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-xl font-sans text-left relative z-10">
       {/* Top Minimal Bar */}
       <div className="px-4 py-3 border-b border-zinc-850 bg-zinc-900/50 flex items-center justify-between gap-3 text-xs">
-        {/* Left: Window Dots, Title & Minimal Online Status */}
+        {/* Left: Window Dots & Title */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-zinc-700 inline-block" />
@@ -185,11 +185,6 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
           <div className="flex items-center gap-2">
             <span className="font-semibold text-zinc-200">Interactive Demo</span>
-            {/* Minimal Online Status */}
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Online</span>
-            </span>
           </div>
         </div>
 
