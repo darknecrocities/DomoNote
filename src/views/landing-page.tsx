@@ -268,12 +268,12 @@ export const LandingPage: React.FC = () => {
       {
         id: 'zen',
         tag: 'WRITING',
-        title: t('landing.features.panelZenTitle', 'Distraction-Free Zen Note Sanctuary'),
+        title: t('landing.features.panelZenTitle', 'Distraction-Free Domo Notes'),
         description: t(
           'landing.features.panelZenDesc',
-          'Immersive dark note editor crafted for clarity and focus. Full Markdown support, version rollbacks, velocity tracking, and ambient acoustic focus soundscapes.'
+          'A calm, distraction-free space for focused writing with full markdown support, version history, and soothing sounds.'
         ),
-        meta: 'Zen Editor',
+        meta: 'Domo Notes',
         previewContent: (
           <div className="space-y-2 text-slate-700 dark:text-zinc-300">
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-850 pb-1.5">

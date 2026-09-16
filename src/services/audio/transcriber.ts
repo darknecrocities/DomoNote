@@ -1,6 +1,10 @@
-import type { TranscriptSegment, MeetingSummary, TimelineItem } from '../../types';
-export type { TranscriptSegment, MeetingSummary, TimelineItem };
+import type { TranscriptSegment, MeetingSummary, TimelineItem, ScheduleEvent } from '../../types';
+export type { TranscriptSegment, MeetingSummary, TimelineItem, ScheduleEvent };
 import { ollama } from '../ai/ollama';
+import {
+  detectAllEventsInText,
+  createScheduleEventFromMatch,
+} from '../calendar/event-detector';
 
 /**
  * LiveSpeechTranscriber provides real-time speech-to-text transcription
@@ -32,10 +36,13 @@ export class LiveSpeechTranscriber {
   private restartAttempts: number = 0;
   private maxRestartAttempts: number = 50;
   private language: string = 'en-US';
+  private activeSpeaker: string = 'Speaker 1';
 
   constructor() {
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
 
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
@@ -58,7 +65,7 @@ export class LiveSpeechTranscriber {
               this.onSegmentCallback({
                 id: `seg-${++this.segmentCounter}-${Date.now()}`,
                 timestampSeconds: elapsed,
-                speaker: 'Speaker',
+                speaker: this.activeSpeaker || 'Speaker 1',
                 text,
               });
             }
@@ -143,6 +150,19 @@ export class LiveSpeechTranscriber {
   }
 
   /**
+   * Set active speaker name (e.g., 'Arron', 'Speaker 1', 'Client')
+   */
+  setActiveSpeaker(speaker: string): void {
+    if (speaker && speaker.trim()) {
+      this.activeSpeaker = speaker.trim();
+    }
+  }
+
+  getActiveSpeaker(): string {
+    return this.activeSpeaker;
+  }
+
+  /**
    * Begin live speech transcription.
    * Each recognized phrase calls `onSegment` with a timestamped `TranscriptSegment`.
    * Optionally streams interim speech in real time as the user speaks.
@@ -219,8 +239,13 @@ export function formatSecondsToTime(totalSeconds: number): string {
 export async function synthesizeMeetingAI(
   transcript: TranscriptSegment[],
   manualNotes: string,
-  modelName: string
-): Promise<{ summary: MeetingSummary; timeline: TimelineItem[] }> {
+  modelName: string,
+  meetingTitle?: string
+): Promise<{
+  summary: MeetingSummary;
+  timeline: TimelineItem[];
+  detectedEvents: ScheduleEvent[];
+}> {
   if (transcript.length === 0 && !manualNotes.trim()) {
     return {
       summary: {
@@ -231,8 +256,18 @@ export async function synthesizeMeetingAI(
         followUpTasks: [],
       },
       timeline: [],
+      detectedEvents: [],
     };
   }
+
+  const combinedText = `${transcript.map((s) => s.text).join(' ')}\n${manualNotes}`;
+  const nlpMatches = detectAllEventsInText(combinedText);
+  const detectedEvents: ScheduleEvent[] = nlpMatches.map((m) =>
+    createScheduleEventFromMatch(m, {
+      source: 'meeting',
+      sourceTitle: meetingTitle || 'Recorded Meeting',
+    })
+  );
 
   const transcriptText = transcript
     .map((s) => `[${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`)
@@ -240,6 +275,7 @@ export async function synthesizeMeetingAI(
 
   const prompt = `Analyze this actual meeting transcript and participant notes. Deriving facts ONLY from the text provided below, generate a factual structured JSON output.
 Do not hallucinate or invent owners if none are mentioned. If something was not discussed, leave that array empty.
+If any future events, meetings, syncs, presentations, or deadlines are mentioned with dates/times, include them in "detectedEvents".
 
 TRANSCRIPT:
 ${transcriptText || '(No verbal transcript)'}
@@ -254,6 +290,9 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
   "actionItems": [{"task": "Task description", "owner": "Name or empty"}],
   "topics": ["Topic 1", "Topic 2"],
   "followUpTasks": ["Follow-up task 1"],
+  "detectedEvents": [
+    {"title": "Event Name", "date": "YYYY-MM-DD", "time": "HH:MM", "durationMin": 30, "category": "meeting"}
+  ],
   "timeline": [
     {"timestampSeconds": 0, "label": "Brief topic milestone", "type": "topic"}
   ]
@@ -281,6 +320,44 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
         }))
       : [];
 
+    // Parse AI-detected events and merge with NLP events
+    if (Array.isArray(parsed.detectedEvents)) {
+      for (const ev of parsed.detectedEvents) {
+        if (ev.title && (ev.date || ev.time)) {
+          const isoDate = ev.date && /^\d{4}-\d{2}-\d{2}$/.test(ev.date)
+            ? ev.date
+            : new Date().toISOString().split('T')[0];
+          const timeStr = ev.time || '10:00';
+
+          const exists = detectedEvents.some(
+            (e) => e.date === isoDate && e.time === timeStr
+          );
+
+          if (!exists) {
+            detectedEvents.push({
+              id: `ev-ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              title: ev.title,
+              date: isoDate,
+              time: timeStr,
+              durationMin: Number(ev.durationMin) || 30,
+              category: ['meeting', 'deep-work', 'review', 'manual', 'deadline'].includes(ev.category)
+                ? ev.category
+                : 'meeting',
+              completed: false,
+              notes: `Identified by Local AI from meeting discussion.`,
+              detectedFrom: {
+                source: 'meeting',
+                sourceTitle: meetingTitle || 'Recorded Meeting',
+              },
+              addedToComputerCalendar: false,
+              syncedToGoogle: false,
+              createdAt: Date.now(),
+            });
+          }
+        }
+      }
+    }
+
     return {
       summary: {
         overview: parsed.overview || 'Meeting completed.',
@@ -290,6 +367,7 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
         followUpTasks: Array.isArray(parsed.followUpTasks) ? parsed.followUpTasks : [],
       },
       timeline,
+      detectedEvents,
     };
   } catch (err: any) {
     console.warn('[DomoNote] AI meeting synthesis fallback:', err?.message);
@@ -309,6 +387,70 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
         label: s.text.slice(0, 40) + '...',
         type: 'topic',
       })),
+      detectedEvents,
     };
+  }
+}
+
+/**
+ * Uses Local AI (Ollama) to polish raw speech transcription:
+ * - Fixes grammar, punctuation, and fragmented speech chunks
+ * - Assigns realistic, accurate speaker names (e.g. Speaker 1, Speaker 2, or detected participant names)
+ * - Merges stuttered/split phrases into clean, professional dialogue turns
+ */
+export async function polishAndDiarizeTranscript(
+  transcript: TranscriptSegment[],
+  modelName: string
+): Promise<TranscriptSegment[]> {
+  if (transcript.length === 0) return [];
+
+  const rawLines = transcript
+    .map((s, idx) => `[${idx}] [${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`)
+    .join('\n');
+
+  const prompt = `You are an expert audio transcription editor and speaker diarization specialist.
+Clean up, punctuate, and polish this raw spoken transcript. Correct speech recognition misspellings, merge stuttered phrases into clean sentences, and distinguish speakers accurately based on conversational flow.
+
+RAW TRANSCRIPT:
+${rawLines}
+
+Respond STRICTLY with a valid JSON array of objects formatted as:
+[
+  {
+    "timestampSeconds": 0,
+    "speaker": "Speaker 1",
+    "text": "Polished, grammatically correct speech with proper punctuation."
+  }
+]
+Return only the JSON array with no extra text or markdown formatting.`;
+
+  try {
+    const response = await ollama.generate(prompt, {
+      model: modelName,
+      temperature: 0.1,
+    });
+
+    const match = response.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error('No JSON array in AI response');
+
+    const parsed = JSON.parse(match[0]);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty parsed array');
+
+    return parsed.map((item: any, idx: number) => ({
+      id: `seg-polished-${idx}-${Date.now()}`,
+      timestampSeconds:
+        typeof item.timestampSeconds === 'number'
+          ? item.timestampSeconds
+          : transcript[Math.min(idx, transcript.length - 1)]?.timestampSeconds || 0,
+      speaker: (item.speaker || 'Speaker 1').trim(),
+      text: (item.text || '').trim(),
+    }));
+  } catch (err: any) {
+    console.warn('[DomoNote] AI transcript polish fallback:', err?.message);
+    // Safe deterministic fallback: capitalize and punctuate
+    return transcript.map((s) => ({
+      ...s,
+      text: s.text.charAt(0).toUpperCase() + s.text.slice(1) + (s.text.endsWith('.') ? '' : '.'),
+    }));
   }
 }

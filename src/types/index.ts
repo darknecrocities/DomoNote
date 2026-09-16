@@ -231,3 +231,36 @@ export interface AIChatMessage {
   }>;
   timestamp: number;
 }
+
+export type ScheduleCategory = 'meeting' | 'deep-work' | 'review' | 'manual' | 'deadline';
+
+export interface ScheduleEvent {
+  id: string;
+  title: string;
+  date: string; // ISO format: YYYY-MM-DD
+  time: string; // 24h format: HH:MM
+  durationMin: number;
+  category: ScheduleCategory;
+  completed: boolean;
+  notes?: string;
+  detectedFrom?: {
+    source: 'transcript' | 'meeting' | 'note' | 'manual' | 'ai';
+    sourceId?: string;
+    sourceTitle?: string;
+    snippet?: string;
+  };
+  addedToComputerCalendar?: boolean;
+  googleCalendarEventId?: string;
+  syncedToGoogle?: boolean;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface GoogleCalendarConfig {
+  clientId?: string;
+  accessToken?: string;
+  tokenExpiry?: number;
+  userEmail?: string;
+  isConnected: boolean;
+  lastSyncedAt?: number;
+}

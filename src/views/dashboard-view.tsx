@@ -58,7 +58,7 @@ export const DashboardView: React.FC = () => {
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Your Workspace</h2>
           <p className="text-xs sm:text-sm text-slate-800 dark:text-zinc-300 mt-1 font-medium">
-            Local knowledge, active sessions, and syntheses stored in your browser.
+            Everything is saved privately on your device. Fast, offline, and secure.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const DashboardView: React.FC = () => {
             <FileText className="w-5 h-5 text-slate-950 dark:text-zinc-200" />
             <div className="mt-2">
               <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">New Note</div>
-              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Markdown document</span>
+              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Write thoughts & notes</span>
             </div>
           </button>
         </TiltCard>
@@ -100,7 +100,7 @@ export const DashboardView: React.FC = () => {
             <Mic className="w-5 h-5 text-slate-950 dark:text-zinc-200" />
             <div className="mt-2">
               <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Start Meeting</div>
-              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Audio & transcript</span>
+              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Record audio & notes</span>
             </div>
           </button>
         </TiltCard>
@@ -112,8 +112,8 @@ export const DashboardView: React.FC = () => {
           >
             <FileUp className="w-5 h-5 text-slate-950 dark:text-zinc-200" />
             <div className="mt-2">
-              <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Upload Doc</div>
-              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">PDF, PPTX, DOCX, TXT</span>
+              <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Upload Document</div>
+              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Read & search files</span>
             </div>
           </button>
         </TiltCard>
@@ -125,8 +125,8 @@ export const DashboardView: React.FC = () => {
           >
             <Video className="w-5 h-5 text-slate-950 dark:text-zinc-200" />
             <div className="mt-2">
-              <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Capture Operation</div>
-              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Step manual generator</span>
+              <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Create Guide</div>
+              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Step-by-step manual</span>
             </div>
           </button>
         </TiltCard>
@@ -139,7 +139,7 @@ export const DashboardView: React.FC = () => {
             <Bot className="w-5 h-5 text-slate-950 dark:text-zinc-200" />
             <div className="mt-2">
               <div className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white">Ask AI</div>
-              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Multi-context chat</span>
+              <span className="text-[11px] text-slate-800 dark:text-zinc-300 font-semibold">Chat with your notes</span>
             </div>
           </button>
         </TiltCard>
@@ -243,7 +243,7 @@ export const DashboardView: React.FC = () => {
                       <div className="truncate pr-2">
                         <div className="font-bold text-slate-950 dark:text-zinc-100 truncate">{m.title}</div>
                         <span className="text-[11px] text-slate-800 dark:text-zinc-400 font-semibold">
-                          {m.transcript.length} transcript segments
+                          {m.transcript.length} spoken lines
                         </span>
                       </div>
                       <ArrowRight className="w-3.5 h-3.5 text-slate-800 dark:text-zinc-400 shrink-0" />
@@ -299,7 +299,7 @@ export const DashboardView: React.FC = () => {
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-3">
                 <span className="text-xs font-bold text-slate-950 dark:text-zinc-200 uppercase tracking-wider">
-                  Operation Manuals ({manuals.length})
+                  Step Guides ({manuals.length})
                 </span>
                 <button
                   onClick={() => setActiveView('manuals')}
@@ -311,7 +311,7 @@ export const DashboardView: React.FC = () => {
 
               <div className="space-y-2">
                 {manuals.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-slate-800 dark:text-zinc-400 font-semibold">No manuals generated yet.</div>
+                  <div className="py-6 text-center text-xs text-slate-800 dark:text-zinc-400 font-semibold">No guides created yet.</div>
                 ) : (
                   manuals.map((man: Manual) => (
                     <div

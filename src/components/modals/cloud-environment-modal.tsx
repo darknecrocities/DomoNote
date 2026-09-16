@@ -23,7 +23,7 @@ export const CloudEnvironmentModal: React.FC<CloudEnvironmentModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { setActiveView } = useWorkspace();
+  const { activeView, setActiveView, isCloudHost } = useWorkspace();
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -36,6 +36,18 @@ export const CloudEnvironmentModal: React.FC<CloudEnvironmentModalProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleClose = () => {
+    onClose();
+    if (isCloudHost) {
+      setActiveView('landing');
+    }
+  };
+
+  const handleGoToLanding = () => {
+    onClose();
+    setActiveView('landing');
+  };
+
   const handleGoToDownload = () => {
     onClose();
     setActiveView('download');
@@ -46,8 +58,10 @@ export const CloudEnvironmentModal: React.FC<CloudEnvironmentModalProps> = ({
       <div className="relative w-full max-w-xl rounded-2xl bg-zinc-950 border-2 border-white p-6 sm:p-8 shadow-2xl shadow-white/10 space-y-6 text-white">
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 p-1.5 rounded-lg bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          title="Close and return to landing page"
+          aria-label="Close"
         >
           <X className="w-4 h-4" />
         </button>
@@ -118,10 +132,10 @@ export const CloudEnvironmentModal: React.FC<CloudEnvironmentModalProps> = ({
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
-              onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-lg text-xs text-zinc-400 hover:text-white transition-colors"
+              onClick={handleGoToLanding}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-lg text-xs text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors flex items-center justify-center gap-1.5"
             >
-              Explore Preview
+              <span>Back to Landing Page</span>
             </button>
             <button
               onClick={handleGoToDownload}

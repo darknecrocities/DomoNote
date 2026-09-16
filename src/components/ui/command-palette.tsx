@@ -10,6 +10,7 @@ import {
   Download,
   Shield,
   BookOpen,
+  Sparkles,
 } from 'lucide-react';
 import { useWorkspace } from '../../context/workspace-context';
 import { exportWorkspaceToJson } from '../../db';
@@ -106,8 +107,8 @@ export const CommandPalette: React.FC = () => {
       },
       {
         id: 'zen-notes',
-        title: 'Zen Notes Focus Mode',
-        description: 'Distraction-free note sanctuary with Panda mascot companion',
+        title: 'Domo Notes Focus Mode',
+        description: 'Distraction-free writing with companion',
         icon: FileText,
         shortcut: 'Cmd+Shift+N',
         run: () => {
@@ -117,7 +118,7 @@ export const CommandPalette: React.FC = () => {
       {
         id: 'schedule',
         title: 'Automated Schedule',
-        description: 'Timeline agenda, recurring alarms, and AI scheduling',
+        description: 'Timeline agenda, reminders, and calendar planner',
         icon: Settings,
         shortcut: 'Cmd+Shift+S',
         run: () => {
@@ -127,7 +128,7 @@ export const CommandPalette: React.FC = () => {
       {
         id: 'screen-studio',
         title: 'Screen Recording Studio',
-        description: 'Flight recorder for computer tasks with webcam PIP',
+        description: 'Record your screen with webcam',
         icon: Video,
         shortcut: 'Cmd+Shift+R',
         run: () => {
@@ -136,8 +137,8 @@ export const CommandPalette: React.FC = () => {
       },
       {
         id: 'changelog',
-        title: 'Changelog & Diagnostics',
-        description: 'System specifications and database ledger',
+        title: 'App Updates & Info',
+        description: 'See recent updates and system details',
         icon: Shield,
         run: () => {
           setActiveView('changelog');
@@ -150,6 +151,16 @@ export const CommandPalette: React.FC = () => {
         icon: Shield,
         run: () => {
           setActiveView('privacy');
+        },
+      },
+      {
+        id: 'landing-page',
+        title: 'Return to Landing Page',
+        description: 'Explore features, architecture story, and product demo',
+        icon: Sparkles,
+        shortcut: 'Cmd+Shift+L',
+        run: () => {
+          setActiveView('landing');
         },
       },
     ],

@@ -9,6 +9,7 @@ import type {
   Template,
   AppSettings,
   StoredBlob,
+  ScheduleEvent,
 } from '../types';
 
 export class DomoNoteDatabase extends Dexie {
@@ -21,6 +22,7 @@ export class DomoNoteDatabase extends Dexie {
   templates!: Table<Template, string>;
   settings!: Table<AppSettings, string>;
   blobs!: Table<StoredBlob, string>;
+  schedule!: Table<ScheduleEvent, string>;
 
   constructor() {
     super('DomoNoteDB');
@@ -34,6 +36,9 @@ export class DomoNoteDatabase extends Dexie {
       templates: 'id, title, category, isBuiltin',
       settings: 'id',
       blobs: 'id, mimeType, createdAt',
+    });
+    this.version(2).stores({
+      schedule: 'id, date, time, category, completed, createdAt',
     });
   }
 }
@@ -120,7 +125,7 @@ export async function initializeDatabase(): Promise<void> {
 
 // Full Workspace Backup & Restore
 export async function exportWorkspaceToJson(): Promise<string> {
-  const [notes, meetings, documents, annotations, operationSessions, manuals, templates, settings] =
+  const [notes, meetings, documents, annotations, operationSessions, manuals, templates, settings, schedule] =
     await Promise.all([
       db.notes.toArray(),
       db.meetings.toArray(),
@@ -130,10 +135,11 @@ export async function exportWorkspaceToJson(): Promise<string> {
       db.manuals.toArray(),
       db.templates.filter((t) => !t.isBuiltin).toArray(),
       db.settings.get('current'),
+      db.schedule.toArray(),
     ]);
 
   const workspace = {
-    version: '1.0.0',
+    version: '1.1.0',
     exportedAt: new Date().toISOString(),
     data: {
       notes,
@@ -144,6 +150,7 @@ export async function exportWorkspaceToJson(): Promise<string> {
       manuals,
       customTemplates: templates,
       settings: settings || DEFAULT_SETTINGS,
+      schedule,
     },
   };
 
@@ -157,9 +164,9 @@ export async function importWorkspaceFromJson(jsonString: string): Promise<{ suc
       throw new Error('Invalid workspace archive format: missing data key.');
     }
 
-    const { notes, meetings, documents, annotations, operationSessions, manuals, customTemplates } = parsed.data;
+    const { notes, meetings, documents, annotations, operationSessions, manuals, customTemplates, schedule } = parsed.data;
 
-    await db.transaction('rw', [db.notes, db.meetings, db.documents, db.annotations, db.operationSessions, db.manuals, db.templates], async () => {
+    await db.transaction('rw', [db.notes, db.meetings, db.documents, db.annotations, db.operationSessions, db.manuals, db.templates, db.schedule], async () => {
       if (Array.isArray(notes)) await db.notes.bulkPut(notes);
       if (Array.isArray(meetings)) await db.meetings.bulkPut(meetings);
       if (Array.isArray(documents)) await db.documents.bulkPut(documents);
@@ -167,6 +174,7 @@ export async function importWorkspaceFromJson(jsonString: string): Promise<{ suc
       if (Array.isArray(operationSessions)) await db.operationSessions.bulkPut(operationSessions);
       if (Array.isArray(manuals)) await db.manuals.bulkPut(manuals);
       if (Array.isArray(customTemplates)) await db.templates.bulkPut(customTemplates);
+      if (Array.isArray(schedule)) await db.schedule.bulkPut(schedule);
     });
 
     return { success: true, message: 'Workspace successfully imported.' };

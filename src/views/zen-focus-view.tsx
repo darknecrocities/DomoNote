@@ -123,10 +123,10 @@ export const ZenFocusView: React.FC = () => {
 
   const handleManualSave = async () => {
     playChime();
-    addToast('Zen note saved to IndexedDB.', 'success');
+    addToast('Domo note saved to your device.', 'success');
   };
 
-  // Voice Dictation effect & listener for Zen Focus
+  // Voice Dictation effect & listener for Domo Notes Focus
   useEffect(() => {
     speechTranscriberRef.current = new LiveSpeechTranscriber();
 
@@ -149,14 +149,14 @@ export const ZenFocusView: React.FC = () => {
     if (isDictating) {
       speechTranscriberRef.current?.stop();
       setIsDictating(false);
-      addToast('Zen voice dictation paused.', 'info');
+      addToast('Voice typing paused.', 'info');
     } else {
       try {
         await speechTranscriberRef.current?.start((seg) => {
           setContent((prev) => (prev ? `${prev} ${seg.text}` : seg.text));
         });
         setIsDictating(true);
-        addToast('Zen voice dictation active. Speak freely...', 'success');
+        addToast('Voice typing active. Speak freely...', 'success');
       } catch {
         addToast('Microphone access denied.', 'error');
       }
@@ -170,7 +170,7 @@ export const ZenFocusView: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-zinc-400 font-mono text-xs">
             <Feather className="w-3.5 h-3.5 text-zinc-200" />
-            <span className="text-white font-semibold">ZEN NOTE SANCTUARY</span>
+            <span className="text-white font-semibold">DOMO NOTES</span>
           </div>
 
           <span className="text-zinc-600">•</span>
@@ -205,7 +205,7 @@ export const ZenFocusView: React.FC = () => {
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
 
-          {/* Zen Voice Dictation Button */}
+          {/* Voice Typing Button */}
           <button
             onClick={toggleDictation}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono border transition-all ${
@@ -213,10 +213,10 @@ export const ZenFocusView: React.FC = () => {
                 ? 'bg-red-950/80 border-red-700 text-white animate-pulse'
                 : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
             }`}
-            title={isDictating ? 'Pause Voice Dictation' : 'Start Zen Voice Dictation'}
+            title={isDictating ? 'Pause Voice Typing' : 'Start Voice Typing'}
           >
             {isDictating ? <Mic className="w-3.5 h-3.5 text-red-400" /> : <Mic className="w-3.5 h-3.5" />}
-            <span>{isDictating ? 'DICTATING' : 'DICTATE'}</span>
+            <span>{isDictating ? 'LISTENING' : 'VOICE TYPE'}</span>
           </button>
 
           {/* Manual Save */}
@@ -225,14 +225,14 @@ export const ZenFocusView: React.FC = () => {
             <span className="hidden sm:inline">Save</span>
           </Button>
 
-          {/* Exit Zen Mode */}
+          {/* Exit Domo Notes */}
           <button
             onClick={() => setActiveView('notes')}
             className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-900 border border-zinc-800 transition-colors"
             title="Return to standard workspace"
           >
             <Minimize2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Exit Zen</span>
+            <span className="hidden sm:inline">Exit Domo Notes</span>
           </button>
         </div>
       </header>
@@ -268,7 +268,7 @@ export const ZenFocusView: React.FC = () => {
           {showPreview && (
             <div className="border-l border-zinc-850 pl-8 overflow-y-auto text-zinc-200 font-sans prose prose-invert max-w-none text-sm leading-relaxed select-text">
               <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-4">
-                Rendered Markdown
+                Preview
               </div>
               <h1 className="text-2xl font-bold text-white tracking-tight">{title}</h1>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>

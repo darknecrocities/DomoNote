@@ -43,7 +43,7 @@ export const GlobalMascotDock: React.FC = () => {
                 "I'm keeping your notes and meetings organized locally."
               </p>
               <div className="text-[10px] font-mono text-zinc-500">
-                {isConnected ? `Ollama: ${selectedModel}` : 'Ollama: Offline'}
+                {isConnected ? `AI: ${selectedModel}` : 'AI: Offline'}
               </div>
             </div>
           </div>
@@ -58,7 +58,7 @@ export const GlobalMascotDock: React.FC = () => {
             >
               <span className="flex items-center gap-2">
                 <Feather className="w-3.5 h-3.5 text-zinc-300" />
-                <span>Open Zen Focus Mode</span>
+                <span>Open Domo Notes</span>
               </span>
               <ArrowRight className="w-3.5 h-3.5 text-zinc-500" />
             </button>

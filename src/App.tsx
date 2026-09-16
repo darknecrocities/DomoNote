@@ -20,16 +20,36 @@ import { ChangelogView } from './views/changelog-view';
 import { PrivacyView } from './views/privacy-view';
 import { DownloadView } from './views/download-view';
 import { CloudEnvironmentModal } from './components/modals/cloud-environment-modal';
+import { handleGoogleAuthCallback } from './services/calendar/google-calendar';
 
 export const App: React.FC = () => {
-  const { activeView, isCloudModalOpen, setIsCloudModalOpen } = useWorkspace();
+  const { activeView, setActiveView, isCloudModalOpen, setIsCloudModalOpen } = useWorkspace();
 
-  // Initialize Dexie IndexedDB and seeds on app boot
+  // Initialize Dexie IndexedDB and seeds on app boot, or intercept OAuth popup
   useEffect(() => {
+    if (handleGoogleAuthCallback()) {
+      return;
+    }
+
     initializeDatabase().catch((err) => {
       console.warn('[DomoNote] DB initialization warning:', err);
     });
-  }, []);
+
+    const handleNavigate = (e: any) => {
+      const view = e.detail?.view;
+      if (view) {
+        setActiveView(view);
+      }
+      if (e.detail?.action === 'new') {
+        window.dispatchEvent(new CustomEvent('domonote:new-note'));
+      } else if (e.detail?.action === 'record') {
+        window.dispatchEvent(new CustomEvent('domonote:start-meeting'));
+      }
+    };
+
+    window.addEventListener('domonote:navigate', handleNavigate);
+    return () => window.removeEventListener('domonote:navigate', handleNavigate);
+  }, [setActiveView]);
 
   const renderActiveView = () => {
     switch (activeView) {

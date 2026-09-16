@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Meeting } from '../../types';
 import { db } from '../../db';
 import { Button } from '../ui/button';
@@ -22,7 +22,11 @@ import {
   Crop,
   Image,
   X,
+  User,
+  Wand2,
 } from 'lucide-react';
+import { useAI } from '../../context/ai-context';
+import { polishAndDiarizeTranscript } from '../../services/audio/transcriber';
 
 interface MeetingSummaryViewProps {
   meeting: Meeting;
@@ -36,9 +40,52 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
   onBackToList,
 }) => {
   const { addToast, setActiveView, setActiveNoteId } = useWorkspace();
+  const { isConnected, selectedModel } = useAI();
+  const [currentMeeting, setCurrentMeeting] = useState<Meeting>(meeting);
   const [activeTab, setActiveTab] = useState<'report' | 'summary' | 'transcript' | 'timeline' | 'screenshots'>('report');
   const [highlightTimestamp, setHighlightTimestamp] = useState<number | null>(null);
   const [lightboxScreenshot, setLightboxScreenshot] = useState<string | null>(null);
+  const [isPolishingAI, setIsPolishingAI] = useState<boolean>(false);
+
+  // Sync prop changes
+  useEffect(() => {
+    setCurrentMeeting(meeting);
+  }, [meeting]);
+
+  const handleRenameSpeaker = async (oldName: string) => {
+    const newName = window.prompt(`Rename all segments for "${oldName}" to:`, oldName);
+    if (!newName || !newName.trim() || newName.trim() === oldName) return;
+
+    const trimmed = newName.trim();
+    const updatedTranscript = currentMeeting.transcript.map((s) =>
+      s.speaker.toLowerCase() === oldName.toLowerCase() ? { ...s, speaker: trimmed } : s
+    );
+
+    const updated = { ...currentMeeting, transcript: updatedTranscript };
+    setCurrentMeeting(updated);
+    await db.meetings.update(currentMeeting.id, { transcript: updatedTranscript });
+    addToast(`Renamed "${oldName}" to "${trimmed}".`, 'success');
+  };
+
+  const handlePolishTranscript = async () => {
+    if (!isConnected || !selectedModel || currentMeeting.transcript.length === 0) {
+      addToast('Local AI (Ollama) is offline or transcript is empty.', 'warning');
+      return;
+    }
+    setIsPolishingAI(true);
+    addToast('Local AI is polishing transcript grammar & speaker turns...', 'info');
+    try {
+      const polished = await polishAndDiarizeTranscript(currentMeeting.transcript, selectedModel);
+      const updated = { ...currentMeeting, transcript: polished };
+      setCurrentMeeting(updated);
+      await db.meetings.update(currentMeeting.id, { transcript: polished });
+      addToast('Transcript polished with speaker diarization & grammar.', 'success');
+    } catch (err: any) {
+      addToast('Failed to polish transcript with AI.', 'error');
+    } finally {
+      setIsPolishingAI(false);
+    }
+  };
 
   const handleExportMarkdown = () => {
     const md = exportMeetingToMarkdown(meeting);
@@ -319,19 +366,44 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
       {/* Tab: Transcript */}
       {activeTab === 'transcript' && (
         <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
-          {meeting.transcript.length === 0 ? (
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-850 mb-2 flex-wrap gap-2">
+            <span className="text-xs font-mono text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider">
+              Verbal Transcript ({currentMeeting.transcript.length} segments)
+            </span>
+
+            {currentMeeting.transcript.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handlePolishTranscript}
+                disabled={isPolishingAI}
+                className="text-xs font-mono py-1 px-3 h-7"
+                title="Use Local AI to clean grammar and diarize speaker turns"
+              >
+                <Wand2 className={`w-3.5 h-3.5 mr-1 text-emerald-500 ${isPolishingAI ? 'animate-spin' : ''}`} />
+                <span>{isPolishingAI ? 'Diarizing...' : 'AI Polish & Diarize'}</span>
+              </Button>
+            )}
+          </div>
+
+          {currentMeeting.transcript.length === 0 ? (
             <div className="text-center py-12 text-xs text-slate-500 dark:text-zinc-500">
               No verbal transcript was recorded for this session.
             </div>
           ) : (
-            meeting.transcript.map((seg) => {
+            currentMeeting.transcript.map((seg, idx) => {
               const isTarget =
                 highlightTimestamp !== null &&
                 Math.abs(seg.timestampSeconds - highlightTimestamp) < 3;
 
+              const isSpeaker1 = seg.speaker.includes('1') || seg.speaker.toLowerCase().includes('host') || seg.speaker.toLowerCase().includes('you');
+              const badgeColor = isSpeaker1
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
+                : 'bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30';
+
               return (
                 <div
-                  key={seg.id}
+                  key={seg.id || `sum-seg-${idx}`}
                   className={`p-3.5 rounded-lg border text-xs transition-colors ${
                     isTarget
                       ? 'bg-slate-200 dark:bg-zinc-800/80 border-slate-900 dark:border-white text-slate-950 dark:text-white shadow-md'
@@ -339,12 +411,19 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                   }`}
                 >
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 mb-1.5 font-medium">
-                    <span className="font-bold text-slate-950 dark:text-zinc-200">{seg.speaker}</span>
+                    <button
+                      onClick={() => handleRenameSpeaker(seg.speaker)}
+                      className={`font-semibold px-2 py-0.5 rounded border text-[10px] font-mono flex items-center gap-1 hover:brightness-110 cursor-pointer ${badgeColor}`}
+                      title="Click to rename this speaker across all transcript segments"
+                    >
+                      <User className="w-2.5 h-2.5" />
+                      <span>{seg.speaker}</span>
+                    </button>
                     <span className="font-mono text-slate-500 dark:text-zinc-400">
                       {formatSecondsToTime(seg.timestampSeconds)}
                     </span>
                   </div>
-                  <p className="leading-relaxed">{seg.text}</p>
+                  <p className="leading-relaxed pl-1">{seg.text}</p>
                 </div>
               );
             })

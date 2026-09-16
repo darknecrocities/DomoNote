@@ -16,6 +16,13 @@ import {
   findMatchingCompatibleModel,
 } from '../services/ai/compatible-models';
 import {
+  getGoogleCalendarConfig,
+  saveGoogleCalendarConfig,
+  disconnectGoogleCalendar,
+  authenticateGoogleCalendar,
+} from '../services/calendar/google-calendar';
+import type { GoogleCalendarConfig } from '../types';
+import {
   Cpu,
   Database,
   Download,
@@ -38,6 +45,9 @@ import {
   CheckCheck,
   Loader2,
   HardDrive,
+  Calendar,
+  Key,
+  ExternalLink,
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -58,6 +68,12 @@ export const SettingsView: React.FC = () => {
   const [inputUrl, setInputUrl] = useState(baseUrl);
   const [companionStatus, setCompanionStatus] = useState<string>('checking');
   const importFileRef = useRef<HTMLInputElement>(null);
+
+  // Google Calendar Integration State
+  const [gcalConfig, setGcalConfig] = useState<GoogleCalendarConfig>(() => getGoogleCalendarConfig());
+  const [customClientId, setCustomClientId] = useState(gcalConfig.clientId || '');
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
+  const [copiedRedirectOrigin, setCopiedRedirectOrigin] = useState(false);
 
   // System Hardware Detection & Model Recommendation
   const hardwareProfile = useMemo(() => detectSystemHardware(), []);
@@ -224,6 +240,47 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  const handleSaveGoogleClientId = () => {
+    const updated = saveGoogleCalendarConfig({ clientId: customClientId.trim() || undefined });
+    setGcalConfig(updated);
+    addToast(customClientId.trim() ? 'Google Client ID saved.' : 'Cleared custom Client ID.', 'info');
+  };
+
+  const handleConnectGoogle = async () => {
+    const effectiveId = customClientId.trim() || gcalConfig.clientId;
+    if (!effectiveId) {
+      addToast('Please enter your Google OAuth Client ID first.', 'warning');
+      return;
+    }
+    setIsConnectingGoogle(true);
+    try {
+      const res = await authenticateGoogleCalendar(effectiveId);
+      setGcalConfig(getGoogleCalendarConfig());
+      if (res.success) {
+        addToast(`Connected to Google Calendar (${res.userEmail}).`, 'success');
+      } else {
+        addToast(res.error || 'Google authentication was cancelled.', 'warning');
+      }
+    } finally {
+      setIsConnectingGoogle(false);
+    }
+  };
+
+  const handleDisconnectGoogle = () => {
+    disconnectGoogleCalendar();
+    setGcalConfig(getGoogleCalendarConfig());
+    addToast('Disconnected Google Calendar.', 'info');
+  };
+
+  const copyOriginToClipboard = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.origin);
+      setCopiedRedirectOrigin(true);
+      setTimeout(() => setCopiedRedirectOrigin(false), 2000);
+      addToast(`Copied origin (${window.location.origin}) to clipboard.`, 'info');
+    }
+  };
+
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedPath, setCopiedPath] = useState(false);
 
@@ -271,6 +328,13 @@ export const SettingsView: React.FC = () => {
           </button>
           <button
             type="button"
+            onClick={() => document.getElementById('section-google-calendar')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
+          >
+            Google Calendar
+          </button>
+          <button
+            type="button"
             onClick={() => document.getElementById('section-companion')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
@@ -301,10 +365,10 @@ export const SettingsView: React.FC = () => {
             <div className="flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isConnected ? 'bg-emerald-500' : 'bg-red-500'
+                  isConnected ? 'bg-slate-900 dark:bg-white animate-pulse' : 'bg-slate-400 dark:bg-zinc-600'
                 }`}
               />
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+              <span className="text-xs font-bold text-slate-950 dark:text-white">
                 {isConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
@@ -363,40 +427,40 @@ export const SettingsView: React.FC = () => {
           )}
 
           {/* Hardware Diagnostic & Smart Recommendation Banner */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-zinc-900 via-zinc-900 to-indigo-950/30 border border-indigo-500/30 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
+          <div className="p-4 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                  <Cpu className="w-4 h-4" />
+                <div className="p-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white">
+                  <Cpu className="w-4 h-4 text-slate-900 dark:text-white" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
+                  <div className="text-xs font-semibold text-slate-950 dark:text-zinc-100 flex items-center gap-2">
                     <span>System Hardware Profile</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-zinc-800 text-slate-800 dark:text-zinc-300 font-mono font-bold">
                       {hardwareProfile.cpuCores} Cores • ~{hardwareProfile.memoryEstimateGb}GB Profile
                     </span>
                     {hardwareProfile.isAppleSilicon && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-900/60 border border-indigo-700/50 text-indigo-300">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-200 font-mono font-semibold">
                         Apple Silicon
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
-                    GPU/Engine: <span className="font-mono text-zinc-300">{hardwareProfile.gpuRenderer}</span>
+                  <p className="text-[11px] text-slate-600 dark:text-zinc-400 mt-0.5 font-medium">
+                    GPU/Engine: <span className="font-mono text-slate-800 dark:text-zinc-300">{hardwareProfile.gpuRenderer}</span>
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-center">
-                <div className="px-2.5 py-1 rounded-full bg-indigo-950 border border-indigo-500/40 text-indigo-300 text-[11px] font-medium flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-950 dark:text-white text-[11px] font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                   <span>{hardwareProfile.recommendationTitle}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-300">
-              <p className="leading-relaxed text-zinc-400 max-w-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-700 dark:text-zinc-300">
+              <p className="leading-relaxed text-slate-600 dark:text-zinc-400 max-w-2xl font-medium">
                 {hardwareProfile.recommendationReason}
               </p>
               <div className="shrink-0 flex items-center gap-2">
@@ -404,7 +468,7 @@ export const SettingsView: React.FC = () => {
                   <Button
                     size="sm"
                     variant="primary"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-950/50"
+                    className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold shadow-sm"
                     onClick={() => handlePullModel(recommendedModel.id, recommendedModel.name)}
                     disabled={pullingModelId !== null}
                   >
@@ -415,15 +479,15 @@ export const SettingsView: React.FC = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/30"
+                    className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-zinc-800 font-semibold"
                     onClick={() => setSelectedModel(recommendedModel.id)}
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Activate Recommendation</span>
                   </Button>
                 ) : (
-                  <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-bold text-slate-950 dark:text-white flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                     Recommended Model Active
                   </span>
                 )}
@@ -434,10 +498,10 @@ export const SettingsView: React.FC = () => {
           {/* Active Model Selection (Compatible Models Only, Ranked from Min to Higher) */}
           <div className="space-y-3 pt-1">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-zinc-200">
+              <label className="block text-xs font-semibold text-slate-950 dark:text-zinc-200">
                 Active Model (Compatible with DomoNote)
               </label>
-              <span className="text-[11px] text-zinc-400">
+              <span className="text-[11px] text-slate-600 dark:text-zinc-400 font-medium">
                 {models.length} model(s) installed on Ollama
               </span>
             </div>
@@ -445,7 +509,7 @@ export const SettingsView: React.FC = () => {
             <select
               value={resolvedSelectedValue}
               onChange={(e) => handleSelectModel(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-100 font-medium focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-slate-950 dark:text-zinc-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-zinc-600 transition-colors"
             >
               {!COMPATIBLE_MODELS.some((m) => m.id === resolvedSelectedValue) && selectedModel && (
                 <optgroup label="─── Currently Active Model ───">
@@ -508,17 +572,17 @@ export const SettingsView: React.FC = () => {
             {selectedModel && (
               <div className="flex items-center justify-between text-xs px-1">
                 {isActiveModelInstalled ? (
-                  <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                    <CheckCircle className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5 text-slate-950 dark:text-white font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                     <span>
-                      Ready: <strong className="text-zinc-200">{activeCompatible?.name || selectedModel}</strong> is installed and powering workspace notes, meetings, and documents.
+                      Ready: <strong className="text-slate-950 dark:text-white">{activeCompatible?.name || selectedModel}</strong> is installed and powering workspace notes, meetings, and documents.
                     </span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <AlertCircle className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-400 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-400" />
                     <span>
-                      <strong className="text-zinc-200">{activeCompatible?.name || selectedModel}</strong> is selected but not yet downloaded locally.
+                      <strong className="text-slate-950 dark:text-zinc-200">{activeCompatible?.name || selectedModel}</strong> is selected but not yet downloaded locally.
                     </span>
                   </div>
                 )}
@@ -527,20 +591,20 @@ export const SettingsView: React.FC = () => {
 
             {/* Prompt to pull if currently selected model is not installed */}
             {!isActiveModelInstalled && selectedModel && (
-              <div className="p-3.5 rounded-lg bg-amber-950/40 border border-amber-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+              <div className="p-3.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
                 <div className="space-y-0.5">
-                  <div className="text-xs font-semibold text-amber-200 flex items-center gap-1.5">
-                    <ArrowDownCircle className="w-4 h-4 text-amber-400" />
+                  <div className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
+                    <ArrowDownCircle className="w-4 h-4 text-slate-900 dark:text-white" />
                     <span>Download Required: {activeCompatible?.name || selectedModel}</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
-                    Download size: <strong className="text-zinc-300">{activeCompatible?.downloadSize || 'Standard'}</strong> • Requires ~{activeCompatible?.ramRequiredGb || 4} GB RAM
+                  <p className="text-[11px] text-slate-600 dark:text-zinc-400 font-medium">
+                    Download size: <strong className="text-slate-900 dark:text-zinc-300">{activeCompatible?.downloadSize || 'Standard'}</strong> • Requires ~{activeCompatible?.ramRequiredGb || 4} GB RAM
                   </p>
                 </div>
                 <Button
                   size="sm"
                   variant="primary"
-                  className="bg-amber-600 hover:bg-amber-500 text-white shrink-0"
+                  className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold shrink-0 shadow-sm"
                   onClick={() => handlePullModel(selectedModel, activeCompatible?.name)}
                   disabled={pullingModelId !== null}
                 >
@@ -553,21 +617,21 @@ export const SettingsView: React.FC = () => {
 
           {/* Live Pull Progress Display */}
           {pullingModelId && (
-            <div className="p-4 rounded-xl bg-zinc-900/90 border border-indigo-500/50 shadow-lg shadow-indigo-950/30 space-y-3 animate-in fade-in duration-200">
+            <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 shadow-md space-y-3 animate-in fade-in duration-200">
               <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-indigo-300 font-medium">
-                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                <div className="flex items-center gap-2 text-slate-950 dark:text-white font-semibold">
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-900 dark:text-white" />
                   <span>
-                    Pulling Model: <strong className="text-white font-mono">{pullingModelId}</strong>
+                    Pulling Model: <strong className="font-mono text-slate-950 dark:text-white">{pullingModelId}</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   {pullProgress?.percent !== undefined && (
-                    <span className="font-mono text-indigo-400 font-bold">{pullProgress.percent}%</span>
+                    <span className="font-mono text-slate-950 dark:text-white font-bold">{pullProgress.percent}%</span>
                   )}
                   <button
                     onClick={handleCancelPull}
-                    className="text-[11px] text-zinc-400 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-white transition-colors flex items-center gap-1 cursor-pointer font-medium"
                   >
                     <XCircle className="w-3.5 h-3.5" />
                     <span>Cancel</span>
@@ -576,14 +640,14 @@ export const SettingsView: React.FC = () => {
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-300 ease-out"
+                  className="bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.3)] h-full rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${Math.max(5, pullProgress?.percent || 20)}%` }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+              <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-zinc-400 font-mono">
                 <span>{pullProgress?.status || 'Downloading model layers from Ollama...'}</span>
                 {pullProgress?.completed && pullProgress?.total ? (
                   <span>
@@ -595,66 +659,66 @@ export const SettingsView: React.FC = () => {
           )}
 
           {/* Compatible Models Hub (Ranked From Min to Higher) */}
-          <div id="section-models" className="space-y-4 pt-3 border-t border-zinc-850 scroll-mt-28">
+          <div id="section-models" className="space-y-4 pt-3 border-t border-slate-200 dark:border-zinc-850 scroll-mt-28">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h4 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-400" />
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-slate-900 dark:text-white" />
                   <span>Compatible Models Catalog (Min to Higher Tiers)</span>
                 </h4>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-[11px] text-slate-600 dark:text-zinc-400 mt-0.5 font-medium">
                   Pre-screened models optimized for DomoNote. Click "Pull Model" on any tier to install directly.
                 </p>
               </div>
 
               {/* Tier Filter Pills */}
-              <div className="flex items-center gap-1 bg-zinc-900/80 p-1 rounded-lg border border-zinc-800 self-start sm:self-auto">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-900/80 p-1 rounded-lg border border-slate-300 dark:border-zinc-800 self-start sm:self-auto">
                 <button
                   onClick={() => setActiveTierFilter('all')}
-                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                  className={`px-2 py-1 text-[10px] rounded font-semibold transition-colors ${
                     activeTierFilter === 'all'
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   All ({COMPATIBLE_MODELS.length})
                 </button>
                 <button
                   onClick={() => setActiveTierFilter('minimum')}
-                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                  className={`px-2 py-1 text-[10px] rounded font-semibold transition-colors ${
                     activeTierFilter === 'minimum'
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   Minimal (1B–2B)
                 </button>
                 <button
                   onClick={() => setActiveTierFilter('standard')}
-                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                  className={`px-2 py-1 text-[10px] rounded font-semibold transition-colors ${
                     activeTierFilter === 'standard'
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   Standard (3B–4B)
                 </button>
                 <button
                   onClick={() => setActiveTierFilter('pro')}
-                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                  className={`px-2 py-1 text-[10px] rounded font-semibold transition-colors ${
                     activeTierFilter === 'pro'
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   Pro (7B–8B)
                 </button>
                 <button
                   onClick={() => setActiveTierFilter('advanced')}
-                  className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
+                  className={`px-2 py-1 text-[10px] rounded font-semibold transition-colors ${
                     activeTierFilter === 'advanced'
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   Advanced (14B)
@@ -677,10 +741,10 @@ export const SettingsView: React.FC = () => {
                       key={model.id}
                       className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
                         isCurrentlySelected
-                          ? 'bg-emerald-950/20 border-emerald-500/50 shadow-sm shadow-emerald-950/20'
+                          ? 'bg-slate-100 dark:bg-zinc-900 border-slate-400 dark:border-white/50 shadow-sm'
                           : isRec
-                          ? 'bg-zinc-900/60 border-indigo-500/40'
-                          : 'bg-zinc-900/30 border-zinc-800/80 hover:border-zinc-700'
+                          ? 'bg-slate-50 dark:bg-zinc-900/60 border-slate-300 dark:border-zinc-700'
+                          : 'bg-white dark:bg-zinc-900/30 border-slate-200 dark:border-zinc-800/80 hover:border-slate-300 dark:hover:border-zinc-700'
                       }`}
                     >
                       <div className="space-y-2">
@@ -688,61 +752,61 @@ export const SettingsView: React.FC = () => {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-semibold text-zinc-100">{model.name}</span>
+                              <span className="text-xs font-bold text-slate-950 dark:text-white">{model.name}</span>
                               {isRec && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 border border-indigo-500/40 text-indigo-300 font-medium flex items-center gap-1">
-                                  <Sparkles className="w-2.5 h-2.5" />
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-950 dark:text-white font-bold flex items-center gap-1">
+                                  <Sparkles className="w-2.5 h-2.5 text-slate-900 dark:text-white" />
                                   Best For System
                                 </span>
                               )}
                               {model.isAppDefault && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-950 border border-amber-600/40 text-amber-300 font-medium">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-800 dark:text-zinc-300 font-semibold">
                                   Default
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5">
+                            <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-zinc-400 mt-0.5 font-medium">
                               <span>{model.provider}</span>
                               <span>•</span>
-                              <span className="font-mono text-zinc-300">{model.parameterSize} params</span>
+                              <span className="font-mono text-slate-900 dark:text-zinc-300">{model.parameterSize} params</span>
                               <span>•</span>
-                              <span className="font-mono text-zinc-300">{model.downloadSize}</span>
+                              <span className="font-mono text-slate-900 dark:text-zinc-300">{model.downloadSize}</span>
                             </div>
                           </div>
 
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 shrink-0 font-medium">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-300 shrink-0 font-mono font-bold">
                             {tierInfo.minRam}
                           </span>
                         </div>
 
                         {/* Summary */}
-                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                        <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
                           {model.summary}
                         </p>
                       </div>
 
                       {/* Card Action Row */}
-                      <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between gap-2 text-xs">
-                        <div className="text-[10px] text-zinc-400">
-                          Speed: <strong className="text-zinc-300">{model.speedRating}</strong>
+                      <div className="pt-2 border-t border-slate-200 dark:border-zinc-800/60 flex items-center justify-between gap-2 text-xs">
+                        <div className="text-[10px] text-slate-600 dark:text-zinc-400 font-medium">
+                          Speed: <strong className="text-slate-950 dark:text-zinc-200">{model.speedRating}</strong>
                         </div>
 
                         <div className="flex items-center gap-2">
                           {isPullingThis ? (
-                            <div className="flex items-center gap-2 text-xs text-indigo-400">
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <div className="flex items-center gap-2 text-xs text-slate-950 dark:text-white font-semibold">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900 dark:text-white" />
                               <span>Downloading...</span>
                             </div>
                           ) : isCurrentlySelected && isInstalled ? (
-                            <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60">
-                              <CheckCheck className="w-3.5 h-3.5" />
+                            <span className="text-[11px] font-bold text-slate-950 dark:text-white flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700">
+                              <CheckCheck className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                               Active Model
                             </span>
                           ) : isInstalled ? (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-xs h-7 px-2.5 text-zinc-300 hover:text-white"
+                              className="text-xs h-7 px-2.5 border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 font-medium"
                               onClick={() => setSelectedModel(model.id)}
                             >
                               <Check className="w-3 h-3" />
@@ -752,7 +816,7 @@ export const SettingsView: React.FC = () => {
                             <Button
                               size="sm"
                               variant="primary"
-                              className="text-xs h-7 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700"
+                              className="text-xs h-7 px-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold shadow-sm"
                               onClick={() => handlePullModel(model.id, model.name)}
                               disabled={pullingModelId !== null}
                             >
@@ -769,8 +833,8 @@ export const SettingsView: React.FC = () => {
             </div>
 
             {/* Custom Model Pull Input */}
-            <div className="p-3.5 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-2">
-              <label className="block text-xs font-medium text-zinc-300">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/40 border border-slate-300 dark:border-zinc-850 space-y-2">
+              <label className="block text-xs font-semibold text-slate-950 dark:text-zinc-300">
                 Pull Custom Ollama Model (Advanced)
               </label>
               <div className="flex items-center gap-2">
@@ -779,7 +843,7 @@ export const SettingsView: React.FC = () => {
                   value={customModelTag}
                   onChange={(e) => setCustomModelTag(e.target.value)}
                   placeholder="e.g. deepseek-r1:7b, mistral-nemo, codellama:7b"
-                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 font-mono focus:outline-none focus:border-zinc-700"
+                  className="flex-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 rounded-md px-3 py-1.5 text-xs text-slate-950 dark:text-zinc-100 font-mono focus:outline-none focus:border-slate-500 dark:focus:border-zinc-700"
                 />
                 <Button
                   size="sm"
@@ -791,6 +855,7 @@ export const SettingsView: React.FC = () => {
                     }
                   }}
                   disabled={!customModelTag.trim() || pullingModelId !== null}
+                  className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Pull Tag</span>
@@ -800,14 +865,14 @@ export const SettingsView: React.FC = () => {
           </div>
 
           {/* Optional Local Companion Status */}
-          <div className="pt-3 border-t border-zinc-850 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-zinc-400">
-              <Server className="w-4 h-4 text-zinc-500" />
+          <div className="pt-3 border-t border-slate-200 dark:border-zinc-850 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-400 font-medium">
+              <Server className="w-4 h-4 text-slate-700 dark:text-zinc-500" />
               <span>Python Companion Service (port 8765):</span>
             </div>
             <span
-              className={`font-semibold ${
-                companionStatus === 'online' ? 'text-emerald-400' : 'text-zinc-500'
+              className={`font-bold ${
+                companionStatus === 'online' ? 'text-slate-950 dark:text-white' : 'text-slate-500 dark:text-zinc-500'
               }`}
             >
               {companionStatus === 'online' ? 'Active' : 'Offline (Optional)'}
@@ -815,12 +880,154 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
+        {/* Google Calendar & Cloud Sync Section */}
+        <div id="section-google-calendar" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 text-slate-900 dark:text-white">
+                <Calendar className="w-5 h-5 text-slate-900 dark:text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Google Calendar & System Sync</h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                  Two-way event synchronization, speech date extraction, and zero-config web scheduling
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  gcalConfig.isConnected ? 'bg-slate-900 dark:bg-white animate-pulse' : 'bg-slate-400 dark:bg-zinc-600'
+                }`}
+              />
+              <span className="text-xs font-bold text-slate-950 dark:text-white">
+                {gcalConfig.isConnected ? `Connected (${gcalConfig.userEmail || 'Google User'})` : 'Disconnected'}
+              </span>
+            </div>
+          </div>
+
+          {/* Sync Architecture & OAuth Client ID Explanation Banner */}
+          <div className="p-4 rounded-lg bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <Key className="w-4 h-4 text-slate-900 dark:text-white shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed space-y-1">
+                <span className="font-bold text-slate-950 dark:text-white">How Google Calendar Sync Works:</span>
+                <p className="text-slate-600 dark:text-zinc-400">
+                  Google Calendar offers two flexible integration tiers in DomoNote:
+                </p>
+                <ul className="list-disc list-inside space-y-1 mt-1 text-slate-600 dark:text-zinc-400">
+                  <li>
+                    <strong className="text-slate-950 dark:text-white">1-Click Web Event Creation (Zero Config):</strong> Works immediately with no Client ID, API keys, or OAuth setup required. DomoNote pre-populates your event in Google Calendar in your default browser.
+                  </li>
+                  <li>
+                    <strong className="text-slate-950 dark:text-white">Two-Way Background Sync (OAuth 2.0):</strong> To pull events into DomoNote or push them silently, Google's Cloud security policy requires an OAuth 2.0 Client ID. DomoNote keeps this <em>100% dynamic</em> — you can paste your own Client ID below or provide <code>VITE_GOOGLE_CLIENT_ID</code> in <code>.env</code> without any hardcoded credentials.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Client ID Input & Connection Controls */}
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-slate-950 dark:text-zinc-200">
+              Google OAuth 2.0 Client ID (Dynamic Configuration)
+            </label>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <input
+                type="text"
+                value={customClientId}
+                onChange={(e) => setCustomClientId(e.target.value)}
+                placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
+                className="flex-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-850 rounded-md px-3 py-2 text-xs text-slate-950 dark:text-zinc-100 font-mono focus:outline-none focus:border-slate-500 dark:focus:border-zinc-700"
+              />
+              <Button size="sm" variant="secondary" onClick={handleSaveGoogleClientId}>
+                Save Client ID
+              </Button>
+              {gcalConfig.isConnected ? (
+                <Button size="sm" variant="danger" onClick={handleDisconnectGoogle}>
+                  Disconnect
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={handleConnectGoogle}
+                  disabled={isConnectingGoogle}
+                  className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold shadow-sm"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{isConnectingGoogle ? 'Connecting...' : 'Connect Google'}</span>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Step-by-Step Guide: How to generate your Client ID in Google Cloud */}
+          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-zinc-850">
+            <div className="text-xs font-bold text-slate-700 dark:text-zinc-200 uppercase tracking-wider font-mono">
+              Setup Guide: How to Get a Free Client ID (3 Minutes)
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-[10px] flex items-center justify-center font-mono">1</span>
+                  <span className="font-bold text-slate-950 dark:text-white">Enable Calendar API</span>
+                </div>
+                <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-[11px]">
+                  Go to <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="text-slate-950 dark:text-white underline font-medium">console.cloud.google.com</a>, create a project, and search for and enable <strong>Google Calendar API</strong>.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-[10px] flex items-center justify-center font-mono">2</span>
+                  <span className="font-bold text-slate-950 dark:text-white">Consent Screen</span>
+                </div>
+                <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-[11px]">
+                  Under <strong>OAuth consent screen</strong>, select <strong>External</strong>, enter your app name (e.g. <em>DomoNote</em>) and email, and save.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-[10px] flex items-center justify-center font-mono">3</span>
+                  <span className="font-bold text-slate-950 dark:text-white">Create Credentials</span>
+                </div>
+                <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-[11px]">
+                  Go to <strong>Credentials &gt; Create Credentials &gt; OAuth client ID</strong>. Select <strong>Web application</strong>.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/70 dark:bg-zinc-900/40 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-[10px] flex items-center justify-center font-mono">4</span>
+                    <span className="font-bold text-slate-950 dark:text-white">Authorized URIs</span>
+                  </div>
+                  <button
+                    onClick={copyOriginToClipboard}
+                    className="flex items-center gap-1 text-[10px] text-slate-900 dark:text-zinc-200 hover:text-slate-950 dark:hover:text-white px-1.5 py-0.5 rounded bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 transition-colors font-mono"
+                  >
+                    {copiedRedirectOrigin ? <Check className="w-3 h-3 text-slate-900 dark:text-white" /> : <Copy className="w-3 h-3" />}
+                    <span>Copy Origin</span>
+                  </button>
+                </div>
+                <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-[11px]">
+                  Add your origin (e.g. <code>http://localhost:5176</code> and <code>http://127.0.0.1:5176</code>) to both <strong>Authorized JavaScript origins</strong> and <strong>Authorized redirect URIs</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Chrome Browser Extension Companion Setup */}
         <div id="section-companion" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-6 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-400">
-                <Puzzle className="w-5 h-5" />
+              <div className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 text-slate-900 dark:text-white">
+                <Puzzle className="w-5 h-5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Chrome Browser Extension</h3>
@@ -830,17 +1037,17 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
 
-            <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 px-2.5 py-1 rounded-md font-semibold">
+            <span className="text-[11px] font-mono text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 px-2.5 py-1 rounded-md font-bold">
               Manifest V3 • Built-in
             </span>
           </div>
 
           {/* Quick Explanation Banner */}
           <div className="p-4 rounded-lg bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 flex items-start gap-3">
-            <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <Shield className="w-4 h-4 text-slate-900 dark:text-white shrink-0 mt-0.5" />
             <div className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed space-y-1">
               <span className="font-bold text-slate-950 dark:text-white">Direct Tab Audio Streaming:</span>
-              <p className="text-slate-600 dark:text-zinc-400">
+              <p className="text-slate-600 dark:text-zinc-400 font-medium">
                 The Chrome extension connects Google Meet sessions directly to your local DomoNote workspace.
                 All audio is captured via Chrome's native <code>tabCapture</code> API with zero external servers.
               </p>
@@ -863,16 +1070,16 @@ export const SettingsView: React.FC = () => {
                   <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Open Extensions</span>
                 </div>
                 <h4 className="text-xs font-bold text-slate-950 dark:text-white">Navigate to chrome://extensions</h4>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
                   Paste the address into your Chrome browser address bar and press Enter:
                 </p>
                 <div className="flex items-center justify-between p-2 rounded bg-slate-100 dark:bg-black border border-slate-200 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-zinc-200">
                   <span>chrome://extensions</span>
                   <button
                     onClick={() => copyToClipboard('chrome://extensions', 'url')}
-                    className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors font-medium"
+                    className="flex items-center gap-1 text-[10px] text-slate-900 dark:text-zinc-200 hover:text-slate-950 dark:hover:text-white px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors font-medium"
                   >
-                    {copiedUrl ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedUrl ? <Check className="w-3 h-3 text-slate-900 dark:text-white" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
@@ -887,11 +1094,11 @@ export const SettingsView: React.FC = () => {
                   <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Enable Developer Mode</span>
                 </div>
                 <h4 className="text-xs font-bold text-slate-950 dark:text-white">Toggle Developer Mode</h4>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-                  In the top-right corner of the Extensions page, switch the <strong className="text-slate-900 dark:text-zinc-200">Developer mode</strong> toggle to <span className="text-emerald-700 dark:text-emerald-400 font-bold">ON</span>.
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
+                  In the top-right corner of the Extensions page, switch the <strong className="text-slate-900 dark:text-zinc-200">Developer mode</strong> toggle to <span className="text-slate-950 dark:text-white font-black underline">ON</span>.
                 </p>
-                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2 font-medium">
+                  <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                   <span>Reveals the "Load unpacked" button</span>
                 </div>
               </div>
@@ -905,16 +1112,16 @@ export const SettingsView: React.FC = () => {
                   <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Load Unpacked</span>
                 </div>
                 <h4 className="text-xs font-bold text-slate-950 dark:text-white">Click "Load unpacked"</h4>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
                   Click the <strong className="text-slate-900 dark:text-zinc-200">Load unpacked</strong> button on the top-left toolbar and select this repository's extension folder:
                 </p>
                 <div className="flex items-center justify-between p-2 rounded bg-slate-100 dark:bg-black border border-slate-200 dark:border-zinc-800 font-mono text-xs text-slate-900 dark:text-zinc-200">
                   <span className="truncate">domonote/browser-extension</span>
                   <button
                     onClick={() => copyToClipboard('browser-extension', 'path')}
-                    className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors shrink-0 ml-2 font-medium"
+                    className="flex items-center gap-1 text-[10px] text-slate-900 dark:text-zinc-200 hover:text-slate-950 dark:hover:text-white px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors shrink-0 ml-2 font-medium"
                   >
-                    {copiedPath ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedPath ? <Check className="w-3 h-3 text-slate-900 dark:text-white" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedPath ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
@@ -929,11 +1136,11 @@ export const SettingsView: React.FC = () => {
                   <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 font-medium">Ready to Capture</span>
                 </div>
                 <h4 className="text-xs font-bold text-slate-950 dark:text-white">Start Meeting or Tab Audio</h4>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
                   Open Google Meet or any browser tab. Click the DomoNote puzzle piece icon or floating badge to stream audio directly into your Meeting Secretary note!
                 </p>
-                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="p-2 rounded bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400 flex items-center gap-2 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-white animate-pulse" />
                   <span>Streams audio directly to IndexedDB</span>
                 </div>
               </div>

@@ -19,6 +19,7 @@ import {
   GitCommit,
   X,
   Download,
+  Sparkles,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
@@ -66,6 +67,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   const secondaryItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: 'landing', label: t('nav.landing', 'Landing Page'), icon: Sparkles },
     { id: 'download', label: t('nav.download'), icon: Download },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
     { id: 'about', label: t('nav.about'), icon: Info },
@@ -211,7 +213,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <div className="text-[10px] font-mono text-slate-700 dark:text-zinc-400 font-semibold truncate mb-2">
-              {isConnected ? selectedModel || 'No model picked' : 'Ollama not detected'}
+              {isConnected ? selectedModel || 'Ready' : 'Local AI offline'}
             </div>
 
             {!isConnected && (
@@ -220,7 +222,7 @@ export const Sidebar: React.FC = () => {
                 className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded bg-slate-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white text-[10px] font-semibold transition-colors shadow-sm"
               >
                 <Power className="w-3 h-3 text-emerald-400" />
-                <span>Start Service</span>
+                <span>Start Local AI</span>
               </button>
             )}
           </div>
@@ -258,15 +260,21 @@ export const Sidebar: React.FC = () => {
 
         {/* Brand Header */}
         <div className="px-3.5 pb-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-          <div
-            onClick={() => setActiveView('dashboard')}
-            className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 transition-opacity min-w-0"
-            title="DomoNote Dashboard"
+          <button
+            type="button"
+            onClick={() => setActiveView('landing')}
+            className="flex items-center gap-2.5 text-left cursor-pointer hover:opacity-85 transition-opacity min-w-0 group"
+            title="DomoNote — Return to Landing Page"
+            aria-label="Return to Landing Page"
           >
-            <img src={logoImg} alt="DomoNote" className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md border border-slate-200 dark:border-white/10" />
+            <img
+              src={logoImg}
+              alt="DomoNote"
+              className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md border border-slate-200 dark:border-white/10 group-hover:scale-105 transition-transform"
+            />
             {!isCollapsed && (
               <div className="truncate">
-                <div className="font-bold text-sm text-slate-950 dark:text-white tracking-tight leading-none truncate">
+                <div className="font-bold text-sm text-slate-950 dark:text-white tracking-tight leading-none truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   DomoNote
                 </div>
                 <div className="text-[10px] font-mono text-slate-800 dark:text-zinc-300 font-bold mt-1 tracking-tight truncate flex items-center gap-1.5">
@@ -275,7 +283,7 @@ export const Sidebar: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
+          </button>
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -302,12 +310,15 @@ export const Sidebar: React.FC = () => {
           {/* Drawer Body */}
           <div className="relative w-72 max-w-[80vw] bg-white dark:bg-[#0A0A0A] border-r border-slate-200 dark:border-zinc-850 flex flex-col h-full z-10 shadow-2xl animate-fade-in">
             <div className="p-3.5 border-b border-slate-200 dark:border-zinc-850 flex items-center justify-between">
-              <div
+              <button
+                type="button"
                 onClick={() => {
                   setActiveView('landing');
                   setIsMobileSidebarOpen(false);
                 }}
-                className="flex items-center gap-2.5 cursor-pointer"
+                className="flex items-center gap-2.5 text-left cursor-pointer hover:opacity-85 transition-opacity"
+                title="DomoNote — Return to Landing Page"
+                aria-label="Return to Landing Page"
               >
                 <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shrink-0 shadow-xs" />
                 <div>
@@ -317,7 +328,7 @@ export const Sidebar: React.FC = () => {
                     <span>Personal Secretary</span>
                   </div>
                 </div>
-              </div>
+              </button>
 
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}

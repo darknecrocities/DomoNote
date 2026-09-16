@@ -8,9 +8,11 @@ import { SoundToggle } from '../ui/sound-toggle';
 import { ThemeToggle } from '../ui/theme-toggle';
 import { LanguageSwitcher } from '../ui/language-switcher';
 import { GlobalMicRecorder } from './global-mic-recorder';
+import { ScreenHudLauncher } from '../hud/screen-hud-launcher';
+import logoImg from '../../assets/official_domonote.png';
 
 export const Topbar: React.FC = () => {
-  const { activeView, setIsCommandPaletteOpen, setIsMobileSidebarOpen } = useWorkspace();
+  const { activeView, setActiveView, setIsCommandPaletteOpen, setIsMobileSidebarOpen } = useWorkspace();
   const { t } = useLanguage();
 
   const getTitle = () => {
@@ -50,7 +52,7 @@ export const Topbar: React.FC = () => {
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-white/10 px-3 sm:px-6 flex items-center justify-between bg-white/85 dark:bg-[#070707]/90 backdrop-blur-md shrink-0 gap-2 sm:gap-4 z-20 transition-colors duration-200 relative [app-region:drag] [-webkit-app-region:drag]">
-      {/* Left: Mobile Menu Trigger + View Title */}
+      {/* Left: Mobile Menu Trigger + App Icon / View Title */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 [app-region:no-drag] [-webkit-app-region:no-drag]">
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
@@ -59,6 +61,16 @@ export const Topbar: React.FC = () => {
           aria-label="Open navigation menu"
         >
           <Menu className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveView('landing')}
+          className="md:hidden p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors flex items-center shrink-0"
+          title="DomoNote — Return to Landing Page"
+          aria-label="Return to Landing Page"
+        >
+          <img src={logoImg} alt="DomoNote" className="w-6 h-6 rounded-md object-contain" />
         </button>
 
         <h1 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight truncate max-w-[130px] sm:max-w-xs">
@@ -81,6 +93,9 @@ export const Topbar: React.FC = () => {
 
         {/* Global Audio & Microphone Recording / Voice Dictation */}
         <GlobalMicRecorder />
+
+        {/* Floating Desktop Screen HUD Toggle */}
+        <ScreenHudLauncher />
 
         {/* Tactile Theme Toggle (Light / Dark) */}
         <ThemeToggle />

@@ -9,8 +9,8 @@ const RELEASES = [
     title: 'Interactive Audio ("Thock"), Workspace Modes & Panda Mascot',
     highlights: [
       'Web Audio API mechanical switch audio synthesis with custom low-frequency thock, click, pop, and chime.',
-      'Workspace Modes: Zen Note-Taking Sanctuary, Automated Schedule & Calendar, Full Screen Studio Recorder.',
-      'Animated monochrome Panda mascot companion taking notes in Zen mode.',
+      'Workspace Modes: Domo Notes Focus Sanctuary, Automated Schedule & Calendar, Full Screen Studio Recorder.',
+      'Animated monochrome Panda mascot companion taking notes in Domo Notes mode.',
       'Embedded screen recording walkthrough demo player in About section.',
       'Collapsible desktop sidebar (256px <-> 64px) with persistent hardware status pill.',
       'Screen capture flight recorder with keyframe step extraction.',

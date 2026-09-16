@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { TranscriptSegment, Meeting, MeetingScreenshot } from '../../types';
+import type { TranscriptSegment, Meeting, MeetingScreenshot, ScheduleEvent } from '../../types';
 import { AudioRecorder } from '../../services/audio/recorder';
-import { LiveSpeechTranscriber, formatSecondsToTime, synthesizeMeetingAI } from '../../services/audio/transcriber';
+import {
+  LiveSpeechTranscriber,
+  formatSecondsToTime,
+  synthesizeMeetingAI,
+  polishAndDiarizeTranscript,
+} from '../../services/audio/transcriber';
+import {
+  detectEventFromSentence,
+  detectAllEventsInText,
+  createScheduleEventFromMatch,
+} from '../../services/calendar/event-detector';
+import { notifyDetectedEvent } from '../../services/calendar/notification';
+import { CalendarEventPromptModal } from '../calendar/calendar-event-prompt-modal';
 import { db } from '../../db';
 import { useAI } from '../../context/ai-context';
 import { useWorkspace } from '../../context/workspace-context';
@@ -21,6 +33,10 @@ import {
   Camera,
   X,
   Image,
+  Calendar,
+  User,
+  Users,
+  Wand2,
 } from 'lucide-react';
 
 interface MeetingRecorderProps {
@@ -47,11 +63,83 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isSnipping, setIsSnipping] = useState(false);
 
+  // Scheduled events detected by Local AI / speech transcription
+  const [detectedEvents, setDetectedEvents] = useState<ScheduleEvent[]>([]);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [pendingSavedMeeting, setPendingSavedMeeting] = useState<Meeting | null>(null);
+
+  // Speaker attribution & AI transcription polish
+  const [currentSpeaker, setCurrentSpeaker] = useState<string>('You / Host');
+  const [isPolishingAI, setIsPolishingAI] = useState<boolean>(false);
+
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
   const timerIntervalRef = useRef<any>(null);
   const transcriptBottomRef = useRef<HTMLDivElement>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  const handleIncomingSegment = (seg: TranscriptSegment) => {
+    // Ensure active speaker name is applied
+    const enrichedSeg: TranscriptSegment = {
+      ...seg,
+      speaker: seg.speaker && seg.speaker !== 'Speaker' ? seg.speaker : currentSpeaker,
+    };
+
+    setTranscript((prev) => [...prev, enrichedSeg]);
+    const match = detectEventFromSentence(enrichedSeg.text);
+    if (match) {
+      const ev = createScheduleEventFromMatch(match, {
+        source: 'transcript',
+        sourceTitle: meetingTitle.trim() || 'Recorded Meeting',
+      });
+      setDetectedEvents((prev) => {
+        const exists = prev.some((e) => e.date === ev.date && e.time === ev.time);
+        if (exists) return prev;
+        notifyDetectedEvent(ev);
+        addToast(`📅 Scheduled Event detected: "${ev.title}" on ${ev.date} at ${ev.time}`, 'info');
+        return [...prev, ev];
+      });
+    }
+  };
+
+  const handleSpeakerChange = (speakerName: string) => {
+    setCurrentSpeaker(speakerName);
+    speechTranscriberRef.current?.setActiveSpeaker(speakerName);
+    addToast(`Active speaker set to: ${speakerName}`, 'info');
+  };
+
+  const handleRenameSpeaker = (oldName: string) => {
+    const newName = window.prompt(`Rename all segments for "${oldName}" to:`, oldName);
+    if (!newName || !newName.trim() || newName.trim() === oldName) return;
+
+    const trimmed = newName.trim();
+    setTranscript((prev) =>
+      prev.map((s) => (s.speaker.toLowerCase() === oldName.toLowerCase() ? { ...s, speaker: trimmed } : s))
+    );
+    if (currentSpeaker.toLowerCase() === oldName.toLowerCase()) {
+      handleSpeakerChange(trimmed);
+    }
+    addToast(`Renamed speaker "${oldName}" to "${trimmed}".`, 'success');
+  };
+
+  const handlePolishTranscript = async () => {
+    if (!isConnected || !selectedModel || transcript.length === 0) {
+      addToast('Local AI (Ollama) is offline or transcript is empty.', 'warning');
+      return;
+    }
+    setIsPolishingAI(true);
+    addToast('Local AI is refining transcript grammar & speaker diarization...', 'info');
+    try {
+      const polished = await polishAndDiarizeTranscript(transcript, selectedModel);
+      setTranscript(polished);
+      addToast('Transcript polished with speaker diarization & grammar.', 'success');
+    } catch (err: any) {
+      console.warn('[DomoNote] Polish error:', err);
+      addToast('Failed to polish transcript with AI.', 'error');
+    } finally {
+      setIsPolishingAI(false);
+    }
+  };
 
   // Initialize instances
   useEffect(() => {
@@ -102,10 +190,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         setAudioLevel(level);
       });
 
-      // Start speech recognition
-      speechTranscriberRef.current?.start((seg) => {
-        setTranscript((prev) => [...prev, seg]);
-      });
+      // Start speech recognition with real-time event detection
+      speechTranscriberRef.current?.start(handleIncomingSegment);
 
       setIsRecording(true);
 
@@ -259,9 +345,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       speechTranscriberRef.current?.stop();
       addToast('Meeting recording paused.', 'info');
     } else {
-      speechTranscriberRef.current?.start((seg) => {
-        setTranscript((prev) => [...prev, seg]);
-      });
+      speechTranscriberRef.current?.start(handleIncomingSegment);
       addToast('Meeting recording resumed.', 'info');
     }
   };
@@ -391,16 +475,40 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         });
       }
 
-      // Synthesize AI insights
+      // Synthesize AI insights & extract events
       let summaryData;
       let timelineData;
+      let allDetected: ScheduleEvent[] = [...detectedEvents];
 
       if (isConnected && selectedModel && (transcript.length > 0 || manualNotes.trim())) {
-        const result = await synthesizeMeetingAI(transcript, manualNotes, selectedModel);
+        const result = await synthesizeMeetingAI(
+          transcript,
+          manualNotes,
+          selectedModel,
+          meetingTitle.trim() || 'Untitled Meeting'
+        );
         summaryData = result.summary;
         timelineData = result.timeline;
+
+        for (const ev of result.detectedEvents) {
+          if (!allDetected.some((e) => e.date === ev.date && e.time === ev.time)) {
+            allDetected.push(ev);
+          }
+        }
       } else {
-        // Fallback without AI or when AI offline
+        // Fallback without AI: run offline NLP event detector on all text
+        const combined = `${transcript.map((s) => s.text).join(' ')}\n${manualNotes}`;
+        const nlp = detectAllEventsInText(combined);
+        for (const m of nlp) {
+          const ev = createScheduleEventFromMatch(m, {
+            source: 'meeting',
+            sourceTitle: meetingTitle.trim() || 'Untitled Meeting',
+          });
+          if (!allDetected.some((e) => e.date === ev.date && e.time === ev.time)) {
+            allDetected.push(ev);
+          }
+        }
+
         summaryData = {
           overview:
             transcript.length > 0
@@ -420,6 +528,14 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         }));
       }
 
+      // Plot all detected events into DomoNote schedule table
+      if (allDetected.length > 0) {
+        for (const ev of allDetected) {
+          await db.schedule.put(ev);
+        }
+        setDetectedEvents(allDetected);
+      }
+
       const newMeeting: Meeting = {
         id: meetingId,
         title: meetingTitle.trim() || 'Untitled Meeting',
@@ -437,7 +553,13 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
       await db.meetings.put(newMeeting);
       addToast('Meeting recording and AI synthesis complete.', 'success');
-      onMeetingSaved(newMeeting);
+
+      if (allDetected.length > 0) {
+        setPendingSavedMeeting(newMeeting);
+        setIsEventModalOpen(true);
+      } else {
+        onMeetingSaved(newMeeting);
+      }
     } catch (err: any) {
       console.error('[DomoNote] Failed to save meeting:', err);
       addToast('Failed to save meeting data.', 'error');
@@ -613,17 +735,68 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 min-h-0">
         {/* Live Transcript Pane */}
         <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-5 flex flex-col min-h-0">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 shrink-0">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 shrink-0 flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <Radio className="w-4 h-4 text-zinc-400" />
+              <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
                 Live Verbal Transcript
               </h3>
             </div>
-            <span className="text-[11px] text-zinc-500 font-mono">
-              {transcript.length} segments
-            </span>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-zinc-500 font-mono">
+                {transcript.length} segments
+              </span>
+
+              {transcript.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handlePolishTranscript}
+                  disabled={isPolishingAI}
+                  className="text-xs font-mono py-1 px-2.5 h-7"
+                  title="Use Local AI to clean grammar and diarize speaker turns"
+                >
+                  <Wand2 className={`w-3 h-3 mr-1 text-emerald-400 ${isPolishingAI ? 'animate-spin' : ''}`} />
+                  <span>{isPolishingAI ? 'Diarizing...' : 'AI Polish'}</span>
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Active Speaker Switcher Toolbar */}
+          {isRecording && (
+            <div className="mb-3 p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-2 flex-wrap text-xs">
+              <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Speaking now:</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {['You / Host', 'Speaker 2', 'Guest'].map((spk) => (
+                  <button
+                    key={spk}
+                    onClick={() => handleSpeakerChange(spk)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                      currentSpeaker === spk
+                        ? 'bg-emerald-500 text-black font-bold shadow-xs'
+                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    }`}
+                  >
+                    {spk}
+                  </button>
+                ))}
+                <button
+                  onClick={() => {
+                    const custom = window.prompt('Enter speaker name:', currentSpeaker);
+                    if (custom && custom.trim()) handleSpeakerChange(custom.trim());
+                  }}
+                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                >
+                  + Name
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2">
             {transcript.length === 0 ? (
@@ -634,19 +807,33 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                     <span>Listening to conversation... Speech recognition is streaming transcript.</span>
                   </>
                 ) : (
-                  <span>Transcript will appear live as you speak once recording begins.</span>
+                  <span>Transcript will appear live with speaker names once recording begins.</span>
                 )}
               </div>
             ) : (
-              transcript.map((seg) => (
-                <div key={seg.id} className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-850 text-xs">
-                  <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
-                    <span className="font-semibold text-zinc-300">{seg.speaker}</span>
-                    <span className="font-mono">{formatSecondsToTime(seg.timestampSeconds)}</span>
+              transcript.map((seg, idx) => {
+                const isSpeaker1 = seg.speaker.includes('1') || seg.speaker.toLowerCase().includes('host') || seg.speaker.toLowerCase().includes('you');
+                const badgeColor = isSpeaker1
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+
+                return (
+                  <div key={seg.id || `seg-${idx}`} className="p-3 rounded-lg bg-zinc-900/70 border border-zinc-800 text-xs transition-colors hover:border-zinc-700">
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1.5">
+                      <button
+                        onClick={() => handleRenameSpeaker(seg.speaker)}
+                        className={`font-semibold px-1.5 py-0.5 rounded border text-[10px] font-mono flex items-center gap-1 hover:brightness-125 transition-all cursor-pointer ${badgeColor}`}
+                        title="Click to rename this speaker across all segments"
+                      >
+                        <User className="w-2.5 h-2.5" />
+                        <span>{seg.speaker}</span>
+                      </button>
+                      <span className="font-mono text-zinc-500">{formatSecondsToTime(seg.timestampSeconds)}</span>
+                    </div>
+                    <p className="text-zinc-200 leading-relaxed pl-1">{seg.text}</p>
                   </div>
-                  <p className="text-zinc-200 leading-relaxed">{seg.text}</p>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={transcriptBottomRef} />
           </div>
@@ -749,6 +936,18 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           onCancel={() => setIsSnipping(false)}
         />
       )}
+
+      {/* Scheduled Event Notification & Calendar Add Prompt Modal */}
+      <CalendarEventPromptModal
+        isOpen={isEventModalOpen}
+        events={detectedEvents}
+        onClose={() => {
+          setIsEventModalOpen(false);
+          if (pendingSavedMeeting) {
+            onMeetingSaved(pendingSavedMeeting);
+          }
+        }}
+      />
     </div>
   );
 };

@@ -49,10 +49,10 @@ export const AboutView: React.FC = () => {
             </h3>
             <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
               Designed in a clean, minimal black-and-white style. The panda sits quietly taking notes in
-              your Zen focus workspace, reacting as you type and keeping track of your session without distractions.
+              your Domo Notes workspace, reacting as you type and keeping track of your session without distractions.
             </p>
             <div className="text-xs text-slate-500 dark:text-zinc-500">
-              Your distraction-free companion. Open Zen mode with Cmd/Ctrl + Shift + N.
+              Your distraction-free companion. Open Domo Notes with Cmd/Ctrl + Shift + N.
             </div>
           </div>
 

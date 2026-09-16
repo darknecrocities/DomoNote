@@ -52,6 +52,25 @@ interface WorkspaceContextType {
 
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
+const ALL_VALID_VIEWS: ViewType[] = [
+  'landing',
+  'download',
+  'dashboard',
+  'notes',
+  'zen',
+  'meetings',
+  'schedule',
+  'documents',
+  'manuals',
+  'studio',
+  'ai-workspace',
+  'templates',
+  'settings',
+  'about',
+  'changelog',
+  'privacy',
+];
+
 const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
   'dashboard',
   'notes',
@@ -76,32 +95,22 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const params = new URLSearchParams(window.location.search);
       const requestedView = params.get('view') as ViewType;
 
-      if (isCloudDeployment() && requestedView && LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
+      // On Cloud (e.g. Vercel, Netlify):
+      if (isCloudDeployment()) {
+        if (!requestedView || requestedView === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
+          return 'landing';
+        }
+        if (ALL_VALID_VIEWS.includes(requestedView)) {
+          return requestedView;
+        }
         return 'landing';
       }
 
-      if (
-        requestedView &&
-        [
-          'download',
-          'dashboard',
-          'notes',
-          'zen',
-          'meetings',
-          'schedule',
-          'documents',
-          'manuals',
-          'studio',
-          'ai-workspace',
-          'templates',
-          'settings',
-          'about',
-          'changelog',
-          'privacy',
-        ].includes(requestedView)
-      ) {
+      // On Local (localhost, 127.0.0.1, desktop companion):
+      if (requestedView && ALL_VALID_VIEWS.includes(requestedView)) {
         return requestedView;
       }
+      return 'dashboard';
     }
     return 'dashboard';
   });
@@ -115,6 +124,38 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsCloudModalOpen(true);
       }
     }
+  }, [isCloudHost]);
+
+  // Listen to browser popstate (back/forward buttons)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (typeof window === 'undefined') return;
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = (e.state?.view || params.get('view')) as ViewType;
+
+      if (isCloudHost) {
+        if (!viewParam || viewParam === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(viewParam)) {
+          setActiveViewState('landing');
+          return;
+        }
+        if (ALL_VALID_VIEWS.includes(viewParam)) {
+          setActiveViewState(viewParam);
+          return;
+        }
+        setActiveViewState('landing');
+        return;
+      }
+
+      // Local environment
+      if (viewParam && ALL_VALID_VIEWS.includes(viewParam)) {
+        setActiveViewState(viewParam);
+      } else {
+        setActiveViewState('dashboard');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [isCloudHost]);
 
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -151,11 +192,12 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
         if (view === 'landing') {
-          url.searchParams.delete('view');
+          // On cloud root can be clean or ?view=landing, ensure consistency
+          url.searchParams.set('view', 'landing');
         } else {
           url.searchParams.set('view', view);
         }
-        window.history.pushState({}, '', url.toString());
+        window.history.pushState({ view }, '', url.toString());
       }
     },
     [isCloudHost]
