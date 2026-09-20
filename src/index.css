@@ -65,6 +65,11 @@ html.theme-transitioning *::after {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     transition: background-color 0.5s ease, color 0.5s ease;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 
   /* Custom minimal dark & light scrollbars */
@@ -173,16 +178,19 @@ html.theme-transitioning *::after {
 @keyframes slideInRight {
   0% {
     opacity: 0;
-    transform: translateX(42px);
+    transform: translateY(8px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 @keyframes boxZoomIn {

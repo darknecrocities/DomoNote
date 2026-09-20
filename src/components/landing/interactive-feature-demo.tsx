@@ -430,7 +430,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
       </div>
 
       {/* Main Slide Content */}
-      <div key={activeStage} className="p-5 sm:p-6 min-h-[440px] flex flex-col justify-between bg-[#080808] animate-slide-in-right">
+      <div key={activeStage} className="p-5 sm:p-6 min-h-[440px] flex flex-col justify-between bg-[#080808] animate-slide-in-right overflow-hidden">
         {/* ================= STAGE 1: CALL RECORDING ================= */}
         {activeStage === 'calls' && (
           <div className="space-y-5">
