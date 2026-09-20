@@ -11,13 +11,20 @@ import {
   Shield,
   BookOpen,
   Sparkles,
+  Layers,
 } from 'lucide-react';
 import { useWorkspace } from '../../context/workspace-context';
 import { exportWorkspaceToJson } from '../../db';
 import { downloadJsonFile } from '../../services/export/json';
 
 export const CommandPalette: React.FC = () => {
-  const { isCommandPaletteOpen, setIsCommandPaletteOpen, setActiveView, addToast } = useWorkspace();
+  const {
+    isCommandPaletteOpen,
+    setIsCommandPaletteOpen,
+    setActiveView,
+    addToast,
+    setIsExtensionModalOpen,
+  } = useWorkspace();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -87,6 +94,16 @@ export const CommandPalette: React.FC = () => {
         icon: Settings,
         run: () => {
           setActiveView('settings');
+        },
+      },
+      {
+        id: 'chrome-extension',
+        title: 'Chrome Extension',
+        description: '1-click standalone extension & side panel setup',
+        icon: Layers,
+        shortcut: 'Cmd+Shift+E',
+        run: () => {
+          setIsExtensionModalOpen(true);
         },
       },
       {

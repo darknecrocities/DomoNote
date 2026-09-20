@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "Your Local AI Secretary"
+    "tagline": "Your Personal AI Secretary"
   },
   "nav": {
     "home": "Home",
@@ -41,17 +41,17 @@
       "benefitPrivate": "Private & On-Device",
       "benefitOffline": "Runs on Your Computer",
       "headlinePrefix": "Notes, meetings, and documents.",
-      "headlineDynamic": "processed purely on your machine.",
-      "subheadline": "Capture meeting audio, read and query documents, record screens with dynamic auto-annotation, and organize notes without cloud servers. Everything stays private on your machine with local Ollama intelligence.",
+      "headlineDynamic": "organized by your personal AI secretary.",
+      "subheadline": "Your personal AI secretary for notes, meetings, and documents. Capture conversations, summarize complex files, and turn screen tasks into step-by-step guides — completely private, with no sign-ups or cloud servers.",
       "openWorkspace": "Open Workspace",
       "downloadApp": "Download App",
       "downloadAll": "Download (Mac / Win / Linux)",
       "screenStudio": "Screen Studio",
       "quickSetup": "Quick Setup",
       "star": "Star",
-      "clientDb": "Client-Side IndexedDB",
-      "autoAnnotation": "Dynamic Auto-Annotation",
-      "zeroCloudLatency": "Zero Cloud Latency"
+      "clientDb": "100% Private on Your Device",
+      "autoAnnotation": "Automatic Step-by-Step Guides",
+      "zeroCloudLatency": "Works Completely Offline"
     },
     "demo": {
       "badge": "INTERACTIVE LIVE DEMO",
@@ -87,7 +87,7 @@
     "features": {
       "badge": "FEATURES",
       "title": "Built for real everyday work.",
-      "description": "Everything runs natively inside your browser sandbox with zero external server dependencies.",
+      "description": "Everything runs right on your computer. Private, fast, and works without an internet connection.",
       "showcase": "Feature Showcase",
       "panelMeetingsTitle": "Voice Recording & Instant Notes",
       "panelMeetingsDesc": "Record meetings directly in your browser. Get clear transcripts, highlighted decisions, and structured action items automatically.",
@@ -138,14 +138,15 @@
       "card4Desc": "Free to use under the MIT license. You can inspect the source code, run it anywhere, or contribute improvements."
     },
     "cta": {
-      "title": "Start taking notes with private local AI.",
+      "title": "Start organizing with your personal AI secretary.",
       "description": "No account creation required. No credit card. Your workspace lives entirely inside your browser and local storage.",
       "openApp": "Open DomoNote",
       "downloadApp": "Download App"
     },
     "footer": {
-      "copyright": "DomoNote. Your Local AI Secretary.",
-      "privacyNotice": "100% on-device processing. No accounts, telemetry, or server dependencies.",
+      "copyright": "DomoNote. Your Personal AI Secretary.",
+      "description": "Your personal AI secretary for notes, meetings, and documents. Everything stays strictly on your computer — no accounts, no tracking, and no cloud needed.",
+      "privacyNotice": "Your personal AI secretary that runs privately on your computer. No accounts, no tracking, and nothing sent to the cloud.",
       "licenseNotice": "MIT License • Open Source • Runs on Your Device",
       "privateByDefault": "Private by Default"
     }

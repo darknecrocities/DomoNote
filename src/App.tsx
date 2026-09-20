@@ -20,10 +20,18 @@ import { ChangelogView } from './views/changelog-view';
 import { PrivacyView } from './views/privacy-view';
 import { DownloadView } from './views/download-view';
 import { CloudEnvironmentModal } from './components/modals/cloud-environment-modal';
+import { ChromeExtensionModal } from './components/modals/chrome-extension-modal';
 import { handleGoogleAuthCallback } from './services/calendar/google-calendar';
 
 export const App: React.FC = () => {
-  const { activeView, setActiveView, isCloudModalOpen, setIsCloudModalOpen } = useWorkspace();
+  const {
+    activeView,
+    setActiveView,
+    isCloudModalOpen,
+    setIsCloudModalOpen,
+    isExtensionModalOpen,
+    setIsExtensionModalOpen,
+  } = useWorkspace();
 
   // Initialize Dexie IndexedDB and seeds on app boot, or intercept OAuth popup
   useEffect(() => {
@@ -97,6 +105,10 @@ export const App: React.FC = () => {
       <CloudEnvironmentModal
         isOpen={isCloudModalOpen}
         onClose={() => setIsCloudModalOpen(false)}
+      />
+      <ChromeExtensionModal
+        isOpen={isExtensionModalOpen}
+        onClose={() => setIsExtensionModalOpen(false)}
       />
     </AppLayout>
   );

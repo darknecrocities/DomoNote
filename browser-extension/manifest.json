@@ -1,30 +1,49 @@
 {
   "manifest_version": 3,
-  "name": "DomoNote Meeting Companion",
-  "version": "0.1.0",
-  "description": "Capture meetings and tab audio directly into your local-first DomoNote workspace.",
+  "name": "DomoNote - Personal AI Secretary",
+  "version": "1.0.0",
+  "description": "Capture meetings, dictate notes, analyze web pages with local Ollama AI, and annotate screenshots directly in your browser.",
   "permissions": [
     "activeTab",
     "tabCapture",
-    "storage"
+    "storage",
+    "sidePanel",
+    "scripting",
+    "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://meet.google.com/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
     "http://localhost:5173/*",
-    "https://domonote.vercel.app/*"
+    "http://127.0.0.1:*",
+    "https://meet.google.com/*",
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://meet.google.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "DomoNote Meeting Companion"
+    "default_title": "DomoNote AI Secretary",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   }
 }

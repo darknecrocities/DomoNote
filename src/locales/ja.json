@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "あなたのローカル AI 秘書"
+    "tagline": "あなたのパーソナル AI 秘書"
   },
   "nav": {
     "home": "ホーム",
@@ -21,7 +21,7 @@
     "about": "DomoNote について",
     "changelog": "変更履歴",
     "privacy": "プライバシー",
-    "localAi": "ローカル AI",
+    "localAi": "パーソナル秘書",
     "localWorkspace": "ローカルワークスペース"
   },
   "theme": {
@@ -49,9 +49,9 @@
       "screenStudio": "画面録画スタジオ",
       "quickSetup": "クイックセットアップ",
       "star": "スター",
-      "clientDb": "クライアント側 IndexedDB 保存",
-      "autoAnnotation": "動的境界線自動アノテーション",
-      "zeroCloudLatency": "クラウド遅延ゼロ"
+      "clientDb": "端末内に100%安全保存",
+      "autoAnnotation": "わかりやすい手順ガイドを自動作成",
+      "zeroCloudLatency": "完全オフラインで動作"
     },
     "demo": {
       "badge": "インタラクティブ・ライブデモ",
@@ -87,7 +87,7 @@
     "features": {
       "badge": "機能一覧",
       "title": "日々の実務のために設計。",
-      "description": "外部サーバーへの依存を排し、ブラウザのサンドボックス内でネイティブに動作します。",
+      "description": "すべてお使いのパソコン上で直接動作。アカウント登録不要、インターネットなしでも快適に使えます。",
       "showcase": "機能ショーケース",
       "panelMeetingsTitle": "音声録音と即時ノート作成",
       "panelMeetingsDesc": "ブラウザ内で直接会議を録音。明確な文字起こし、要点ハイライト、タスク一覧を自動生成します。",
@@ -138,14 +138,15 @@
       "card4Desc": "MIT ライセンスの下で自由に利用可能。ソースコードの検証やカスタマイズが自由に行えます。"
     },
     "cta": {
-      "title": "プライベートなローカル AI ノートを始めましょう。",
+      "title": "パーソナル AI 秘書と一緒に、新しいノート体験を始めましょう。",
       "description": "アカウント作成もクレジットカードも不要です。ワークスペースはブラウザとローカルストレージ内で完結します。",
       "openApp": "DomoNote を開く",
       "downloadApp": "アプリをダウンロード"
     },
     "footer": {
-      "copyright": "DomoNote. あなたのローカル AI 秘書。",
-      "privacyNotice": "100% 端末内処理。アカウント不要、テレメトリなし、サーバー依存ゼロ。",
+      "copyright": "DomoNote. あなたのパーソナル AI 秘書。",
+      "description": "ノート、会議録、書類をまとめる、あなただけのパーソナル AI 秘書。すべてのデータはお使いのパソコンに安全に保存され、アカウント作成や追跡、クラウド送信は一切ありません。",
+      "privacyNotice": "お使いのパソコンで完結するパーソナル AI 秘書。アカウント登録不要、トラッキングなし、クラウド送信ゼロ。",
       "licenseNotice": "MIT ライセンス • オープンソース • お使いの端末で動作",
       "privateByDefault": "完全プライベート設計"
     }

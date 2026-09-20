@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "Votre secrétaire IA locale"
+    "tagline": "Votre secrétaire IA personnelle"
   },
   "nav": {
     "home": "Accueil",
@@ -21,7 +21,7 @@
     "about": "À propos de DomoNote",
     "changelog": "Journal des modifications",
     "privacy": "Confidentialité",
-    "localAi": "IA LOCALE",
+    "localAi": "Secrétaire personnelle",
     "localWorkspace": "Espace local"
   },
   "theme": {
@@ -49,9 +49,9 @@
       "screenStudio": "Studio d'enregistrement",
       "quickSetup": "Configuration rapide",
       "star": "Étoile",
-      "clientDb": "Stockage IndexedDB côté client",
-      "autoAnnotation": "Auto-annotation dynamique des contours",
-      "zeroCloudLatency": "Zéro latence serveur"
+      "clientDb": "100% privé sur votre ordinateur",
+      "autoAnnotation": "Guides pas à pas automatiques",
+      "zeroCloudLatency": "Fonctionne entièrement hors ligne"
     },
     "demo": {
       "badge": "DÉMO INTERACTIVE EN DIRECT",
@@ -87,7 +87,7 @@
     "features": {
       "badge": "FONCTIONNALITÉS",
       "title": "Conçu pour le travail quotidien réel.",
-      "description": "Tout s'exécute nativement dans le bac à sable de votre navigateur, sans dépendance vis-à-vis d'un serveur distant.",
+      "description": "Tout fonctionne directement sur votre ordinateur. Rapide, confidentiel et sans connexion Internet requise.",
       "showcase": "Vitrine des fonctionnalités",
       "panelMeetingsTitle": "Enregistrement vocal & Notes instantanées",
       "panelMeetingsDesc": "Enregistrez vos réunions directement depuis votre navigateur. Obtenez instantanément des transcriptions claires et des actions ordonnées.",
@@ -138,14 +138,15 @@
       "card4Desc": "Libre d'utilisation sous licence MIT. Vous pouvez inspecter le code source, l'exécuter n'importe où ou y contribuer."
     },
     "cta": {
-      "title": "Commencez à prendre des notes avec une IA locale et privée.",
+      "title": "Organisez vos journées avec votre secrétaire IA personnelle.",
       "description": "Aucune création de compte requise. Aucune carte bancaire. Votre espace de travail s'exécute entièrement dans votre navigateur.",
       "openApp": "Ouvrir DomoNote",
       "downloadApp": "Télécharger l'application"
     },
     "footer": {
-      "copyright": "DomoNote. Votre secrétaire IA locale.",
-      "privacyNotice": "Traitement 100% sur l'appareil. Pas de compte, pas de télémétrie, aucune dépendance serveur.",
+      "copyright": "DomoNote. Votre secrétaire IA personnelle.",
+      "description": "Votre secrétaire IA personnelle pour vos notes, réunions et documents. Tout reste privé sur votre ordinateur — sans compte, sans pistage et sans cloud.",
+      "privacyNotice": "Votre secrétaire IA personnelle exécutée en toute confidentialité sur votre appareil. Pas de compte, pas de pistage et aucun serveur cloud.",
       "licenseNotice": "Licence MIT • Open Source • Exécuté sur votre appareil",
       "privateByDefault": "Privé par défaut"
     }

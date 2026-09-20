@@ -69,7 +69,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
         if let button = statusItem.button {
             button.image = createStatusBarIcon()
             button.imagePosition = .imageOnly
-            button.toolTip = "DomoNote — Your Local AI Secretary"
+            button.toolTip = "DomoNote — Your Personal AI Secretary"
         }
 
         updateMenu()
@@ -204,7 +204,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
 
         // Subtitle
         let subtitleLabel = NSTextField(frame: NSRect(x: 14, y: 9, width: 220, height: 15))
-        subtitleLabel.stringValue = "Your Local AI Secretary"
+        subtitleLabel.stringValue = "Your Personal AI Secretary"
         subtitleLabel.font = NSFont.systemFont(ofSize: 11)
         subtitleLabel.textColor = NSColor.secondaryLabelColor
         subtitleLabel.isBezeled = false

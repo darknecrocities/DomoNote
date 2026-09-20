@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "DomoNote",
-    "tagline": "您的本地 AI 智能秘书"
+    "tagline": "您的个人 AI 秘书"
   },
   "nav": {
     "home": "首页",
@@ -21,7 +21,7 @@
     "about": "关于 DomoNote",
     "changelog": "更新日志",
     "privacy": "隐私说明",
-    "localAi": "本地 AI",
+    "localAi": "个人秘书",
     "localWorkspace": "本地工作区"
   },
   "theme": {
@@ -49,9 +49,9 @@
       "screenStudio": "录屏工坊",
       "quickSetup": "快速安装",
       "star": "标星",
-      "clientDb": "纯前端 IndexedDB 存储",
-      "autoAnnotation": "动态边框自动标注",
-      "zeroCloudLatency": "零云端延迟"
+      "clientDb": "100% 电脑本地安全保存",
+      "autoAnnotation": "自动生成清晰图文步骤",
+      "zeroCloudLatency": "完全支持离线使用"
     },
     "demo": {
       "badge": "实时交互演示",
@@ -87,7 +87,7 @@
     "features": {
       "badge": "核心功能",
       "title": "专为真实日常办公打造。",
-      "description": "所有功能均在浏览器安全沙箱内原生执行，对外部服务器零依赖。",
+      "description": "全部直接运行在您的电脑本地，无需注册账号，无需网络也能顺畅使用。",
       "showcase": "功能展示",
       "panelMeetingsTitle": "会议录音与即时纪要",
       "panelMeetingsDesc": "在浏览器内直接录音。自动生成清晰文本、突出决策要点并整理行动清单。",
@@ -138,14 +138,15 @@
       "card4Desc": "基于 MIT 协议完全开源。您可以随时查阅源代码、在任何环境中离线部署或参与改进。"
     },
     "cta": {
-      "title": "立即开启本地私有 AI 知识管理。",
+      "title": "让专属个人 AI 秘书帮您整理知识与工作。",
       "description": "无需注册账号，无需信用卡。您的工作区完整生存在您的浏览器与本地存储中。",
       "openApp": "打开 DomoNote",
       "downloadApp": "下载客户端"
     },
     "footer": {
-      "copyright": "DomoNote. 您的本地 AI 智能秘书。",
-      "privacyNotice": "100% 本地设备计算，无账户注册，无后台埋点，无服务器依赖。",
+      "copyright": "DomoNote. 您的个人 AI 秘书。",
+      "description": "您的专属个人 AI 秘书，轻松管理笔记、会议纪要与文档。所有内容完全保存在您的电脑本地——无需注册账号，绝无隐私追踪，不依赖任何云端服务。",
+      "privacyNotice": "运行在您本地电脑上的个人 AI 秘书。无需注册账号，绝无隐私追踪，不向云端发送任何数据。",
       "licenseNotice": "MIT 协议 • 开源免费 • 运行于您的设备",
       "privateByDefault": "默认绝对私有"
     }

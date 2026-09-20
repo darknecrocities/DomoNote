@@ -36,6 +36,7 @@ import { LoopingTypewriter } from '../components/landing/looping-typewriter';
 import { ScrollReveal } from '../components/ui/scroll-reveal';
 import { SectionConstellation } from '../components/landing/section-constellation';
 import { HeroCloudBackground } from '../components/landing/hero-cloud-background';
+import { StarfieldBackground } from '../components/landing/starfield-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import { TiltCard } from '../components/ui/tilt-card';
 import pandaImg from '../assets/panda-mascot.png';
@@ -43,7 +44,7 @@ import logoImg from '../assets/official_domonote.png';
 
 const TYPEWRITER_PHRASES: Record<string, string[]> = {
   en: [
-    'Transcribed & summarized offline.',
+    'Transcribed offline.',
     'Captured & annotated on device.',
     'Organized into clear notes.',
     'Powered by your local AI.',
@@ -245,10 +246,10 @@ export const LandingPage: React.FC = () => {
       {
         id: 'vault',
         tag: 'STORAGE',
-        title: t('landing.features.panelVaultTitle', 'Local IndexedDB Knowledge Vault'),
+        title: t('landing.features.panelVaultTitle', 'Private On-Device Storage'),
         description: t(
           'landing.features.panelVaultDesc',
-          'All your notes, audio transcripts, and imported books stay strictly inside your browser database. Instant zero-latency search with zero external data transmission.'
+          'All your notes, audio transcripts, and documents stay strictly inside your browser. Fast, offline, and completely private.'
         ),
         meta: 'Zero Cloud',
         previewContent: (
@@ -291,12 +292,15 @@ export const LandingPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-slate-200 dark:selection:bg-zinc-800 selection:text-slate-900 dark:selection:text-white relative overflow-x-clip transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-slate-200 dark:selection:bg-zinc-800 selection:text-slate-900 dark:selection:text-white relative overflow-x-clip transition-colors duration-500">
       {/* Subtle Noise Texture Overlay */}
       <NoiseTexture opacity={0.035} />
 
+      {/* Global Starfield Cosmic Background for Dark Mode */}
+      <StarfieldBackground isDark={theme === 'dark'} className="fixed inset-0 pointer-events-none z-0" />
+
       {/* Top Navigation - Sticky Appbar */}
-      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-[#050505]/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850 px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
+      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-black/85 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850/80 px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
         <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-between relative">
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shadow-xs" />
@@ -354,28 +358,29 @@ export const LandingPage: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
         {/* 2-Column Hero Section with Interactive Background */}
         <div
-          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500"
+          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500 border border-slate-200/60 dark:border-zinc-800"
           style={{
             background: theme === 'light'
               ? 'linear-gradient(160deg, #d4dce8 0%, #dce4ef 30%, #e5eaf5 65%, #edf1f8 100%)'
-              : 'transparent',
+              : '#000000',
           }}
         >
           {/* Animated Cloud Sky in Light Mode (continuous right-to-left loop with smooth fadein/fadeout) */}
           <HeroCloudBackground isLight={theme === 'light'} />
 
+          {/* Starfield Sky in Dark Mode */}
+          <StarfieldBackground isDark={theme === 'dark'} />
+
           {/* Neural Clusters Constellation Background in Dark Mode */}
-          <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.88 : 0} className="z-0" />
+          <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.7 : 0} className="z-0" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-8 pb-20 border-b border-slate-200/50 dark:border-zinc-850/60 mb-20 relative z-10 px-6 sm:px-10 lg:px-12">
             {/* Left Column: Text Content & Actions */}
             <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
               {/* Top Benefit Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 select-none shadow-sm backdrop-blur-sm">
-                <Shield className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
-                <span className="font-semibold text-slate-900 dark:text-white">{t('landing.hero.benefitPrivate', 'Private & On-Device')}</span>
-                <span className="text-slate-400 dark:text-zinc-600">•</span>
-                <span className="text-slate-600 dark:text-zinc-400">{t('landing.hero.benefitOffline', 'Runs on Your Computer')}</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-200 select-none shadow-sm backdrop-blur-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+                <span className="font-semibold text-slate-900 dark:text-white">Personal AI Secretary</span>
               </div>
 
               {/* Hero Headline with Looping Typewriter */}
@@ -455,15 +460,15 @@ export const LandingPage: React.FC = () => {
               <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200 dark:border-zinc-850/80 w-full">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
-                  <span>{t('landing.hero.clientDb', 'Client-Side IndexedDB')}</span>
+                  <span>{t('landing.hero.clientDb', '100% Private on Your Device')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
-                  <span>{t('landing.hero.autoAnnotation', 'Dynamic Auto-Annotation')}</span>
+                  <span>{t('landing.hero.autoAnnotation', 'Automatic Step-by-Step Guides')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
-                  <span>{t('landing.hero.zeroCloudLatency', 'Zero Cloud Latency')}</span>
+                  <span>{t('landing.hero.zeroCloudLatency', 'Works Completely Offline')}</span>
                 </div>
               </div>
             </div>
@@ -473,7 +478,7 @@ export const LandingPage: React.FC = () => {
 
               {/* Ambient glow — adapts per theme */}
               <div
-                className="absolute w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none blur-3xl transition-opacity duration-500"
+                className="absolute w-[460px] h-[460px] sm:w-[580px] sm:h-[580px] lg:w-[680px] lg:h-[680px] rounded-full pointer-events-none blur-3xl transition-opacity duration-500"
                 style={{
                   opacity: 1,
                   background: theme === 'light'
@@ -489,7 +494,7 @@ export const LandingPage: React.FC = () => {
               */}
               <div
                 ref={mascotRef}
-                className="relative z-10 cursor-pointer group flex items-center justify-center w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full transition-all duration-500 hover:scale-105 outline-none"
+                className="relative z-10 cursor-pointer group flex items-center justify-center w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] lg:w-[560px] lg:h-[560px] rounded-full transition-all duration-500 hover:scale-105 outline-none"
                 style={{
                   border: theme === 'light' ? '3px solid rgba(9,9,11,0.88)' : '2px solid transparent',
                   background: theme === 'light'
@@ -499,7 +504,7 @@ export const LandingPage: React.FC = () => {
                     ? '0 0 0 1px rgba(255,255,255,0.08) inset, 0 25px 60px -10px rgba(0,0,0,0.5), 0 0 40px 10px rgba(0,0,0,0.25)'
                     : 'none',
                   backdropFilter: theme === 'light' ? 'blur(2px)' : 'none',
-                  padding: theme === 'light' ? '10px' : '0',
+                  padding: theme === 'light' ? '12px' : '0',
                 }}
                 tabIndex={0}
                 onClick={() => {
@@ -524,9 +529,9 @@ export const LandingPage: React.FC = () => {
                   <img
                     src="/domoreading.gif"
                     alt="DomoNote Mascot Reading"
-                    className="max-w-none h-auto object-contain relative z-10 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] animate-float transition-all duration-500"
+                    className="max-w-none h-auto object-contain relative z-10 drop-shadow-[0_12px_32px_rgba(0,0,0,0.8)] animate-float transition-all duration-500"
                     style={{
-                      width: theme === 'light' ? '112%' : '85%',
+                      width: theme === 'light' ? '125%' : '112%',
                       maskImage: theme === 'light'
                         ? 'radial-gradient(circle at 50% 52%, black 48%, rgba(0,0,0,0.6) 62%, transparent 76%)'
                         : 'none',
@@ -556,7 +561,7 @@ export const LandingPage: React.FC = () => {
                     {t('landing.demo.title', 'See DomoNote in action')}
                   </h2>
                   <p className="text-sm text-slate-600 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">
-                    {t('landing.demo.description', 'Explore real-time call speech recording, local AI summarizing with Ollama, dynamic border-only document annotation, and structured meeting notes—all running locally on your device.')}
+                    {t('landing.demo.description', 'Try DomoNote right now: see how it listens to your voice, gives you instant easy summaries, and draws bright red boxes on your papers so you can find answers fast.')}
                   </p>
                 </div>
 
@@ -700,7 +705,7 @@ export const LandingPage: React.FC = () => {
                   {t('landing.features.title', 'Built for real everyday work.')}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-zinc-400 mt-2 max-w-xl leading-relaxed">
-                  {t('landing.features.description', 'Everything runs natively inside your browser sandbox with zero external server dependencies.')}
+                  {t('landing.features.description', 'Everything runs right on your computer. Private, fast, and works without an internet connection.')}
                 </p>
               </div>
               <HorizontalCarousel panels={carouselPanels} />
@@ -904,16 +909,16 @@ cd DomoNote
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-zinc-850 py-12 px-6 bg-slate-100 dark:bg-[#030303] text-slate-500 dark:text-zinc-500 text-xs">
+      <footer className="border-t border-slate-200 dark:border-zinc-850 py-12 px-6 bg-slate-100 dark:bg-black text-slate-500 dark:text-zinc-500 text-xs">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <img src={logoImg} alt="DomoNote" className="w-6 h-6 rounded-md object-contain shadow-xs" />
               <span className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">DomoNote</span>
-              <span className="text-xs text-slate-500 dark:text-zinc-500">• {t('app.tagline', 'Your Local AI Secretary')}</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-500">• {t('app.tagline', 'Your Personal AI Secretary')}</span>
             </div>
             <p className="text-slate-500 dark:text-zinc-500 text-xs max-w-sm">
-              {t('landing.footer.privacyNotice', '100% on-device processing. No accounts, telemetry, or server dependencies.')}
+              {t('landing.footer.description', 'Your personal AI secretary for notes, meetings, and documents. Everything stays strictly on your computer — no accounts, no tracking, and no cloud needed.')}
             </p>
           </div>
 

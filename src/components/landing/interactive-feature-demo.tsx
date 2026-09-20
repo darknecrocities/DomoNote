@@ -42,6 +42,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   // Document Annotation Stage State
   const [selectedAnnotationPreset, setSelectedAnnotationPreset] = useState<number>(0);
   const [isZoomMode, setIsZoomMode] = useState<boolean>(false);
+  const [drawAnimKey, setDrawAnimKey] = useState<number>(0);
 
   // Meeting Notes Checklist State
   const [checkedTasks, setCheckedTasks] = useState<Record<number, boolean>>({
@@ -51,10 +52,10 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   });
 
   const stages: { id: DemoStage; label: string; number: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'calls', label: 'Call Recording', number: '01', icon: Mic },
-    { id: 'summarizing', label: 'Smart Summary', number: '02', icon: Sparkles },
-    { id: 'annotation', label: 'Document Highlights', number: '03', icon: Highlighter },
-    { id: 'notes', label: 'Meeting Notes', number: '04', icon: FileText },
+    { id: 'calls', label: 'Voice Listener', number: '01', icon: Mic },
+    { id: 'summarizing', label: 'Quick Summary', number: '02', icon: Sparkles },
+    { id: 'annotation', label: 'Red Highlighter', number: '03', icon: Highlighter },
+    { id: 'notes', label: 'To-Do Checklist', number: '04', icon: FileText },
   ];
 
   const currentStageIndex = stages.findIndex((s) => s.id === activeStage);
@@ -120,21 +121,21 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   };
 
   const handleCopyNotes = () => {
-    const notesMarkdown = `# Team Architecture Sync
-Date: September 14, 2026 | Duration: 42m | Participants: Alex Chen, Elena Rostova, Marcus Vance
+    const notesMarkdown = `# Secret Notes
+Date: Today | Friends: Arron, Elena, Marcus
 
-## Executive Summary
-The team verified DomoNote's local-first architecture. All speech transcripts, document highlights, and notes stay strictly on your device without sending any data to remote servers.
+## Quick Summary
+We talked about keeping all notes safe at home on this computer. Nobody on the internet can peek at what you write!
 
-## Key Decisions
-- [x] Private by Default: Safe for confidential team meetings.
-- [x] Recommended Model: Llama 3.2 3B runs locally with fast sub-second answers.
-- [x] Dynamic Border-Only Highlights: Preserves complete document readability.
+## Things We Decided
+- [x] 100% Private: Keep all notes locked on this computer screen.
+- [x] No Wi-Fi Needed: Works anywhere, even on an airplane.
+- [x] Red Pen Magic: Highlights the only sentence that matters so you save time.
 
-## Action Items
-- [x] Integrate border-only annotation box algorithm (@Alex, Done)
-- [ ] Finalize offline Ollama health check before workspace open (@Elena, In Progress)
-- [ ] Push standalone desktop packages for macOS, Windows, Linux (@Marcus, Scheduled)
+## To-Do List
+- [x] Download DomoNote to your computer (@Arron, Done!)
+- [ ] Turn off your Wi-Fi and write a quick note (@Elena, Try it!)
+- [ ] Let DomoNote highlight a long paper in red (@Marcus, Easy!)
 `;
     navigator.clipboard.writeText(notesMarkdown);
     setCopied(true);
@@ -150,22 +151,25 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
   const annotationPresets = [
     {
-      title: 'Local Storage',
-      targetText: 'All extracted document text, audio recordings, and screen captures are kept directly on your computer in local storage.',
-      stepTag: '01 • Local Storage',
-      note: 'Keeps confidential legal, medical, and executive documents completely private on your device.',
+      title: 'Secret Diary Rule',
+      targetText: 'THE #1 RULE: Everything you say and write stays locked safely inside your own computer. No one on the internet can ever see your notes, and we never send your words to outside companies.',
+      stepTag: '01 • 100% Private',
+      note: 'Your notes are locked like a secret diary at home. No strangers can read them.',
+      highlightSentence: 'Everything you say and write stays locked safely inside your own computer.',
     },
     {
-      title: 'Clean Outlines',
-      targetText: 'Dynamic bounding boxes draw around exact sentences with zero background shading, preserving original document readability.',
-      stepTag: '02 • Clean Citation',
-      note: 'Enables clear visual citation directly inside the original page layout without obscuring text.',
+      title: 'Works With No Wi-Fi',
+      targetText: 'NO INTERNET NEEDED: DomoNote has its own smart brain built right into your laptop. You can write, talk, and get helpful answers even if your internet is completely turned off.',
+      stepTag: '02 • Works Everywhere',
+      note: 'You can take notes on an airplane, in the car, or during a storm with zero internet.',
+      highlightSentence: 'You can write, talk, and get helpful answers even if your internet is completely turned off.',
     },
     {
-      title: 'Offline AI',
-      targetText: 'Local AI models run entirely within user machine memory on port 11434 with instant responses and zero cloud latency.',
-      stepTag: '03 • Fast & Offline',
-      note: 'Works anywhere without an internet connection, with zero monthly subscription fees.',
+      title: 'Red Pen Magic',
+      targetText: 'READS FOR YOU: Instead of forcing you to read ten pages of tiny, boring words, DomoNote draws a bright red box around the only sentence that actually answers your question.',
+      stepTag: '03 • Saves Your Time',
+      note: 'Finds the exact answer in two seconds so you can finish quickly and go have fun.',
+      highlightSentence: 'DomoNote draws a bright red box around the only sentence that actually answers your question.',
     },
   ];
 
@@ -289,19 +293,19 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span className="font-semibold text-white">Sprint Planning Sync</span>
+                    <span className="font-semibold text-white">Talking with Friends</span>
                     <span className="text-zinc-500 font-mono text-[11px]">
                       00:{callDuration < 10 ? `0${callDuration}` : callDuration}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">Local Audio Recording</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Listens and writes down your words</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-zinc-300 text-[11px]">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>Recording Active</span>
+                  <span>Listening Now</span>
                 </span>
               </div>
             </div>
@@ -311,15 +315,15 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
               {/* Speakers Column */}
               <div className="lg:col-span-4 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2.5 text-xs">
                 <div className="text-[11px] font-medium text-zinc-400 flex items-center justify-between">
-                  <span>Speakers</span>
-                  <span className="text-zinc-500">3 in call</span>
+                  <span>Friends in Chat</span>
+                  <span className="text-zinc-500">3 friends</span>
                 </div>
 
                 <div className="space-y-2">
                   {[
-                    { name: 'Arron Parejas', role: 'Host', active: activeSpeakerIndex === 0 },
-                    { name: 'Elena Rostova', role: 'Engineer', active: activeSpeakerIndex === 1 },
-                    { name: 'Marcus Vance', role: 'Reviewer', active: activeSpeakerIndex === 2 },
+                    { name: 'Arron Parejas', role: 'Speaking', active: activeSpeakerIndex === 0 },
+                    { name: 'Elena Rostova', role: 'Listening', active: activeSpeakerIndex === 1 },
+                    { name: 'Marcus Vance', role: 'Listening', active: activeSpeakerIndex === 2 },
                   ].map((speaker, idx) => (
                     <div
                       key={idx}
@@ -343,7 +347,7 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                         </div>
                       </div>
                       {speaker.active && (
-                        <span className="text-[10px] font-mono text-emerald-400">Speaking</span>
+                        <span className="text-[10px] font-mono text-emerald-400">Talking</span>
                       )}
                     </div>
                   ))}
@@ -370,17 +374,17 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                 <div className="space-y-2 text-xs">
                   <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300">
                     <span className="text-[10px] text-zinc-500 block mb-0.5">Arron Parejas:</span>
-                    "Let's ensure DomoNote keeps all audio buffers strictly in browser memory without sending files outside."
+                    "Hey guys! Everything we say stays locked inside this computer. Nobody else on the internet can ever hear us!"
                   </div>
 
                   <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300">
                     <span className="text-[10px] text-zinc-500 block mb-0.5">Elena Rostova:</span>
-                    "Confirmed. Speech-to-text runs directly on your computer with instant summaries."
+                    "Yes! DomoNote listens to our voices and writes down every word cleanly, all by itself."
                   </div>
 
                   <div className="p-2 rounded bg-zinc-900 border border-zinc-750 text-white">
                     <span className="text-[10px] text-emerald-400 block mb-0.5">Marcus Vance:</span>
-                    "That eliminates data leakage risk for sensitive meetings."
+                    "That means our private ideas and secrets are 100% safe at home."
                   </div>
                 </div>
               </div>
@@ -399,17 +403,17 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">Meeting Summary</span>
+                    <span className="font-semibold text-white">Quick Summary</span>
                     <span className="text-zinc-500">•</span>
-                    <span className="text-zinc-400">Local Llama 3.2</span>
+                    <span className="text-zinc-400">Smart Helper</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">Key decisions and action items extracted</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Turns long talks into short, easy bullet points</p>
                 </div>
               </div>
 
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-zinc-300 text-[11px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>Ready to Export</span>
+                <span>Saved & Ready</span>
               </span>
             </div>
 
@@ -417,32 +421,32 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs">
               {/* Left: Input snippets */}
               <div className="lg:col-span-5 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2">
-                <div className="text-[11px] font-medium text-zinc-400">Conversation Highlights</div>
+                <div className="text-[11px] font-medium text-zinc-400">What We Said</div>
                 <div className="space-y-2 p-3 rounded bg-zinc-950 border border-zinc-850 text-zinc-400 text-[11px] leading-relaxed">
-                  <p>• Reviewed local-first storage architecture</p>
-                  <p>• IndexedDB stores documents and audio</p>
-                  <p>• Everything runs directly on your computer</p>
-                  <p>• Document highlighting ready for testing</p>
+                  <p>• Keep all notes safe on this computer</p>
+                  <p>• Works even when you turn off Wi-Fi</p>
+                  <p>• Draw red boxes on important sentences</p>
+                  <p>• No strangers can ever see your secrets</p>
                 </div>
               </div>
 
               {/* Right: Structured Notes */}
               <div className="lg:col-span-7 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3">
-                <div className="text-[11px] font-medium text-zinc-300">Generated Highlights</div>
+                <div className="text-[11px] font-medium text-zinc-300">Short Summary</div>
 
                 <div className="p-3 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 leading-relaxed text-xs">
-                  <div className="text-[10px] text-zinc-500 uppercase font-semibold mb-1">Overview</div>
-                  The team confirmed DomoNote's on-device setup. Speech transcripts, document highlights, and notes stay strictly on your device.
+                  <div className="text-[10px] text-zinc-500 uppercase font-semibold mb-1">In Simple Words</div>
+                  DomoNote listens to your voice, writes your notes, and keeps all your secrets locked safely on this computer so nobody else can see them.
                 </div>
 
                 <div className="space-y-2 text-xs">
                   <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-                    <span>Private by Default: Safe for confidential internal discussions.</span>
+                    <span>100% Secret: Like a diary with a physical lock on it.</span>
                   </div>
                   <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-                    <span>Fast Local AI: Instant answers without cloud latency.</span>
+                    <span>Super Fast: Answers right away without waiting for slow internet.</span>
                   </div>
                 </div>
               </div>
@@ -456,21 +460,35 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
             {/* Header */}
             <div className="p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
+                <div className="w-8 h-8 rounded-lg bg-red-950/50 border border-red-800/60 flex items-center justify-center text-red-400 shrink-0">
                   <Highlighter className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">Document Viewer</span>
+                    <span className="font-semibold text-white">Whole Paper Reader</span>
                     <span className="text-zinc-500">•</span>
-                    <span className="text-zinc-400">Clean Sentence Outlines</span>
+                    <span className="text-red-400 font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      Magic Red Pen
+                    </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">High-precision border boxes without obscuring text</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Draws a bright red box around the only sentence you need to read
+                  </p>
                 </div>
               </div>
 
-              {/* Minimal Zoom Toggle & Presets */}
-              <div className="flex items-center gap-2">
+              {/* Controls & Presets */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setDrawAnimKey((k) => k + 1)}
+                  className="px-2.5 py-1 rounded text-xs border border-red-500/40 bg-red-950/30 text-red-300 hover:bg-red-900/40 hover:text-white transition-colors flex items-center gap-1.5 font-medium shadow-xs"
+                  title="Replay hand-drawn red annotation animation"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Draw Again</span>
+                </button>
+
                 <button
                   onClick={() => setIsZoomMode(!isZoomMode)}
                   className={`px-2.5 py-1 rounded text-xs border transition-colors flex items-center gap-1 ${
@@ -478,19 +496,22 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                       ? 'bg-white text-black border-white font-medium'
                       : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-white'
                   }`}
-                  title="Toggle subtle zoom"
+                  title="Toggle document zoom"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
-                  <span>{isZoomMode ? 'Zoom: On' : 'Zoom In'}</span>
+                  <span>{isZoomMode ? 'Zoom: Big' : 'Zoom In'}</span>
                 </button>
 
                 {annotationPresets.map((preset, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setSelectedAnnotationPreset(idx)}
+                    onClick={() => {
+                      setSelectedAnnotationPreset(idx);
+                      setDrawAnimKey((k) => k + 1);
+                    }}
                     className={`px-2.5 py-1 rounded text-xs border transition-colors ${
                       selectedAnnotationPreset === idx
-                        ? 'bg-zinc-800 text-white border-zinc-700 font-medium'
+                        ? 'bg-red-600 text-white border-red-500 font-semibold shadow-xs'
                         : 'bg-zinc-950 text-zinc-400 border-zinc-850 hover:text-white'
                     }`}
                   >
@@ -500,66 +521,204 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
               </div>
             </div>
 
-            {/* Clean Document Reader (Minimal Paper Style) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {/* Left 7 Cols: Clean White Paper Document */}
-              <div className="lg:col-span-7 rounded-lg border border-zinc-300 bg-white text-zinc-900 p-5 shadow-sm text-xs leading-relaxed font-sans space-y-3">
-                <div className="flex items-center justify-between border-b border-zinc-200 pb-2 text-[11px] text-zinc-500 font-mono">
-                  <span className="font-medium text-zinc-700">Architecture_Overview.pdf</span>
-                  <span>Page 3 of 8</span>
+            {/* Whole Paper Document View */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left 8 Cols: Whole Clean Paper Document Sheet */}
+              <div
+                className={`lg:col-span-8 rounded-xl border border-zinc-300 bg-white text-zinc-900 p-6 sm:p-8 shadow-2xl transition-all duration-300 relative text-xs leading-relaxed font-sans ${
+                  isZoomMode ? 'scale-[1.02] shadow-2xl' : 'scale-100'
+                }`}
+              >
+                {/* Paper Header / Official Spec Letterhead */}
+                <div className="border-b-2 border-zinc-900 pb-3 mb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div>
+                    <div className="text-[10px] font-mono tracking-widest uppercase font-bold text-zinc-500">
+                      DOMONOTE EASY GUIDE FOR EVERYONE
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-zinc-950 tracking-tight mt-0.5">
+                      How DomoNote Keeps All Your Notes Safe & Simple
+                    </h3>
+                    <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+                      Works on Mac, Windows, and Linux • 100% Private at Home
+                    </div>
+                  </div>
+                  <div className="flex items-center sm:flex-col sm:items-end gap-2 shrink-0">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-red-100 text-red-700 border border-red-300">
+                      TOP SECRET
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-mono">Page 1 of 1</span>
+                  </div>
                 </div>
 
-                <p className="text-zinc-600">
-                  DomoNote stores all your data directly on your device. Documents, audio notes, and transcripts are never uploaded to third-party web servers.
-                </p>
-
-                {/* MINIMAL, NON-FUTURISTIC ANNOTATION BOX */}
-                <div
-                  key={`${selectedAnnotationPreset}-${isZoomMode}`}
-                  className={`p-3 rounded border-2 border-zinc-900 bg-zinc-50/90 transition-all duration-200 animate-box-zoom ${
-                    isZoomMode ? 'scale-[1.02] shadow-md bg-white' : 'scale-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-                    <span className="font-semibold text-zinc-900">
-                      {annotationPresets[selectedAnnotationPreset].stepTag}
-                    </span>
-                    <span className="text-zinc-400">Cited Excerpt</span>
+                {/* Section 1: Executive Context */}
+                <div className="space-y-1 mb-4">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 font-mono">
+                    1. What This Paper Is About
                   </div>
-
-                  <p className="text-zinc-900 font-medium text-xs sm:text-sm">
-                    "{annotationPresets[selectedAnnotationPreset].targetText}"
+                  <p className="text-zinc-600 text-xs leading-relaxed">
+                    Welcome to DomoNote — Your Personal AI Secretary! This paper explains why DomoNote is special: it helps you remember everything, reads long papers for you, and never lets strangers or outside companies see your notes.
                   </p>
                 </div>
 
-                <p className="text-zinc-600">
-                  Clean border boxes let you read the original document naturally with clear references.
-                </p>
+                {/* Section 2: Important Mandate with Animated Hand-Drawn Red Outline & Underline */}
+                <div className="relative my-4">
+                  <div
+                    key={`paper-box-${selectedAnnotationPreset}-${drawAnimKey}`}
+                    className="relative p-4 rounded-lg bg-red-50/50 border border-red-200/80 transition-all duration-300"
+                  >
+                    {/* Hand-Drawn SVG Red Box Outline with Draw Animation */}
+                    <svg
+                      className="absolute inset-0 w-full h-full pointer-events-none"
+                      preserveAspectRatio="none"
+                    >
+                      <rect
+                        x="2"
+                        y="2"
+                        width="calc(100% - 4px)"
+                        height="calc(100% - 4px)"
+                        rx="8"
+                        ry="8"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="animate-red-box"
+                      />
+                    </svg>
+
+                    {/* Excerpt Header */}
+                    <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-red-600">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <span>IMPORTANT // {annotationPresets[selectedAnnotationPreset].stepTag}</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-600 text-white font-bold tracking-wider animate-red-stamp">
+                        MUST READ
+                      </span>
+                    </div>
+
+                    {/* Target Text */}
+                    <p className="text-zinc-950 font-semibold text-xs sm:text-sm leading-relaxed relative z-10">
+                      "{annotationPresets[selectedAnnotationPreset].targetText}"
+                    </p>
+
+                    {/* Animated Red Hand-Drawn Underline SVG */}
+                    <svg
+                      key={`underline-${selectedAnnotationPreset}-${drawAnimKey}`}
+                      className="w-full h-3 mt-1.5 pointer-events-none relative z-10"
+                      viewBox="0 0 400 12"
+                      preserveAspectRatio="none"
+                    >
+                      <path
+                        d="M 2 7 Q 100 12, 200 6 T 398 7"
+                        fill="none"
+                        stroke="#dc2626"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        className="animate-red-underline"
+                      />
+                    </svg>
+
+                    {/* Annotation Footer */}
+                    <div className="mt-2.5 pt-2 border-t border-red-200 flex flex-wrap items-center justify-between text-[11px] text-red-700 font-mono relative z-10">
+                      <span>Important Rule #{selectedAnnotationPreset + 1}</span>
+                      <span>Magic Red Pen: Hand-Drawn For You</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: "What this document is about" Key Takeaways */}
+                <div className="space-y-2 mt-4 pt-3 border-t border-zinc-200">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 font-mono">
+                    2. Why You Will Love It (The 3 Big Perks)
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
+                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                      <span className="font-bold text-red-600 block">✓ 100% Private</span>
+                      <span className="text-zinc-600 mt-0.5 block">
+                        Your words and papers stay inside your computer. Nobody else can peek.
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                      <span className="font-bold text-red-600 block">✓ Works Without Wi-Fi</span>
+                      <span className="text-zinc-600 mt-0.5 block">
+                        DomoNote has its own smart brain right inside your laptop. No internet needed!
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                      <span className="font-bold text-red-600 block">✓ Saves You Time</span>
+                      <span className="text-zinc-600 mt-0.5 block">
+                        Draws a bright red box around the answer so you don't have to read 10 boring pages.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Paper Footer */}
+                <div className="mt-5 pt-3 border-t-2 border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                  <span>DOMONOTE SIMPLE NOTE</span>
+                  <span>100% PRIVATE • SAFE • NO WI-FI NEEDED</span>
+                </div>
               </div>
 
-              {/* Right 5 Cols: Minimal Inspector */}
-              <div className="lg:col-span-5 p-4 rounded-lg border border-zinc-850 bg-zinc-900/30 text-xs space-y-3 flex flex-col justify-between">
-                <div>
-                  <div className="font-medium text-zinc-300 pb-2 border-b border-zinc-850 mb-3">
-                    Citation Details
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 text-xs">
-                      <span className="text-[10px] text-zinc-500 block mb-1">Why this is highlighted:</span>
-                      {annotationPresets[selectedAnnotationPreset].note}
-                    </div>
-
-                    <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-[11px] text-zinc-400 flex items-center justify-between">
-                      <span>Location</span>
-                      <span className="font-mono text-zinc-300">Page 3, Line 12</span>
-                    </div>
+              {/* Right 4 Cols: Inspector */}
+              <div className="lg:col-span-4 p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 text-xs space-y-4">
+                <div className="pb-3 border-b border-zinc-850">
+                  <div className="font-semibold text-white mb-1">Magic Red Pen Helper</div>
+                  <div className="text-[11px] text-zinc-400">
+                    Shows why this sentence was highlighted in red
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-850 text-[11px] text-zinc-500">
-                  Click 'Zoom In' above for focused viewing
+                {/* Color Badge */}
+                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400 block font-semibold">
+                    Pen Color
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-red-500/40 animate-pulse shrink-0" />
+                    <span className="font-bold text-white text-xs">Bright Red Marker</span>
+                  </div>
+                  <div className="text-[11px] text-zinc-400">
+                    Draws a red box and a red underline so you can spot the important part in 1 second.
+                  </div>
                 </div>
+
+                {/* Why This is Highlighted */}
+                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-850 space-y-1.5">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400 block font-semibold">
+                    Why Is This Highlighted?
+                  </span>
+                  <p className="text-zinc-200 text-xs leading-relaxed">
+                    {annotationPresets[selectedAnnotationPreset].note}
+                  </p>
+                </div>
+
+                {/* Document Information */}
+                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-850 space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between text-zinc-400">
+                    <span>Paper Name</span>
+                    <span className="font-mono text-zinc-200">My-Notes.pdf</span>
+                  </div>
+                  <div className="flex items-center justify-between text-zinc-400">
+                    <span>Where to Look</span>
+                    <span className="font-mono text-zinc-200">Middle of paper</span>
+                  </div>
+                  <div className="flex items-center justify-between text-zinc-400">
+                    <span>Privacy Level</span>
+                    <span className="font-mono text-red-400 font-bold">100% Private</span>
+                  </div>
+                </div>
+
+                {/* Replay Button */}
+                <button
+                  onClick={() => setDrawAnimKey((k) => k + 1)}
+                  className="w-full py-2.5 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Draw Red Box Again</span>
+                </button>
               </div>
             </div>
           </div>
@@ -576,11 +735,11 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">Weekly Planning Note</span>
+                    <span className="font-semibold text-white">My Weekly Plan</span>
                     <span className="text-zinc-500">•</span>
-                    <span className="text-zinc-400">Sep 14, 2026</span>
+                    <span className="text-zinc-400">Today</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">Stored in your local workspace</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Saved safely on your computer</p>
                 </div>
               </div>
 
@@ -594,12 +753,12 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
                   {copied ? (
                     <>
                       <Check className="w-3.5 h-3.5 mr-1 text-emerald-400" />
-                      <span className="text-emerald-400">Copied</span>
+                      <span className="text-emerald-400">Copied!</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 mr-1 text-zinc-400" />
-                      <span>Copy Markdown</span>
+                      <span>Copy Notes</span>
                     </>
                   )}
                 </Button>
@@ -620,31 +779,31 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
             <div className="p-4 sm:p-5 rounded-lg border border-zinc-850 bg-zinc-900/20 text-xs space-y-4">
               <div className="flex items-center gap-2 text-zinc-400 text-[11px] pb-3 border-b border-zinc-850">
                 <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                <span>Duration: 42 mins</span>
+                <span>Duration: 15 mins</span>
                 <span>•</span>
-                <span>Attendees: Arron Parejas, Elena Rostova, Marcus Vance</span>
+                <span>Friends: Arron, Elena, Marcus</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                 {/* Left 6: Summary & Decisions */}
                 <div className="md:col-span-6 space-y-3">
                   <div>
-                    <div className="font-semibold text-zinc-300 mb-1 text-xs">Summary</div>
+                    <div className="font-semibold text-zinc-300 mb-1 text-xs">Quick Summary</div>
                     <p className="p-2.5 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 text-xs leading-relaxed">
-                      The team confirmed DomoNote's local-first architecture. Transcripts, document highlights, and notes stay strictly on your device.
+                      We all agreed: DomoNote is the best because all our notes stay on our own computer, and it writes down to-dos automatically!
                     </p>
                   </div>
 
                   <div>
-                    <div className="font-semibold text-zinc-300 mb-1 text-xs">Decisions</div>
+                    <div className="font-semibold text-zinc-300 mb-1 text-xs">What We Decided</div>
                     <div className="space-y-1.5 text-xs">
                       <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>Use clean border-only outlines for document citations.</span>
+                        <span>Always use bright red boxes to highlight the most important sentence.</span>
                       </div>
                       <div className="p-2 rounded bg-zinc-950 border border-zinc-850 text-zinc-300 flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>Llama 3.2 3B recommended for offline AI.</span>
+                        <span>Keep everything working even when Wi-Fi is completely turned off.</span>
                       </div>
                     </div>
                   </div>
@@ -652,12 +811,12 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
 
                 {/* Right 6: Action Items */}
                 <div className="md:col-span-6 space-y-2">
-                  <div className="font-semibold text-zinc-300 mb-1 text-xs">Action Items</div>
+                  <div className="font-semibold text-zinc-300 mb-1 text-xs">To-Do List (Click to check off!)</div>
 
                   {[
-                    { text: 'Add border-only document citation boxes', owner: '@Alex' },
-                    { text: 'Verify offline Ollama model status', owner: '@Elena' },
-                    { text: 'Test macOS and Windows standalone downloads', owner: '@Marcus' },
+                    { text: 'Download DomoNote to your computer', owner: '@Arron' },
+                    { text: 'Turn off Wi-Fi and write a secret note', owner: '@Elena' },
+                    { text: 'Let DomoNote highlight a long paper in red', owner: '@Marcus' },
                   ].map((task, idx) => (
                     <div
                       key={idx}
@@ -687,7 +846,7 @@ The team verified DomoNote's local-first architecture. All speech transcripts, d
       <div className="p-3.5 border-t border-zinc-850 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-400">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>Clean audio transcription, smart summaries, and document reader.</span>
+          <span>Listens to your voice, summarizes long chats, and highlights what matters in red.</span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

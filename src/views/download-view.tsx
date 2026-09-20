@@ -14,8 +14,12 @@ import {
   ExternalLink,
   Cpu,
   ArrowLeft,
+  Layers,
+  AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
+import { ChromeExtensionModal } from '../components/modals/chrome-extension-modal';
 
 export type SupportedOS = 'macos' | 'windows' | 'linux';
 
@@ -65,6 +69,7 @@ export const DownloadView: React.FC = () => {
 
   const [selectedOS, setSelectedOS] = useState<SupportedOS>(detectedOS);
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
 
   const copyCommand = (cmd: string, id: string) => {
     navigator.clipboard.writeText(cmd);
@@ -94,14 +99,14 @@ export const DownloadView: React.FC = () => {
       mimeType = 'application/x-bat';
       blobContent = `@echo off
 rem ========================================================
-rem   DomoNote Desktop - Local AI Secretary
+rem   DomoNote Desktop - Personal AI Secretary
 rem   App Icon: official_domonote.png
 rem   Repository: https://github.com/darknecrocities/DomoNote
 rem ========================================================
 title DomoNote Desktop Setup
 echo.
 echo  ========================================================
-echo    DomoNote Desktop - Local-First AI Secretary
+echo    DomoNote Desktop - Personal AI Secretary
 echo    Setting up DomoNote for Windows...
 echo  ========================================================
 echo.
@@ -140,7 +145,7 @@ call npm run dev
       mimeType = 'application/x-sh';
       blobContent = `#!/usr/bin/env bash
 # ========================================================
-#   DomoNote Desktop - Local AI Secretary
+#   DomoNote Desktop - Personal AI Secretary
 #   Target OS: ${osName}
 #   App Icon: official_domonote.png
 #   Repository: https://github.com/darknecrocities/DomoNote
@@ -208,6 +213,14 @@ bash start.sh
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => setIsExtensionModalOpen(true)}
+            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 text-xs font-semibold text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/40 transition-colors shadow-sm"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Chrome Extension</span>
+          </button>
+
           <a
             href="https://github.com/darknecrocities/DomoNote"
             target="_blank"
@@ -215,7 +228,7 @@ bash start.sh
             className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 text-xs font-semibold text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/40 transition-colors shadow-sm"
           >
             <GithubIcon className="w-3.5 h-3.5" />
-            <span>GitHub Repository</span>
+            <span>GitHub</span>
           </a>
 
           <Button
@@ -348,17 +361,17 @@ bash start.sh
         </button>
       </div>
 
-      {/* 3 Main OS Cards with High Contrast Light & Dark Styling */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+      {/* 3 Main OS Cards - Evenly Balanced & Equal Height */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
         {/* macOS Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'macos'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -389,39 +402,45 @@ bash start.sh
               </p>
             </div>
 
-            {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
-                <span>Hardware Compatibility</span>
+            {/* Balanced Hardware Compatibility Grid */}
+            <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-black/60 border border-slate-200 dark:border-zinc-800 grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Chip / Arch</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Apple Silicon & Intel</span>
               </div>
-              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
-                <li>• Architecture: Apple Silicon (M1/M2/M3/M4) or Intel x86_64</li>
-                <li>• Minimum RAM: 8 GB Unified Memory (16 GB for 8B models)</li>
-                <li>• OS Version: macOS Monterey 12.0 or newer</li>
-                <li>• Disk Space: 2.5 GB available storage</li>
-              </ul>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Minimum RAM</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">8 GB Unified Memory</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">OS Version</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Monterey 12.0+</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Acceleration</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Metal GPU Native</span>
+              </div>
             </div>
 
-            {/* Features */}
+            {/* Features (Exactly 3 Lines) */}
             <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
-                <span>Metal GPU acceleration enabled</span>
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
+                <span>Metal GPU hardware acceleration</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>Screen Capture Studio with audio recording</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
-                <span>Automated Ollama local launch script</span>
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
+                <span>Automated Ollama local model launcher</span>
               </div>
             </div>
           </div>
 
           {/* Download Buttons */}
-          <div className="pt-6 space-y-2">
+          <div className="pt-6 space-y-2 mt-auto">
             <button
               onClick={() => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)')}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -436,21 +455,18 @@ bash start.sh
               <Download className="w-3.5 h-3.5" />
               <span>Download Intel Mac (DMG)</span>
             </button>
-            <p className="text-[10px] text-slate-500 dark:text-zinc-500 leading-tight text-center pt-1 font-mono">
-              Tip: On first launch, right-click DomoNote → Open, run the included <span className="text-slate-700 dark:text-zinc-300 font-semibold">Open DomoNote.command</span>, or run <span className="text-slate-700 dark:text-zinc-300 font-semibold">xattr -cr /Applications/DomoNote.app</span>.
-            </p>
           </div>
         </div>
 
         {/* Windows Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'windows'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -481,39 +497,45 @@ bash start.sh
               </p>
             </div>
 
-            {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-800 space-y-2 transition-colors duration-500">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
-                <span>Hardware Compatibility</span>
+            {/* Balanced Hardware Compatibility Grid */}
+            <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-black/60 border border-slate-200 dark:border-zinc-800 grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Architecture</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">x64 / ARM64 AVX2</span>
               </div>
-              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
-                <li>• Architecture: x64 / ARM64 with AVX2 instruction support</li>
-                <li>• Minimum RAM: 8 GB (16 GB for deep cross-note RAG)</li>
-                <li>• OS Version: Windows 10 (Build 19041+) or Windows 11</li>
-                <li>• GPU: DirectX 12 / DirectML or NVIDIA CUDA driver</li>
-              </ul>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Minimum RAM</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">8 GB System RAM</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">OS Version</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Win 10 / 11 64-bit</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Acceleration</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">DirectML / CUDA</span>
+              </div>
             </div>
 
-            {/* Features */}
+            {/* Features (Exactly 3 Lines) */}
             <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>DirectML & NVIDIA GPU acceleration</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>Windows Tab Audio and Screen Recorder</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>Portable standalone execution mode</span>
               </div>
             </div>
           </div>
 
           {/* Download Buttons */}
-          <div className="pt-6 space-y-2">
+          <div className="pt-6 space-y-2 mt-auto">
             <button
               onClick={() => handleDownload('DomoNote-Setup-x64.exe', 'Windows')}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -533,13 +555,13 @@ bash start.sh
 
         {/* Linux Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between transition-all duration-500 ${
+          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'linux'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
           }`}
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -570,39 +592,45 @@ bash start.sh
               </p>
             </div>
 
-            {/* Hardware Compatibility */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-black border border-slate-200 dark:border-zinc-850 space-y-2 transition-colors duration-500">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
-                <span>Hardware Compatibility</span>
+            {/* Balanced Hardware Compatibility Grid */}
+            <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-black/60 border border-slate-200 dark:border-zinc-800 grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Architecture</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">x86_64 / aarch64</span>
               </div>
-              <ul className="text-[11px] text-slate-700 dark:text-zinc-400 space-y-1 font-mono font-medium">
-                <li>• Architecture: x86_64 or aarch64</li>
-                <li>• Distributions: Ubuntu 20.04+, Debian 11+, Fedora 36+, Arch</li>
-                <li>• Minimum RAM: 8 GB RAM (systemd required for companion)</li>
-                <li>• Graphics: Wayland / X11 desktop display server</li>
-              </ul>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Minimum RAM</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">8 GB System RAM</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">OS Version</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">glibc 2.31+ Modern</span>
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500 block font-sans font-bold">Display Server</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200">Wayland / X11</span>
+              </div>
             </div>
 
-            {/* Features */}
+            {/* Features (Exactly 3 Lines) */}
             <div className="space-y-1.5 text-xs text-slate-800 dark:text-zinc-300 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>Sandboxed universal AppImage binary</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>PipeWire & PulseAudio capture integration</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <CheckCircle className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0" />
                 <span>1-line terminal curl installer script</span>
               </div>
             </div>
           </div>
 
           {/* Download Buttons */}
-          <div className="pt-6 space-y-2">
+          <div className="pt-6 space-y-2 mt-auto">
             <button
               onClick={() => handleDownload('DomoNote-Linux-x86_64.AppImage', 'Linux AppImage')}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -619,6 +647,64 @@ bash start.sh
             </button>
           </div>
         </div>
+      </div>
+
+      {/* macOS Gatekeeper First-Launch Resolution Card */}
+      <div className="mb-8 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs">
+            <AlertCircle className="w-4 h-4" />
+            <span>macOS Gatekeeper First-Launch Fix (Resolves "App is damaged / cannot be opened")</span>
+          </div>
+          <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+            macOS Gatekeeper automatically quarantines open-source software downloaded via browsers. If macOS reports the app is damaged, run this single terminal command to remove the quarantine flag, or double-click the included <span className="font-semibold text-slate-900 dark:text-white">Open DomoNote.command</span>:
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <code className="text-xs font-mono bg-white dark:bg-black p-2.5 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white select-all">
+            xattr -cr /Applications/DomoNote.app
+          </code>
+          <button
+            onClick={() => copyCommand('xattr -cr /Applications/DomoNote.app', 'gatekeeper')}
+            className="px-3 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shadow-sm"
+          >
+            {copiedCmd === 'gatekeeper' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copiedCmd === 'gatekeeper' ? 'Copied' : 'Copy'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Chrome Extension & Side Panel Standalone Card */}
+      <div className="mb-8 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm dark:shadow-none">
+        <div className="flex items-start gap-4">
+          <div className="p-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black shrink-0 shadow-md">
+            <Layers className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-300">
+                Browser Companion
+              </span>
+              <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                100% Standalone Access
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white mt-1">
+              DomoNote Chrome Extension & Side Panel
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 max-w-xl leading-relaxed">
+              Use notes, voice dictation, local Ollama AI summarization, and screen capture right inside your browser without opening the full desktop app.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setIsExtensionModalOpen(true)}
+          className="px-5 py-2.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center gap-2 shadow-md shrink-0"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>1-Click Extension Setup</span>
+        </button>
       </div>
 
       {/* Terminal / One-Line Quick Install Section */}
@@ -732,6 +818,12 @@ bash start.sh
           </a>
         </div>
       </div>
+
+      {/* 1-Click Automated Chrome Extension Modal */}
+      <ChromeExtensionModal
+        isOpen={isExtensionModalOpen}
+        onClose={() => setIsExtensionModalOpen(false)}
+      />
     </div>
   );
 };

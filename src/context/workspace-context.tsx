@@ -44,6 +44,8 @@ interface WorkspaceContextType {
   setIsMobileSidebarOpen: (open: boolean) => void;
   isCloudModalOpen: boolean;
   setIsCloudModalOpen: (open: boolean) => void;
+  isExtensionModalOpen: boolean;
+  setIsExtensionModalOpen: (open: boolean) => void;
   isCloudHost: boolean;
   toasts: ToastItem[];
   addToast: (message: string, type?: ToastItem['type']) => void;
@@ -88,6 +90,7 @@ const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isCloudHost = useMemo(() => isCloudDeployment(), []);
   const [isCloudModalOpen, setIsCloudModalOpen] = useState<boolean>(false);
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState<boolean>(false);
 
   // Check URL query parameters for initial view or defaults to landing
   const [activeView, setActiveViewState] = useState<ViewType>(() => {
@@ -253,6 +256,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsMobileSidebarOpen,
         isCloudModalOpen,
         setIsCloudModalOpen,
+        isExtensionModalOpen,
+        setIsExtensionModalOpen,
         isCloudHost,
         toasts,
         addToast,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Mic, FileUp, Menu } from 'lucide-react';
+import { Search, Plus, Mic, FileUp, Menu, Layers } from 'lucide-react';
 import { useWorkspace } from '../../context/workspace-context';
 import { useLanguage } from '../../context/language-context';
 import { Button } from '../ui/button';
@@ -12,7 +12,13 @@ import { ScreenHudLauncher } from '../hud/screen-hud-launcher';
 import logoImg from '../../assets/official_domonote.png';
 
 export const Topbar: React.FC = () => {
-  const { activeView, setActiveView, setIsCommandPaletteOpen, setIsMobileSidebarOpen } = useWorkspace();
+  const {
+    activeView,
+    setActiveView,
+    setIsCommandPaletteOpen,
+    setIsMobileSidebarOpen,
+    setIsExtensionModalOpen,
+  } = useWorkspace();
   const { t } = useLanguage();
 
   const getTitle = () => {
@@ -99,6 +105,17 @@ export const Topbar: React.FC = () => {
 
         {/* Tactile Theme Toggle (Light / Dark) */}
         <ThemeToggle />
+
+        {/* Chrome Extension 1-Click Integration */}
+        <button
+          onClick={() => setIsExtensionModalOpen(true)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-zinc-700 transition-all text-xs font-semibold shadow-xs group"
+          title="DomoNote Chrome Extension (1-Click Integration & Side Panel)"
+          aria-label="Open Chrome Extension setup"
+        >
+          <Layers className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300 group-hover:scale-110 transition-transform shrink-0" />
+          <span className="hidden sm:inline">Extension</span>
+        </button>
 
         {/* Search / Command Palette Trigger */}
         <button

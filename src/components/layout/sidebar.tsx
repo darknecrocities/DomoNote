@@ -20,6 +20,7 @@ import {
   X,
   Download,
   Sparkles,
+  Layers,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
@@ -28,7 +29,13 @@ import { useAI } from '../../context/ai-context';
 import logoImg from '../../assets/official_domonote.png';
 
 export const Sidebar: React.FC = () => {
-  const { activeView, setActiveView, isMobileSidebarOpen, setIsMobileSidebarOpen } = useWorkspace();
+  const {
+    activeView,
+    setActiveView,
+    isMobileSidebarOpen,
+    setIsMobileSidebarOpen,
+    setIsExtensionModalOpen,
+  } = useWorkspace();
   const { t } = useLanguage();
   const { isConnected, isChecking, selectedModel, checkConnection, startOllamaService } = useAI();
 
@@ -170,10 +177,34 @@ export const Sidebar: React.FC = () => {
             </button>
           );
         })}
+
+        {/* Chrome Extension 1-Click Integration in Sidebar */}
+        <button
+          onClick={() => {
+            setIsExtensionModalOpen(true);
+            setIsMobileSidebarOpen(false);
+          }}
+          title={collapsed ? 'Chrome Extension' : undefined}
+          className={`group relative w-full flex items-center ${
+            collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+          } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent`}
+        >
+          <Layers className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110 text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-white" />
+          {!collapsed && (
+            <div className="ml-3 flex-1 flex items-center justify-between min-w-0">
+              <span className="truncate tracking-tight text-[13px] font-semibold">
+                Chrome Extension
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-800 dark:text-zinc-300 border border-slate-300 dark:border-zinc-700 font-bold">
+                1-Click
+              </span>
+            </div>
+          )}
+        </button>
       </nav>
 
       {/* Local AI Status Hardware Card */}
-      <div className="p-2.5 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#070707] transition-colors">
+      <div className="p-2.5 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-black transition-colors">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2 py-2">
             <span

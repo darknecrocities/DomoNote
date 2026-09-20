@@ -15,7 +15,7 @@ export const AboutView: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">About DomoNote</h1>
             <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
-              Your Local AI Secretary for meetings, notes, and documents.
+              Your Personal AI Secretary for meetings, notes, and documents.
             </p>
           </div>
         </div>
