@@ -38,6 +38,7 @@ import { SectionConstellation } from '../components/landing/section-constellatio
 import { HeroCloudBackground } from '../components/landing/hero-cloud-background';
 import { StarfieldBackground } from '../components/landing/starfield-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
+import { BrandCarouselBelts } from '../components/landing/brand-carousel-belts';
 import { TiltCard } from '../components/ui/tilt-card';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/official_domonote.png';
@@ -545,6 +546,9 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Continuous Looping Brand Belts: Video Platforms & Supported File Formats */}
+        <BrandCarouselBelts />
 
         {/* Product Demo Video Showcase with Quantum Lattice Constellation */}
         <ScrollReveal direction="up" delayMs={50}>
