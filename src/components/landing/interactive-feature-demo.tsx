@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
   FileText,
@@ -34,53 +34,35 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   const [progress, setProgress] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Call Recording Stage State (3 Speakers: Man & Woman with distinct tones)
+  // Call Recording Stage State (3 Speakers: Natural human voices)
   const speakersData = [
     {
       id: 0,
       name: 'Arron Parejas',
-      gender: 'Man',
-      voiceTone: 'Deep Baritone',
-      pitch: 0.75,
-      rate: 0.95,
-      freqHz: 125,
-      toneDesc: 'Deep, warm male tone',
-      badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
-      activeColor: 'text-sky-400',
+      role: 'Man',
+      audioSrc: '/audio/speaker-arron.mp3',
       text: "Hey everyone! Everything we say stays locked right inside this computer. Nobody else can ever listen in!",
     },
     {
       id: 1,
       name: 'Elena Rostova',
-      gender: 'Woman',
-      voiceTone: 'Melodic Clear',
-      pitch: 1.35,
-      rate: 1.05,
-      freqHz: 260,
-      toneDesc: 'Higher melodic female tone',
-      badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-      activeColor: 'text-rose-400',
+      role: 'Woman',
+      audioSrc: '/audio/speaker-elena.mp3',
       text: "Yes! DomoNote listens to our voices in real-time and writes down every single word on the spot without typing.",
     },
     {
       id: 2,
       name: 'Marcus Vance',
-      gender: 'Man',
-      voiceTone: 'Crisp Tenor',
-      pitch: 1.05,
-      rate: 1.0,
-      freqHz: 180,
-      toneDesc: 'Crisp, bright male tone',
-      badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-      activeColor: 'text-emerald-400',
+      role: 'Man',
+      audioSrc: '/audio/speaker-marcus.mp3',
       text: "That means our private ideas and secrets are 100% protected at home with zero risk of leaks.",
     },
   ];
 
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number>(0);
   const [charIndex, setCharIndex] = useState<number>(0);
   const [isVoiceAudioEnabled, setIsVoiceAudioEnabled] = useState<boolean>(false);
-  const [callDuration, setCallDuration] = useState<number>(38);
   const [completedSpeakers, setCompletedSpeakers] = useState<Record<number, boolean>>({});
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [audioWaves, setAudioWaves] = useState<number[]>([
@@ -110,12 +92,18 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
     };
   }, []);
 
-  // Format seconds to mm:ss cleanly
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Meeting Notes Checklist State
   const [checkedTasks, setCheckedTasks] = useState<Record<number, boolean>>({
@@ -159,72 +147,51 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
     const speaker = speakersData[speakerIdx];
     if (!speaker) return;
 
-    // 1. Play Web Audio tone formant for instant pitch distinction (125Hz vs 260Hz vs 180Hz)
+    // 1. First priority: Play natural studio voice audio
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = speaker.gender === 'Woman' ? 'triangle' : 'sine';
-        osc.frequency.setValueAtTime(speaker.freqHz, ctx.currentTime);
-        gain.gain.setValueAtTime(0.09, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.35);
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
       }
-    } catch {
-      // AudioContext fallback
-    }
+      const audio = new Audio(speaker.audioSrc);
+      currentAudioRef.current = audio;
+      audio.play().catch(() => {
+        // 2. Fallback to browser SpeechSynthesis with natural human voices (no synthetic buzzes)
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(speaker.text);
+          utterance.pitch = speaker.role === 'Woman' ? 1.05 : 0.95;
+          utterance.rate = 1.0;
 
-    // 2. Web Speech API with explicit pitch & gender voice
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(speaker.text);
-        utterance.pitch = speaker.pitch;
-        utterance.rate = speaker.rate;
-
-        const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          if (speaker.gender === 'Woman') {
-            const femaleVoice = voices.find((v) =>
-              v.lang.startsWith('en') && (
-                v.name.toLowerCase().includes('female') ||
-                v.name.toLowerCase().includes('samantha') ||
-                v.name.toLowerCase().includes('victoria') ||
-                v.name.toLowerCase().includes('karen') ||
-                v.name.toLowerCase().includes('zira') ||
-                v.name.toLowerCase().includes('fiona') ||
-                v.name.toLowerCase().includes('moira') ||
-                v.name.toLowerCase().includes('tessa') ||
-                v.name.toLowerCase().includes('veena') ||
-                v.name.toLowerCase().includes('natural')
-              )
-            );
-            if (femaleVoice) utterance.voice = femaleVoice;
-          } else {
-            const maleVoice = voices.find((v) =>
-              v.lang.startsWith('en') && (
-                v.name.toLowerCase().includes('male') ||
-                v.name.toLowerCase().includes('daniel') ||
-                v.name.toLowerCase().includes('alex') ||
-                v.name.toLowerCase().includes('fred') ||
-                v.name.toLowerCase().includes('george') ||
-                v.name.toLowerCase().includes('david') ||
-                v.name.toLowerCase().includes('oliver') ||
-                v.name.toLowerCase().includes('tom')
-              )
-            );
-            if (maleVoice) utterance.voice = maleVoice;
+          const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
+          if (voices.length > 0) {
+            if (speaker.role === 'Woman') {
+              const femaleVoice = voices.find((v) =>
+                v.lang.startsWith('en') && (
+                  v.name.includes('Samantha') ||
+                  v.name.includes('Victoria') ||
+                  v.name.includes('Karen') ||
+                  v.name.toLowerCase().includes('female')
+                )
+              );
+              if (femaleVoice) utterance.voice = femaleVoice;
+            } else {
+              const maleVoice = voices.find((v) =>
+                v.lang.startsWith('en') && (
+                  v.name.includes('Daniel') ||
+                  v.name.includes('Alex') ||
+                  v.name.includes('Fred') ||
+                  v.name.toLowerCase().includes('male')
+                )
+              );
+              if (maleVoice) utterance.voice = maleVoice;
+            }
           }
+          window.speechSynthesis.speak(utterance);
         }
-        window.speechSynthesis.speak(utterance);
-      } catch {
-        // SpeechSynthesis fallback
-      }
+      });
+    } catch {
+      // Audio fallback
     }
   };
 
@@ -244,23 +211,11 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
       });
     }, 40);
 
-    // Audio waves pulsing according to speaker tone
+    // Subtle natural audio wave activity
     const waveInterval = setInterval(() => {
       setAudioWaves((prev) =>
-        prev.map((_, i) => {
-          if (activeSpeakerIndex === 0) {
-            // Deep baritone tone: heavier bass on low frequencies
-            return i < 8 ? Math.floor(Math.random() * 55) + 35 : Math.floor(Math.random() * 30) + 15;
-          } else if (activeSpeakerIndex === 1) {
-            // Melodic woman tone: energetic high frequencies on upper range
-            return i > 11 ? Math.floor(Math.random() * 60) + 35 : Math.floor(Math.random() * 35) + 20;
-          } else {
-            // Crisp tenor tone: balanced mid frequencies
-            return Math.floor(Math.random() * 50) + 25;
-          }
-        })
+        prev.map(() => Math.floor(Math.random() * 55) + 20)
       );
-      setCallDuration((prev) => prev + 1);
     }, 180);
 
     return () => {
@@ -487,13 +442,11 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span className="font-semibold text-white">Voice Listener & Real-Time Transcriber</span>
-                    <span className="text-zinc-500 font-mono text-[11px]">
-                      {formatTime(callDuration)}
-                    </span>
+                    <span className="font-semibold text-white">Voice Listener</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-400">Live Audio</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">3 speakers transcribing on the spot with distinct man and woman voices</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Real-time speech transcription with distinct speakers</p>
                 </div>
               </div>
 
@@ -505,26 +458,32 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                     setIsVoiceAudioEnabled(next);
                     if (next) {
                       playSpeakerAudio(activeSpeakerIndex);
-                    } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                      window.speechSynthesis.cancel();
+                    } else {
+                      if (currentAudioRef.current) {
+                        currentAudioRef.current.pause();
+                        currentAudioRef.current.currentTime = 0;
+                      }
+                      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                      }
                     }
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 shadow-sm ${
                     isVoiceAudioEnabled
-                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-950/40'
+                      ? 'bg-white text-black border-white shadow-zinc-900/50'
                       : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-white hover:bg-zinc-850'
                   }`}
                   title="Click to hear voices out loud"
                 >
                   {isVoiceAudioEnabled ? (
                     <>
-                      <Volume2 className="w-3.5 h-3.5 text-white animate-pulse" />
-                      <span>Voice Sound: ON</span>
+                      <Volume2 className="w-3.5 h-3.5 text-black" />
+                      <span>Audio: ON</span>
                     </>
                   ) : (
                     <>
                       <VolumeX className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Voice Sound: OFF (Click to listen)</span>
+                      <span>Audio: OFF</span>
                     </>
                   )}
                 </button>
@@ -536,8 +495,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               {/* Speakers Column (Left 4 cols) */}
               <div className="lg:col-span-4 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2.5 text-xs">
                 <div className="text-[11px] font-medium text-zinc-400 flex items-center justify-between">
-                  <span>Speakers (3 in Call)</span>
-                  <span className="text-zinc-500 text-[10px]">Click to hear</span>
+                  <span>Speakers</span>
                 </div>
 
                 <div className="space-y-2">
@@ -546,7 +504,10 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                     return (
                       <div
                         key={idx}
-                        onClick={() => handleSelectSpeaker(idx)}
+                        onClick={() => {
+                          setIsVoiceAudioEnabled(true);
+                          handleSelectSpeaker(idx);
+                        }}
                         className={`p-2.5 rounded-lg border flex flex-col gap-1.5 transition-all cursor-pointer ${
                           isActive
                             ? 'bg-zinc-900 border-zinc-700 text-white ring-1 ring-zinc-700'
@@ -562,30 +523,28 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                             >
                               {speaker.name[0]}
                             </div>
-                            <div>
-                              <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                                <span>{speaker.name}</span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${speaker.badgeColor}`}>
-                                  {speaker.gender}
-                                </span>
-                              </div>
-                              <div className="text-[10px] text-zinc-400">{speaker.toneDesc}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-zinc-200">{speaker.name}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded border font-mono bg-zinc-850 text-zinc-300 border-zinc-750">
+                                {speaker.role}
+                              </span>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-1.5">
                             {isActive ? (
-                              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              <span className="text-[10px] font-mono text-zinc-300 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                                 Speaking
                               </span>
                             ) : (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  setIsVoiceAudioEnabled(true);
                                   handleSelectSpeaker(idx);
                                 }}
-                                className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                className="p-1 rounded hover:bg-zinc-850 text-zinc-400 hover:text-white transition-colors"
                                 title={`Hear ${speaker.name}'s voice`}
                               >
                                 <Volume2 className="w-3.5 h-3.5" />
@@ -601,30 +560,24 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
 
               {/* Audio Wave & Live Transcribing Stream (Right 8 cols) */}
               <div className="lg:col-span-8 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3 flex flex-col justify-between">
-                {/* Audio Wave Visualizer reacting to active speaker's pitch */}
+                {/* Audio Wave Visualizer reacting to active speaker */}
                 <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-850 flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 px-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 px-1">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Active Voice: {speakersData[activeSpeakerIndex].name} ({speakersData[activeSpeakerIndex].gender} • {speakersData[activeSpeakerIndex].voiceTone})</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span>Active Speaker: {speakersData[activeSpeakerIndex].name}</span>
                     </span>
-                    <span>Pitch: {speakersData[activeSpeakerIndex].freqHz} Hz</span>
+                    <span className="text-zinc-500">{speakersData[activeSpeakerIndex].role}</span>
                   </div>
 
                   <div className="flex items-center justify-between gap-1 h-12 px-1">
                     {audioWaves.map((height, i) => (
                       <div
                         key={i}
-                        className={`flex-1 rounded-xs transition-all duration-200 ${
-                          activeSpeakerIndex === 0
-                            ? 'bg-sky-400'
-                            : activeSpeakerIndex === 1
-                            ? 'bg-rose-400'
-                            : 'bg-emerald-400'
-                        }`}
+                        className="flex-1 rounded-xs bg-zinc-300 dark:bg-zinc-200 transition-all duration-200"
                         style={{
                           height: `${height}%`,
-                          opacity: height > 45 ? 0.9 : 0.35,
+                          opacity: height > 45 ? 0.9 : 0.4,
                         }}
                       />
                     ))}
@@ -650,38 +603,39 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-zinc-200">{speaker.name}</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${speaker.badgeColor}`}>
-                              {speaker.gender} • {speaker.voiceTone} • {speaker.freqHz} Hz
+                            <span className="text-[10px] px-1.5 py-0.5 rounded border font-mono bg-zinc-850 text-zinc-300 border-zinc-750">
+                              {speaker.role}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-2">
                             {isCurrent ? (
-                              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                                <span>Transcribing on the spot...</span>
+                              <span className="text-[10px] font-mono text-zinc-300 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                <span>Transcribing</span>
                               </span>
                             ) : isPast ? (
                               <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
-                                <Check className="w-3 h-3 text-emerald-400" />
+                                <Check className="w-3 h-3 text-zinc-400" />
                                 <span>Transcribed</span>
                               </span>
                             ) : (
                               <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
                                 <Clock className="w-3 h-3 text-zinc-500" />
-                                <span>Up next</span>
+                                <span>Queued</span>
                               </span>
                             )}
 
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setIsVoiceAudioEnabled(true);
                                 handleSelectSpeaker(idx);
                               }}
-                              className="px-2 py-0.5 rounded text-[10px] font-medium border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors flex items-center gap-1 shrink-0 ml-1"
+                              className="px-2 py-0.5 rounded text-[10px] font-medium border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-850 hover:border-zinc-750 transition-colors flex items-center gap-1 shrink-0 ml-1"
                               title={`Listen to ${speaker.name}'s voice`}
                             >
-                              <Volume2 className="w-3 h-3 text-emerald-400" />
+                              <Volume2 className="w-3 h-3 text-zinc-400" />
                               <span>Listen</span>
                             </button>
                           </div>
@@ -692,7 +646,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                           {isCurrent ? (
                             <>
                               "{speaker.text.slice(0, charIndex)}"
-                              <span className="inline-block w-1.5 h-3.5 bg-emerald-400 animate-pulse ml-0.5 align-middle" />
+                              <span className="inline-block w-1.5 h-3.5 bg-white animate-pulse ml-0.5 align-middle" />
                             </>
                           ) : isPast ? (
                             `"${speaker.text}"`
@@ -729,7 +683,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               </div>
 
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-850 text-zinc-300 text-[11px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
                 <span>Saved & Ready</span>
               </span>
             </div>
@@ -1018,7 +972,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                   </div>
                   <div className="flex items-center justify-between text-zinc-400">
                     <span>Privacy Level</span>
-                    <span className="font-mono text-emerald-400 font-bold">100% Private</span>
+                    <span className="font-mono text-zinc-200 font-bold">100% Private</span>
                   </div>
                 </div>
               </div>
@@ -1054,8 +1008,8 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 mr-1 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
+                      <Check className="w-3.5 h-3.5 mr-1 text-white" />
+                      <span className="text-white">Copied!</span>
                     </>
                   ) : (
                     <>
@@ -1147,7 +1101,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
       {/* Bottom Footer Bar */}
       <div className="p-3.5 border-t border-zinc-850 bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-400">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white" />
           <span>Listens to your voice, summarizes long chats, and highlights what matters in red.</span>
         </div>
 
