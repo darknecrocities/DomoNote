@@ -45,7 +45,7 @@ import logoImg from '../assets/official_domonote.png';
 const TYPEWRITER_PHRASES: Record<string, string[]> = {
   en: [
     'Transcribed offline.',
-    'Captured & annotated on device.',
+    'annotated on device.',
     'Organized into clear notes.',
     'Powered by your local AI.',
     'Private, offline, and secure.',
