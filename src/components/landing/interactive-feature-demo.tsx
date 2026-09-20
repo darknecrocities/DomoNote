@@ -54,7 +54,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
   const stages: { id: DemoStage; label: string; number: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'calls', label: 'Voice Listener', number: '01', icon: Mic },
     { id: 'summarizing', label: 'Quick Summary', number: '02', icon: Sparkles },
-    { id: 'annotation', label: 'Red Highlighter', number: '03', icon: Highlighter },
+    { id: 'annotation', label: 'Red Border Box', number: '03', icon: Highlighter },
     { id: 'notes', label: 'To-Do Checklist', number: '04', icon: FileText },
   ];
 
@@ -130,12 +130,12 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
 ## Things We Decided
 - [x] 100% Private: Keep all notes locked on this computer screen.
 - [x] No Wi-Fi Needed: Works anywhere, even on an airplane.
-- [x] Red Pen Magic: Highlights the only sentence that matters so you save time.
+- [x] Red Border Box: Highlights the key meeting decision so you save time.
 
 ## To-Do List
 - [x] Download DomoNote to your computer (@Arron, Done!)
-- [ ] Turn off your Wi-Fi and write a quick note (@Elena, Try it!)
-- [ ] Let DomoNote highlight a long paper in red (@Marcus, Easy!)
+- [x] Turn off your Wi-Fi and write a quick note (@Elena, Try it!)
+- [ ] Let DomoNote highlight a meeting transcript in red (@Marcus, Easy!)
 `;
     navigator.clipboard.writeText(notesMarkdown);
     setCopied(true);
@@ -151,25 +151,28 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
 
   const annotationPresets = [
     {
-      title: 'Secret Diary Rule',
+      title: 'Private Notes Rule',
+      speaker: 'Arron Parejas',
+      timestamp: '00:24',
       targetText: 'THE #1 RULE: Everything you say and write stays locked safely inside your own computer. No one on the internet can ever see your notes, and we never send your words to outside companies.',
       stepTag: '01 • 100% Private',
-      note: 'Your notes are locked like a secret diary at home. No strangers can read them.',
-      highlightSentence: 'Everything you say and write stays locked safely inside your own computer.',
+      note: 'Explains that all meeting notes remain strictly on your own computer screen with zero outside leaks.',
     },
     {
       title: 'Works With No Wi-Fi',
+      speaker: 'Elena Rostova',
+      timestamp: '00:32',
       targetText: 'NO INTERNET NEEDED: DomoNote has its own smart brain built right into your laptop. You can write, talk, and get helpful answers even if your internet is completely turned off.',
       stepTag: '02 • Works Everywhere',
-      note: 'You can take notes on an airplane, in the car, or during a storm with zero internet.',
-      highlightSentence: 'You can write, talk, and get helpful answers even if your internet is completely turned off.',
+      note: 'Confirms that you can take notes on an airplane, in the car, or offline with zero internet.',
     },
     {
-      title: 'Red Pen Magic',
-      targetText: 'READS FOR YOU: Instead of forcing you to read ten pages of tiny, boring words, DomoNote draws a bright red box around the only sentence that actually answers your question.',
+      title: 'Red Box Time Saver',
+      speaker: 'Marcus Vance',
+      timestamp: '00:41',
+      targetText: 'READS FOR YOU: Instead of forcing you to read ten pages of words, DomoNote draws a clean red border box around the only sentence that actually matters so you save time.',
       stepTag: '03 • Saves Your Time',
-      note: 'Finds the exact answer in two seconds so you can finish quickly and go have fun.',
-      highlightSentence: 'DomoNote draws a bright red box around the only sentence that actually answers your question.',
+      note: 'Finds the exact answer in two seconds so you can spot what was decided without reading the whole page.',
     },
   ];
 
@@ -454,7 +457,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
           </div>
         )}
 
-        {/* ================= STAGE 3: DOCUMENT ANNOTATION (MINIMAL, NOT FUTURISTIC) ================= */}
+        {/* ================= STAGE 3: DOCUMENT ANNOTATION (A4 MEETING TRANSCRIBE WITH RED LINE BORDER BOX ONLY) ================= */}
         {activeStage === 'annotation' && (
           <div className="space-y-5">
             {/* Header */}
@@ -465,15 +468,15 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">Whole Paper Reader</span>
+                    <span className="font-semibold text-white">Meeting Transcribe Reader</span>
                     <span className="text-zinc-500">•</span>
                     <span className="text-red-400 font-medium flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      Magic Red Pen
+                      Red Line Border Box Only
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-0.5">
-                    Draws a bright red box around the only sentence you need to read
+                    Draws a clean red outline box around the key quote in the A4 meeting transcript
                   </p>
                 </div>
               </div>
@@ -483,10 +486,10 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                 <button
                   onClick={() => setDrawAnimKey((k) => k + 1)}
                   className="px-2.5 py-1 rounded text-xs border border-red-500/40 bg-red-950/30 text-red-300 hover:bg-red-900/40 hover:text-white transition-colors flex items-center gap-1.5 font-medium shadow-xs"
-                  title="Replay hand-drawn red annotation animation"
+                  title="Replay red border box animation"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Draw Again</span>
+                  <span>Draw Box Again</span>
                 </button>
 
                 <button
@@ -499,7 +502,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                   title="Toggle document zoom"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
-                  <span>{isZoomMode ? 'Zoom: Big' : 'Zoom In'}</span>
+                  <span>{isZoomMode ? 'Zoom: 110%' : 'Zoom In'}</span>
                 </button>
 
                 {annotationPresets.map((preset, idx) => (
@@ -521,167 +524,183 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               </div>
             </div>
 
-            {/* Whole Paper Document View */}
+            {/* A4 Meeting Transcribe View */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left 8 Cols: Whole Clean Paper Document Sheet */}
-              <div
-                className={`lg:col-span-8 rounded-xl border border-zinc-300 bg-white text-zinc-900 p-6 sm:p-8 shadow-2xl transition-all duration-300 relative text-xs leading-relaxed font-sans ${
-                  isZoomMode ? 'scale-[1.02] shadow-2xl' : 'scale-100'
-                }`}
-              >
-                {/* Paper Header / Official Spec Letterhead */}
-                <div className="border-b-2 border-zinc-900 pb-3 mb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              {/* Left 8 Cols: Authentic A4 Paper Sheet (Meeting Transcribe) */}
+              <div className="lg:col-span-8 flex justify-center w-full">
+                <div
+                  className={`w-full max-w-[620px] bg-white text-zinc-900 rounded-sm shadow-2xl p-6 sm:p-9 border border-zinc-300/80 transition-all duration-300 relative text-xs leading-relaxed font-sans flex flex-col justify-between ${
+                    isZoomMode ? 'scale-[1.03] shadow-2xl' : 'scale-100'
+                  }`}
+                  style={{
+                    minHeight: '740px',
+                    aspectRatio: '1 / 1.414',
+                  }}
+                >
+                  {/* Top Paper Header: Meeting Transcribe Letterhead */}
                   <div>
-                    <div className="text-[10px] font-mono tracking-widest uppercase font-bold text-zinc-500">
-                      DOMONOTE EASY GUIDE FOR EVERYONE
-                    </div>
-                    <h3 className="text-sm sm:text-base font-black text-zinc-950 tracking-tight mt-0.5">
-                      How DomoNote Keeps All Your Notes Safe & Simple
-                    </h3>
-                    <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
-                      Works on Mac, Windows, and Linux • 100% Private at Home
-                    </div>
-                  </div>
-                  <div className="flex items-center sm:flex-col sm:items-end gap-2 shrink-0">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-red-100 text-red-700 border border-red-300">
-                      TOP SECRET
-                    </span>
-                    <span className="text-[10px] text-zinc-400 font-mono">Page 1 of 1</span>
-                  </div>
-                </div>
-
-                {/* Section 1: Executive Context */}
-                <div className="space-y-1 mb-4">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 font-mono">
-                    1. What This Paper Is About
-                  </div>
-                  <p className="text-zinc-600 text-xs leading-relaxed">
-                    Welcome to DomoNote — Your Personal AI Secretary! This paper explains why DomoNote is special: it helps you remember everything, reads long papers for you, and never lets strangers or outside companies see your notes.
-                  </p>
-                </div>
-
-                {/* Section 2: Important Mandate with Animated Hand-Drawn Red Outline & Underline */}
-                <div className="relative my-4">
-                  <div
-                    key={`paper-box-${selectedAnnotationPreset}-${drawAnimKey}`}
-                    className="relative p-4 rounded-lg bg-red-50/50 border border-red-200/80 transition-all duration-300"
-                  >
-                    {/* Hand-Drawn SVG Red Box Outline with Draw Animation */}
-                    <svg
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                      preserveAspectRatio="none"
-                    >
-                      <rect
-                        x="2"
-                        y="2"
-                        width="calc(100% - 4px)"
-                        height="calc(100% - 4px)"
-                        rx="8"
-                        ry="8"
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="animate-red-box"
-                      />
-                    </svg>
-
-                    {/* Excerpt Header */}
-                    <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-red-600">
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        <span>IMPORTANT // {annotationPresets[selectedAnnotationPreset].stepTag}</span>
+                    <div className="border-b-2 border-zinc-900 pb-3 mb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono tracking-widest uppercase font-bold text-zinc-500">
+                            DOMONOTE AUDIO TRANSCRIBER
+                          </span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
+                            A4 FORMAT
+                          </span>
+                        </div>
+                        <h3 className="text-sm sm:text-base font-black text-zinc-950 tracking-tight mt-1">
+                          Official Meeting Transcript: Product Sync & Privacy
+                        </h3>
+                        <div className="text-[11px] text-zinc-500 font-mono mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                          <span>Date: Today</span>
+                          <span>•</span>
+                          <span>Time: 10:00 AM – 10:25 AM</span>
+                          <span>•</span>
+                          <span>Recorded: Local Audio Engine</span>
+                        </div>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-600 text-white font-bold tracking-wider animate-red-stamp">
-                        MUST READ
-                      </span>
+                      <div className="flex items-center sm:flex-col sm:items-end gap-2 shrink-0">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-300">
+                          100% TRANSCRIBED
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-mono">Page 1 of 1</span>
+                      </div>
                     </div>
 
-                    {/* Target Text */}
-                    <p className="text-zinc-950 font-semibold text-xs sm:text-sm leading-relaxed relative z-10">
-                      "{annotationPresets[selectedAnnotationPreset].targetText}"
-                    </p>
+                    {/* Meeting Attendees Bar */}
+                    <div className="p-2.5 rounded bg-zinc-50 border border-zinc-200 mb-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-600">
+                      <div>
+                        <span className="font-semibold text-zinc-800">Attendees: </span>
+                        <span>Arron Parejas (Host), Elena Rostova (Engineer), Marcus Vance (Reviewer)</span>
+                      </div>
+                      <div className="font-mono text-[10px] text-zinc-400">
+                        Quality: High • 3 Speakers
+                      </div>
+                    </div>
 
-                    {/* Animated Red Hand-Drawn Underline SVG */}
-                    <svg
-                      key={`underline-${selectedAnnotationPreset}-${drawAnimKey}`}
-                      className="w-full h-3 mt-1.5 pointer-events-none relative z-10"
-                      viewBox="0 0 400 12"
-                      preserveAspectRatio="none"
-                    >
-                      <path
-                        d="M 2 7 Q 100 12, 200 6 T 398 7"
-                        fill="none"
-                        stroke="#dc2626"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        className="animate-red-underline"
-                      />
-                    </svg>
+                    {/* Realistic Dialogue Transcription Stream */}
+                    <div className="space-y-3.5 text-xs">
+                      {/* Dialogue 1 */}
+                      <div className="text-zinc-700 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-mono text-zinc-400">[00:02]</span>
+                          <span className="font-bold text-zinc-900">Arron Parejas:</span>
+                        </div>
+                        <p className="pl-3 border-l-2 border-zinc-200 text-zinc-600">
+                          "Good morning everyone! Let's make sure our meeting notes and audio recordings are completely safe on our own laptops."
+                        </p>
+                      </div>
 
-                    {/* Annotation Footer */}
-                    <div className="mt-2.5 pt-2 border-t border-red-200 flex flex-wrap items-center justify-between text-[11px] text-red-700 font-mono relative z-10">
-                      <span>Important Rule #{selectedAnnotationPreset + 1}</span>
-                      <span>Magic Red Pen: Hand-Drawn For You</span>
+                      {/* Dialogue 2 */}
+                      <div className="text-zinc-700 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-mono text-zinc-400">[00:14]</span>
+                          <span className="font-bold text-zinc-900">Elena Rostova:</span>
+                        </div>
+                        <p className="pl-3 border-l-2 border-zinc-200 text-zinc-600">
+                          "Yes, DomoNote listens to our voices in real-time and writes down every sentence cleanly so no one has to take manual notes."
+                        </p>
+                      </div>
+
+                      {/* Dialogue 3 (THE HIGHLIGHTED KEY DECISION - RED LINE BORDER BOX ONLY) */}
+                      <div className="relative my-2">
+                        <div
+                          key={`paper-box-${selectedAnnotationPreset}-${drawAnimKey}`}
+                          className="relative p-3.5 sm:p-4 rounded-lg bg-transparent transition-all duration-300"
+                        >
+                          {/* Clean Hand-Drawn Red Line Border Box Only (No Background Fill) */}
+                          <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none"
+                            preserveAspectRatio="none"
+                          >
+                            <rect
+                              x="2"
+                              y="2"
+                              width="calc(100% - 4px)"
+                              height="calc(100% - 4px)"
+                              rx="8"
+                              ry="8"
+                              fill="none"
+                              stroke="#ef4444"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="animate-red-box"
+                            />
+                          </svg>
+
+                          {/* Speaker and Timestamp inside the box */}
+                          <div className="flex items-center justify-between gap-2 mb-1.5 relative z-10">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono text-zinc-500">[{annotationPresets[selectedAnnotationPreset].timestamp}]</span>
+                              <span className="font-bold text-zinc-950">{annotationPresets[selectedAnnotationPreset].speaker}:</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-red-600 font-bold flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                              KEY DECISION
+                            </span>
+                          </div>
+
+                          {/* Target Text: Clean quote framed with red border line */}
+                          <p className="text-zinc-950 font-semibold text-xs sm:text-sm leading-relaxed relative z-10 pl-2">
+                            "{annotationPresets[selectedAnnotationPreset].targetText}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Dialogue 4 */}
+                      <div className="text-zinc-700 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-mono text-zinc-400">[00:48]</span>
+                          <span className="font-bold text-zinc-900">Marcus Vance:</span>
+                        </div>
+                        <p className="pl-3 border-l-2 border-zinc-200 text-zinc-600">
+                          "That saves so much reading time. Whenever we review this transcript, our eyes instantly jump to the red box instead of scanning the entire page."
+                        </p>
+                      </div>
+
+                      {/* Dialogue 5 */}
+                      <div className="text-zinc-700 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-mono text-zinc-400">[01:05]</span>
+                          <span className="font-bold text-zinc-900">Arron Parejas:</span>
+                        </div>
+                        <p className="pl-3 border-l-2 border-zinc-200 text-zinc-600">
+                          "Agreed. All action items are clear, and everyone has the exact same checklist ready to go."
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Section 3: "What this document is about" Key Takeaways */}
-                <div className="space-y-2 mt-4 pt-3 border-t border-zinc-200">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-700 font-mono">
-                    2. Why You Will Love It (The 3 Big Perks)
+                  {/* A4 Paper Footer */}
+                  <div className="mt-6 pt-3 border-t border-zinc-300 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                    <span>DOMONOTE AUDIO TRANSCRIPT • A4 STANDARD</span>
+                    <span>100% PRIVATE • LOCAL STORAGE ONLY</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
-                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
-                      <span className="font-bold text-red-600 block">✓ 100% Private</span>
-                      <span className="text-zinc-600 mt-0.5 block">
-                        Your words and papers stay inside your computer. Nobody else can peek.
-                      </span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
-                      <span className="font-bold text-red-600 block">✓ Works Without Wi-Fi</span>
-                      <span className="text-zinc-600 mt-0.5 block">
-                        DomoNote has its own smart brain right inside your laptop. No internet needed!
-                      </span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
-                      <span className="font-bold text-red-600 block">✓ Saves You Time</span>
-                      <span className="text-zinc-600 mt-0.5 block">
-                        Draws a bright red box around the answer so you don't have to read 10 boring pages.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Paper Footer */}
-                <div className="mt-5 pt-3 border-t-2 border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                  <span>DOMONOTE SIMPLE NOTE</span>
-                  <span>100% PRIVATE • SAFE • NO WI-FI NEEDED</span>
                 </div>
               </div>
 
               {/* Right 4 Cols: Inspector */}
               <div className="lg:col-span-4 p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 text-xs space-y-4">
                 <div className="pb-3 border-b border-zinc-850">
-                  <div className="font-semibold text-white mb-1">Magic Red Pen Helper</div>
+                  <div className="font-semibold text-white mb-1">Transcript Annotation</div>
                   <div className="text-[11px] text-zinc-400">
-                    Shows why this sentence was highlighted in red
+                    Real-time AI highlight on A4 meeting transcript
                   </div>
                 </div>
 
-                {/* Color Badge */}
-                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                {/* Highlight Style Badge */}
+                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-850 space-y-2">
                   <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400 block font-semibold">
-                    Pen Color
+                    Highlight Style
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-red-500/40 animate-pulse shrink-0" />
-                    <span className="font-bold text-white text-xs">Bright Red Marker</span>
+                    <span className="font-bold text-white text-xs">Red Line Border Box Only</span>
                   </div>
                   <div className="text-[11px] text-zinc-400">
-                    Draws a red box and a red underline so you can spot the important part in 1 second.
+                    Clean border-only outline with no background fill, keeping original transcript text 100% crisp and readable.
                   </div>
                 </div>
 
@@ -698,16 +717,20 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                 {/* Document Information */}
                 <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-850 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between text-zinc-400">
-                    <span>Paper Name</span>
-                    <span className="font-mono text-zinc-200">My-Notes.pdf</span>
+                    <span>Document Format</span>
+                    <span className="font-mono text-zinc-200">A4 Meeting Transcript</span>
                   </div>
                   <div className="flex items-center justify-between text-zinc-400">
-                    <span>Where to Look</span>
-                    <span className="font-mono text-zinc-200">Middle of paper</span>
+                    <span>Target Speaker</span>
+                    <span className="font-mono text-zinc-200">{annotationPresets[selectedAnnotationPreset].speaker}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-zinc-400">
+                    <span>Time Offset</span>
+                    <span className="font-mono text-zinc-200">{annotationPresets[selectedAnnotationPreset].timestamp}</span>
                   </div>
                   <div className="flex items-center justify-between text-zinc-400">
                     <span>Privacy Level</span>
-                    <span className="font-mono text-red-400 font-bold">100% Private</span>
+                    <span className="font-mono text-emerald-400 font-bold">100% Private</span>
                   </div>
                 </div>
 
