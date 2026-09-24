@@ -93,26 +93,37 @@ DomoNote includes fully automated local AI setup scripts that require zero manua
 
 ### Quick Start (Single Command)
 
+#### macOS / Linux
 ```bash
-# Clone the repository
 git clone https://github.com/darknecrocities/DomoNote.git
 cd DomoNote
-
-# Run the automated launcher
 ./start.sh
 ```
 
-The `./start.sh` script automatically:
-1. Detects your operating system (macOS / Linux).
-2. Verifies whether Ollama is installed (offering automated Homebrew installation on macOS if needed).
-3. Launches the Ollama service in the background with `OLLAMA_ORIGINS="*"` to enable direct browser communication.
-4. Checks if a local model is present, automatically pulling `llama3.2` if no models exist.
-5. Installs dependencies and launches the Vite web application.
+#### Windows
+You can run DomoNote on Windows in multiple ways:
 
-You can also run the Ollama setup independently:
-```bash
-npm run setup:ollama
-```
+1. **Native Windows Desktop Installer (.EXE)**:
+   - Download and run `DomoNote-Setup-x64.exe`.
+   - Automatically installs DomoNote to your local programs directory, creates Desktop and Start Menu shortcuts with the official icon, configures the Windows uninstaller, and connects to your local Ollama instance.
+
+2. **Automated Developer Setup Script (.BAT)**:
+   ```cmd
+   git clone https://github.com/darknecrocities/DomoNote.git
+   cd DomoNote
+   scripts\setup-windows.bat
+   ```
+
+3. **Cross-Platform npm start**:
+   ```bash
+   npm start
+   ```
+
+The automated launcher scripts automatically:
+1. Detect your operating system (macOS / Linux / Windows).
+2. Verify whether Ollama is installed and running with `OLLAMA_ORIGINS="*"`.
+3. Check and install Node dependencies.
+4. Launch the application with native hardware access.
 
 ---
 
@@ -130,6 +141,9 @@ npm run test
 
 # Run production build
 npm run build
+
+# Build Windows native desktop application & standalone installer (.EXE)
+npm run build:windows
 ```
 
 ---

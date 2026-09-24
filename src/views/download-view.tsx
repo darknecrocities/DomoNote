@@ -80,19 +80,34 @@ export const DownloadView: React.FC = () => {
   };
 
   const handleDownload = (filename: string, osName: string) => {
-    // For macOS, download the real verified DMG bundle with native DomoNote app
-    if (filename.endsWith('.dmg')) {
+    // For native binary packages (.exe installer, .zip portable, .dmg macOS, .AppImage, .deb), download verified files
+    if (
+      filename.endsWith('.exe') ||
+      filename.endsWith('.zip') ||
+      filename.endsWith('.dmg') ||
+      filename.endsWith('.AppImage') ||
+      filename.endsWith('.deb')
+    ) {
       const a = document.createElement('a');
       a.href = `/downloads/${filename}`;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      addToast(`Downloading native DomoNote DMG (${filename}). Double-click to open and drag into Applications.`, 'success');
+
+      const label = filename.endsWith('.exe')
+        ? 'native Windows Installer (.EXE)'
+        : filename.endsWith('.zip')
+        ? 'Windows Portable Package (.ZIP)'
+        : filename.endsWith('.dmg')
+        ? 'native macOS DMG bundle'
+        : 'Linux package';
+
+      addToast(`Downloading ${label} (${filename}). Double-click to install DomoNote.`, 'success');
       return;
     }
 
-    const isWindows = osName.toLowerCase().includes('windows') || filename.endsWith('.bat') || filename.endsWith('.exe');
+    const isWindows = osName.toLowerCase().includes('windows') || filename.endsWith('.bat');
     let blobContent = '';
     let mimeType = 'text/plain';
 
@@ -114,9 +129,7 @@ echo.
 
 where git >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-  echo [Error] Git is required. Please install Git from https://git-scm.com/
-  pause
-  exit /b 1
+  echo [Notice] Git is not required for binary installs, but needed for source clones.
 )
 
 where node >nul 2>nul
@@ -183,7 +196,7 @@ bash start.sh
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    addToast(`Downloading ${filename} for ${osName} with DomoNote app logo. Run script to launch.`, 'success');
+    addToast(`Downloading ${filename} for ${osName}. Run script to launch.`, 'success');
   };
 
   return (

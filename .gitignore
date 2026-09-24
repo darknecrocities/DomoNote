@@ -46,3 +46,7 @@ public/downloads/
 desktop/DomoNote
 AppIcon.iconset/
 *.pdf
+**/bin/
+**/obj/
+*.user
+**/bundle.zip

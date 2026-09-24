@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { useWorkspace } from '../../context/workspace-context';
@@ -26,21 +26,22 @@ export const GlobalSearchModal: React.FC = () => {
 
   const [query, setQuery] = useState('');
 
-  const notes = useLiveQuery(() => db.notes.toArray(), []) || [];
-  const meetings = useLiveQuery(() => db.meetings.toArray(), []) || [];
-  const documents = useLiveQuery(() => db.documents.toArray(), []) || [];
-  const manuals = useLiveQuery(() => db.manuals.toArray(), []) || [];
+  const rawNotes = useLiveQuery(() => db.notes.toArray(), []);
+  const rawMeetings = useLiveQuery(() => db.meetings.toArray(), []);
+  const rawDocuments = useLiveQuery(() => db.documents.toArray(), []);
+  const rawManuals = useLiveQuery(() => db.manuals.toArray(), []);
 
-  const [results, setResults] = useState<SearchResult[]>([]);
-
-  useEffect(() => {
+  const results = useMemo<SearchResult[]>(() => {
     if (!query.trim()) {
-      setResults([]);
-      return;
+      return [];
     }
 
     const q = query.toLowerCase();
     const hits: SearchResult[] = [];
+    const notes = rawNotes || [];
+    const meetings = rawMeetings || [];
+    const documents = rawDocuments || [];
+    const manuals = rawManuals || [];
 
     // Search Notes
     notes.forEach((n) => {
@@ -111,8 +112,8 @@ export const GlobalSearchModal: React.FC = () => {
       }
     });
 
-    setResults(hits);
-  }, [query, notes, meetings, documents, manuals]);
+    return hits;
+  }, [query, rawNotes, rawMeetings, rawDocuments, rawManuals]);
 
   const handleSelect = (hit: SearchResult) => {
     setIsSearchOpen(false);

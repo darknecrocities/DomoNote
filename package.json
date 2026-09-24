@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "setup:ollama": "bash scripts/setup-ollama.sh",
-    "start": "bash start.sh"
+    "setup:windows": "scripts\\setup-windows.bat",
+    "build:windows": "node scripts/build-windows.js",
+    "start": "node scripts/start.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
