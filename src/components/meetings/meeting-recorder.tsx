@@ -53,6 +53,7 @@ import {
   Wand2,
   Languages,
   ArrowRightLeft,
+  ExternalLink,
 } from 'lucide-react';
 
 interface MeetingRecorderProps {
@@ -120,10 +121,13 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           const nonHostReal = roster.filter((r) => r.toLowerCase() !== 'you / host');
           if (nonHostReal.length > 0) {
             const realName = nonHostReal[0];
-            // Retroactively replace any generic 'Participant 2' or 'Speaker 2' in transcript with the discovered name
+            // Retroactively replace any generic 'Participant 2', 'Speaker 2', or 'Remote Participant' in transcript with the discovered real name
             setTranscript((curr) =>
               curr.map((seg) =>
-                seg.speaker === 'Participant 2' || /^speaker\s*\d*$/i.test(seg.speaker)
+                seg.speaker === 'Participant 2' ||
+                /^speaker\s*\d*$/i.test(seg.speaker) ||
+                seg.speaker === 'Remote Participant' ||
+                seg.speaker === 'Guest'
                   ? { ...seg, speaker: realName }
                   : seg
               )
@@ -198,7 +202,13 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     if (activeAudioChannelRef.current === 'remote') {
       // Prefer DOM-detected active speaker, then any non-host roster member
       const domActive = speakerHookManager.getActiveSpeaker();
-      const nonHost = speakerRoster.find((s) => s.toLowerCase() !== 'you / host' && s !== 'Participant 2');
+      const nonHost = speakerRoster.find(
+        (s) =>
+          s.toLowerCase() !== 'you / host' &&
+          s !== 'Participant 2' &&
+          s !== 'Remote Participant' &&
+          !/^(?:speaker|participant)\s*\d*$/i.test(s)
+      );
       const bestGuess = domActive && domActive !== 'You / Host' ? domActive : nonHost;
       if (bestGuess && currentSpeaker !== bestGuess) {
         setCurrentSpeaker(bestGuess);
@@ -235,14 +245,17 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       setSpeakerRoster(hookResult.updatedRoster);
     }
 
-    // Retroactively update recent generic segments when a new speaker is identified
-    if (hookResult.isNewDetection && resolvedSpeaker !== 'You / Host') {
+    // Retroactively update recent generic segments when a new real speaker is identified
+    if (hookResult.isNewDetection && resolvedSpeaker !== 'You / Host' && resolvedSpeaker !== 'Remote Participant') {
       setTranscript((prev) => {
         if (prev.length === 0) return prev;
         const lastSeg = prev[prev.length - 1];
         if (
           lastSeg &&
-          (/^speaker\s*\d*$/i.test(lastSeg.speaker) || lastSeg.speaker === 'You / Host') &&
+          (/^speaker\s*\d*$/i.test(lastSeg.speaker) ||
+            lastSeg.speaker === 'You / Host' ||
+            lastSeg.speaker === 'Participant 2' ||
+            lastSeg.speaker === 'Remote Participant') &&
           Math.abs(seg.timestampSeconds - lastSeg.timestampSeconds) < 45
         ) {
           return prev.map((s, idx) => (idx === prev.length - 1 ? { ...s, speaker: resolvedSpeaker } : s));
@@ -518,11 +531,12 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       else if (trackLabel.includes('slack')) appName = 'Slack Huddle';
       else if (trackLabel.includes('discord')) appName = 'Discord';
       setDetectedMeetingApp(appName);
+      setShouldAutoOpenPiP(true);
 
-      // Automatically initialize multi-speaker roster for meeting tab capture
+      // Initialize speaker roster with actual host participant (no dummy names)
       setSpeakerRoster((prev) => {
-        if (prev.length <= 1) {
-          return ['You / Host', 'Participant 2'];
+        if (prev.length === 0) {
+          return ['You / Host'];
         }
         return prev;
       });
@@ -1009,6 +1023,18 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                {/* Pop-out Quick Navbar to Meeting Screen */}
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => setShouldAutoOpenPiP(true)}
+                  title="Pop out Always-on-Top Floating Quick Navbar on your meeting tab or screen"
+                  className="border-zinc-700 hover:border-zinc-500"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="hidden sm:inline">Pop-out HUD</span>
+                </Button>
+
                 {/* Screenshot Capture Button */}
                 <Button
                   variant="outline"

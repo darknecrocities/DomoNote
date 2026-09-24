@@ -77,10 +77,11 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
   onAddQuickNote,
   onRemoveScreenshot,
 }) => {
-  // Position state (defaults to top-center)
+  // Position state (defaults to bottom-center so it doesn't obstruct top controls)
   const [position, setPosition] = useState<{ x: number; y: number }>(() => {
     const defaultX = typeof window !== 'undefined' ? Math.max(20, (window.innerWidth - 680) / 2) : 200;
-    return { x: defaultX, y: 24 };
+    const defaultY = typeof window !== 'undefined' ? Math.max(20, window.innerHeight - 84) : 450;
+    return { x: defaultX, y: defaultY };
   });
 
   const [isDragging, setIsDragging] = useState(false);

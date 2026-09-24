@@ -189,11 +189,17 @@ export const SettingsView: React.FC = () => {
     if (targetComp) {
       const installedMatch = getInstalledOllamaModel(targetComp, models);
       if (installedMatch) {
-        await setSelectedModel(installedMatch.name || installedMatch.model);
+        const targetName = installedMatch.name || installedMatch.model;
+        await setSelectedModel(targetName);
+        addToast(`Active model set to: ${targetComp.name}`, 'success');
         return;
       }
+      await setSelectedModel(modelId);
+      addToast(`Active model set to: ${targetComp.name}`, 'success');
+      return;
     }
     await setSelectedModel(modelId);
+    addToast(`Active model set to: ${modelId}`, 'success');
   };
 
   // Storage metrics
@@ -498,7 +504,7 @@ export const SettingsView: React.FC = () => {
                     size="sm"
                     variant="outline"
                     className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-zinc-800 font-semibold"
-                    onClick={() => setSelectedModel(recommendedModel.id)}
+                    onClick={() => handleSelectModel(recommendedModel.id)}
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Use Recommended</span>
@@ -825,7 +831,7 @@ export const SettingsView: React.FC = () => {
                               size="sm"
                               variant="outline"
                               className="text-xs h-7 px-2.5 border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 font-medium"
-                              onClick={() => setSelectedModel(model.id)}
+                              onClick={() => handleSelectModel(model.id)}
                             >
                               <Check className="w-3 h-3" />
                               <span>Select Active</span>

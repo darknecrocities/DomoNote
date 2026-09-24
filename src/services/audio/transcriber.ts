@@ -4,6 +4,7 @@ import { ollama } from '../ai/ollama';
 import {
   detectAllEventsInText,
   createScheduleEventFromMatch,
+  parseDateExpression,
 } from '../calendar/event-detector';
 import {
   detectLikelyLanguage,
@@ -336,13 +337,26 @@ Panatilihing buo at tumpak ang pagsasalin sa natural at propesyonal na Filipino 
 Ensure all foreign dialogue, idioms, and notes are translated strictly into clean, fluent English.`;
   }
 
+  const now = new Date();
+  const currentIsoDate = now.toISOString().split('T')[0];
+  const currentDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const currentYear = now.getFullYear();
+
   const prompt = `You are an expert multilingual executive AI secretary.
 Analyze this meeting transcript and participant notes.
 ${languageDirective}
 
-Deriving facts ONLY from the text provided below, generate a factual structured JSON output.
-Do not hallucinate or invent owners if none are mentioned. If something was not discussed, leave that array empty.
-If any future events, meetings, syncs, presentations, or deadlines are mentioned with dates/times, include them in "detectedEvents".
+CALENDAR & DATE REFERENCE:
+- Today's date is: ${currentDayName}, ${currentIsoDate} (Year ${currentYear}).
+- Resolve all relative date mentions (such as "tomorrow", "this Friday", "next Tuesday", "in 2 days", "next week") relative to ${currentIsoDate}.
+
+FACTUAL STRICTNESS RULES:
+1. Deriving facts ONLY from the text provided below, generate a factual structured JSON output.
+2. Do NOT hallucinate, invent, or make up decisions, tasks, or owners if none were explicitly discussed.
+3. SCHEDULED EVENTS & DEADLINES:
+   - ONLY include items in "detectedEvents" if participants EXPLICITLY scheduled, agreed upon, or mentioned an upcoming event, meeting, sync, demo, presentation, or deadline with a specific date or time.
+   - If NO future scheduled events or dates were discussed, "detectedEvents" MUST BE AN EMPTY ARRAY: [].
+   - CRITICAL: NEVER hallucinate dummy events (such as "Project Status Meeting", "Upcoming Tasks Meeting") or random past dates (such as "2023-04-01"). If nothing was scheduled, return [].
 
 TRANSCRIPT:
 ${transcriptText || '(No verbal transcript)'}
@@ -357,9 +371,7 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
   "actionItems": [{"task": "Task description", "owner": "Name or empty"}],
   "topics": ["Topic 1", "Topic 2"],
   "followUpTasks": ["Follow-up task 1"],
-  "detectedEvents": [
-    {"title": "Event Name", "date": "YYYY-MM-DD", "time": "HH:MM", "durationMin": 30, "category": "meeting"}
-  ],
+  "detectedEvents": [],
   "timeline": [
     {"timestampSeconds": 0, "label": "Brief topic milestone", "type": "topic"}
   ]
@@ -387,43 +399,93 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
         }))
       : [];
 
-    // Parse AI-detected events and merge with NLP events
+    // Parse AI-detected events with strict grounding and anti-hallucination verification
+    const DUMMY_TITLES = new Set([
+      'event name',
+      'project status meeting',
+      'upcoming tasks meeting',
+      'sample event',
+      'test meeting',
+      'dummy event',
+      'placeholder',
+      'scheduled event',
+      'meeting',
+      'none',
+      'n/a',
+      'null',
+    ]);
+
+    const combinedLower = combinedText.toLowerCase();
+
     if (Array.isArray(parsed.detectedEvents)) {
       for (const ev of parsed.detectedEvents) {
-        if (ev.title && (ev.date || ev.time)) {
-          const isoDate = ev.date && /^\d{4}-\d{2}-\d{2}$/.test(ev.date)
-            ? ev.date
-            : new Date().toISOString().split('T')[0];
-          const timeStr = ev.time || '10:00';
+        if (!ev || !ev.title || typeof ev.title !== 'string') continue;
+        const rawTitle = ev.title.trim();
+        const titleLower = rawTitle.toLowerCase();
 
-          const exists = detectedEvents.some(
-            (e) => e.date === isoDate && e.time === timeStr
-          );
+        // 1. Skip known placeholder/dummy names
+        if (DUMMY_TITLES.has(titleLower)) continue;
 
-          if (!exists) {
-            detectedEvents.push({
-              id: `ev-ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              title: ev.title,
-              date: isoDate,
-              time: timeStr,
-              durationMin: Number(ev.durationMin) || 30,
-              category: ['meeting', 'deep-work', 'review', 'manual', 'deadline'].includes(ev.category)
-                ? ev.category
-                : 'meeting',
-              completed: false,
-              notes: `Identified by Local AI from meeting discussion.`,
-              detectedFrom: {
-                source: 'meeting',
-                sourceTitle: meetingTitle || 'Meeting Title',
-              },
-              addedToComputerCalendar: false,
-              syncedToGoogle: false,
-              createdAt: Date.now(),
-            });
-          }
+        // 2. Strict Grounding Check: at least one significant word from the title must appear in the transcript or notes
+        const significantWords = titleLower
+          .split(/[\s,.-]+/)
+          .filter((w: string) => w.length > 3 && !['about', 'with', 'from', 'this', 'that', 'have', 'will', 'team', 'meet', 'meeting', 'sync'].includes(w));
+
+        const isGroundedInText =
+          significantWords.length === 0
+            ? combinedLower.includes(titleLower)
+            : significantWords.some((w: string) => combinedLower.includes(w));
+
+        if (!isGroundedInText && transcript.length > 0) {
+          console.warn(`[DomoNote] Skipping ungrounded AI event hallucination: "${rawTitle}"`);
+          continue;
         }
-      }
+
+        // 3. Date resolution and sanity check
+        let eventDate = ev.date;
+        if (!eventDate || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+          // Attempt to parse date from title, notes, or snippet
+          const resolved = parseDateExpression(rawTitle + ' ' + (ev.notes || ''), now);
+          eventDate = resolved || currentIsoDate;
+        }
+
+        // Fix hallucinated past year (e.g. 2023, 2024 before currentYear)
+        const eventYear = parseInt(eventDate.split('-')[0], 10);
+        if (eventYear < currentYear) {
+          const parts = eventDate.split('-');
+          eventDate = `${currentYear}-${parts[1]}-${parts[2]}`;
+        }
+
+        const timeStr = ev.time && /^\d{1,2}:\d{2}$/.test(ev.time) ? ev.time : '10:00';
+
+        const exists = detectedEvents.some(
+          (e) => e.date === eventDate && (e.time === timeStr || e.title.toLowerCase() === titleLower)
+        );
+
+        if (!exists) {
+          detectedEvents.push({
+            id: `ev-ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            title: rawTitle,
+            date: eventDate,
+            time: timeStr,
+            durationMin: Number(ev.durationMin) || 30,
+            category: ['meeting', 'deep-work', 'review', 'manual', 'deadline'].includes(ev.category)
+              ? ev.category
+              : 'meeting',
+            completed: false,
+            notes: `Identified by Local AI from meeting discussion.`,
+            detectedFrom: {
+              source: 'meeting',
+              sourceTitle: meetingTitle || 'Meeting Title',
+              snippet: ev.snippet || rawTitle,
+            },
+            addedToComputerCalendar: false,
+            syncedToGoogle: false,
+            createdAt: Date.now(),
+          });
+        }
     }
+  }
 
     return {
       summary: {
@@ -487,13 +549,49 @@ export async function polishAndDiarizeTranscript(
     .map((s, idx) => `[${idx}] [${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`)
     .join('\n');
 
+  const DUMMY_SPEAKER_NAMES = new Set([
+    'name1',
+    'name2',
+    'name3',
+    'name4',
+    'name5',
+    'john doe',
+    'jane doe',
+    'jane smith',
+    'john smith',
+    'smith',
+    'doe',
+    'foo bar',
+    'sample name',
+    'test user',
+    'dummy user',
+    'participant 1',
+    'participant 2',
+    'speaker 1',
+    'speaker 2',
+    'user 1',
+    'user 2',
+    'example name',
+    'placeholder',
+    'none',
+    'n/a',
+    'null',
+    'guest',
+  ]);
+
   const cleanedParticipants = (knownParticipants || [])
-    .filter((n) => n && !/^speaker\s*\d*$/i.test(n) && n !== 'Guest');
+    .filter(
+      (n) =>
+        n &&
+        !/^speaker\s*\d*$/i.test(n) &&
+        !/^(?:participant|user|name)\s*\d*$/i.test(n) &&
+        !DUMMY_SPEAKER_NAMES.has(n.toLowerCase())
+    );
 
   const participantInstruction = cleanedParticipants.length > 0
-    ? `KNOWN MEETING PARTICIPANTS: ${cleanedParticipants.join(', ')}.
-CRITICAL INSTRUCTION: You MUST attribute speech lines to these actual named participants (e.g. "${cleanedParticipants[0]}", "${cleanedParticipants[1] || cleanedParticipants[0]}"). DO NOT use generic labels like "Speaker 1" or "Speaker 2". Analyze self-introductions, greetings, questions, and conversational flow to map each line to their real name.`
-    : `Assign realistic, accurate speaker names. If participants introduce themselves or are addressed by name (e.g., "Sarah", "Alex"), use their real names rather than generic "Speaker 1" or "Speaker 2".`;
+    ? `KNOWN REAL MEETING PARTICIPANTS: ${cleanedParticipants.join(', ')}.
+CRITICAL INSTRUCTION: You MUST attribute speech lines ONLY to these actual named participants (e.g. "${cleanedParticipants[0]}"). DO NOT invent dummy names like "Jane Smith", "John Doe", or generic labels like "Speaker 1".`
+    : `Assign accurate speaker names based strictly on spoken introductions in the transcript. DO NOT invent dummy placeholder names like "Jane Smith" or "John Doe". Default to "You / Host" if only one speaker is present.`;
 
   const prompt = `You are an expert audio transcription editor and speaker diarization specialist.
 Clean up, punctuate, and polish this raw spoken transcript. Correct speech recognition misspellings, merge stuttered phrases into clean sentences, and distinguish speakers accurately based on conversational flow.
@@ -527,7 +625,13 @@ Return only the JSON array with no extra text or markdown formatting.`;
 
     return parsed.map((item: any, idx: number) => {
       let spk = (item.speaker || '').trim();
-      if (!spk || /^speaker\s*\d*$/i.test(spk) || spk.toLowerCase() === 'guest') {
+      const spkLower = spk.toLowerCase();
+      if (
+        !spk ||
+        /^speaker\s*\d*$/i.test(spk) ||
+        /^(?:participant|user|name)\s*\d*$/i.test(spk) ||
+        DUMMY_SPEAKER_NAMES.has(spkLower)
+      ) {
         spk = cleanedParticipants[idx % Math.max(1, cleanedParticipants.length)] || 'You / Host';
       }
       return {
@@ -545,7 +649,13 @@ Return only the JSON array with no extra text or markdown formatting.`;
     // Safe deterministic fallback: capitalize, punctuate, and replace generic "Speaker 1/2" with known names
     return transcript.map((s, idx) => {
       let finalSpeaker = s.speaker;
-      if (/^speaker\s*\d*$/i.test(finalSpeaker) || finalSpeaker === 'Guest') {
+      const spkLower = (finalSpeaker || '').toLowerCase();
+      if (
+        !finalSpeaker ||
+        /^speaker\s*\d*$/i.test(finalSpeaker) ||
+        /^(?:participant|user|name)\s*\d*$/i.test(finalSpeaker) ||
+        DUMMY_SPEAKER_NAMES.has(spkLower)
+      ) {
         if (cleanedParticipants.length > 0) {
           finalSpeaker = cleanedParticipants[idx % cleanedParticipants.length];
         } else {

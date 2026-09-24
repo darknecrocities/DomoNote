@@ -27,6 +27,7 @@ export interface MeetingSyncPayload {
   app?: string;
   participants?: string[];
   activeSpeaker?: string;
+  selfParticipant?: string; // The local user's real name (the (You) participant)
   timestamp?: number;
 }
 
@@ -95,6 +96,37 @@ export function cleanSpeakerName(raw: string): string | null {
     'sharing this tab',
     'meeting details',
     'info',
+  ]);
+
+  // Exclude dummy, placeholder, or static mock names
+  const DUMMY_NAMES = new Set([
+    'name1',
+    'name2',
+    'name3',
+    'name4',
+    'name5',
+    'john doe',
+    'jane doe',
+    'jane smith',
+    'john smith',
+    'smith',
+    'doe',
+    'foo bar',
+    'sample name',
+    'test user',
+    'dummy user',
+    'participant 1',
+    'participant 2',
+    'speaker 1',
+    'speaker 2',
+    'user 1',
+    'user 2',
+    'example name',
+    'placeholder',
+    'none',
+    'n/a',
+    'null',
+    'undefined',
   ]);
 
   // Exclude common adjectives, pronouns and non-name words following "this is", "it is"
@@ -166,7 +198,12 @@ export function cleanSpeakerName(raw: string): string | null {
   ]);
 
   const cleanedLower = cleaned.toLowerCase();
-  if (UI_BLACKLIST.has(cleanedLower) || NON_NAME_WORDS.has(cleanedLower)) {
+  if (
+    UI_BLACKLIST.has(cleanedLower) ||
+    NON_NAME_WORDS.has(cleanedLower) ||
+    DUMMY_NAMES.has(cleanedLower) ||
+    /^(?:name|speaker|participant|user)\s*\d*$/i.test(cleanedLower)
+  ) {
     return null;
   }
 
@@ -310,6 +347,7 @@ export class MeetingSpeakerHook {
   private discoveredSpeakers: Map<string, DiscoveredSpeaker> = new Map();
   private detectedApp: string | null = null;
   private activeSpeaker: string | null = null;
+  private selfName: string | null = null; // Real name of the local user (replaces 'You / Host')
   private pendingHandoff: string | null = null;
   private pendingIntroPrefix: boolean = false;
 
@@ -368,9 +406,23 @@ export class MeetingSpeakerHook {
             confidence: 0.9,
             firstSeen: Date.now(),
             lastActive: Date.now(),
+            isSelf: cleaned === this.selfName,
           });
           changed = true;
         }
+      }
+    }
+
+    // Handle self participant identification (the (You) person in Google Meet)
+    if (payload.selfParticipant) {
+      const cleanedSelf = cleanSpeakerName(payload.selfParticipant);
+      if (cleanedSelf && cleanedSelf !== this.selfName) {
+        this.selfName = cleanedSelf;
+        // Mark the discovered speaker as self
+        if (this.discoveredSpeakers.has(cleanedSelf)) {
+          this.discoveredSpeakers.get(cleanedSelf)!.isSelf = true;
+        }
+        changed = true;
       }
     }
 
@@ -498,8 +550,7 @@ export class MeetingSpeakerHook {
         } else if (nonHostSpeakers.length > 0) {
           assigned = nonHostSpeakers[0];
         } else {
-          assigned = 'Participant 2';
-          this.addSpeaker('Participant 2', 'manual', 0.85);
+          assigned = 'Remote Participant';
         }
       }
       this.activeSpeaker = assigned;
@@ -551,12 +602,14 @@ export class MeetingSpeakerHook {
     }
 
     // 3. Eradicate generic "Speaker N" / "Participant N" if we have known real participants
-    if (/^(?:speaker|participant)\s*\d*$/i.test(assigned) || assigned.toLowerCase() === 'guest') {
+    if (/^(?:speaker|participant)\s*\d*$/i.test(assigned) || assigned.toLowerCase() === 'guest' || assigned === 'Remote Participant') {
       const nonHostSpeakers = currentList.filter(
-        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s)
+        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s) && s !== 'Remote Participant'
       );
       if (nonHostSpeakers.length > 0) {
         assigned = nonHostSpeakers[0];
+      } else if (channelHint === 'remote') {
+        assigned = 'Remote Participant';
       } else {
         assigned = 'You / Host';
       }
@@ -565,9 +618,9 @@ export class MeetingSpeakerHook {
     const updatedRoster = [...new Set([
       'You / Host',
       ...currentList.filter(
-        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s)
+        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s) && s !== 'Remote Participant'
       ),
-      ...(!/^(?:speaker|participant)\s*\d*$/i.test(assigned) ? [assigned] : []),
+      ...(!/^(?:speaker|participant)\s*\d*$/i.test(assigned) && assigned !== 'Remote Participant' && assigned.toLowerCase() !== 'guest' ? [assigned] : []),
     ])];
 
     return {
@@ -581,6 +634,7 @@ export class MeetingSpeakerHook {
     this.discoveredSpeakers.clear();
     this.detectedApp = null;
     this.activeSpeaker = null;
+    this.selfName = null;
     this.pendingHandoff = null;
     this.pendingIntroPrefix = false;
   }
@@ -611,6 +665,25 @@ export class MeetingSpeakerHook {
     return this.activeSpeaker;
   }
 
+  /**
+   * Returns the real name of the local user (the person marked as "(You)" in the meeting app).
+   * Used to replace "You / Host" with the actual name in the transcript.
+   */
+  public getSelfName(): string | null {
+    return this.selfName;
+  }
+
+  public setSelfName(name: string): void {
+    const cleaned = cleanSpeakerName(name);
+    if (cleaned && cleaned !== this.selfName) {
+      this.selfName = cleaned;
+      if (this.discoveredSpeakers.has(cleaned)) {
+        this.discoveredSpeakers.get(cleaned)!.isSelf = true;
+      }
+      this.notifyListeners();
+    }
+  }
+
   public getDiscoveredSpeakers(): string[] {
     return Array.from(this.discoveredSpeakers.keys());
   }
@@ -620,14 +693,14 @@ export class MeetingSpeakerHook {
   }
 
   public subscribe(
-    callback: (roster: string[], app: string | null, activeSpeaker: string | null) => void
+    callback: (roster: string[], app: string | null, activeSpeaker: string | null, selfName: string | null) => void
   ): () => void {
-    this.listeners.add(callback);
+    this.listeners.add(callback as any);
     // Initial emit
-    callback(this.getDiscoveredSpeakers(), this.detectedApp, this.activeSpeaker);
+    callback(this.getDiscoveredSpeakers(), this.detectedApp, this.activeSpeaker, this.selfName);
 
     return () => {
-      this.listeners.delete(callback);
+      this.listeners.delete(callback as any);
     };
   }
 
@@ -635,7 +708,7 @@ export class MeetingSpeakerHook {
     const roster = this.getDiscoveredSpeakers();
     for (const listener of this.listeners) {
       try {
-        listener(roster, this.detectedApp, this.activeSpeaker);
+        (listener as any)(roster, this.detectedApp, this.activeSpeaker, this.selfName);
       } catch (e) {
         console.warn('[DomoNote SpeakerHook] Listener error:', e);
       }

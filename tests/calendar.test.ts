@@ -70,6 +70,27 @@ describe('Calendar Event & Date Detection', () => {
     expect(dates).toContain('2026-09-17');
     expect(dates).toContain('2026-09-18');
   });
+
+  it('correctly parses relative days expressions (e.g. in 2 days, next week)', () => {
+    expect(parseDateExpression('in 2 days', fixedBaseDate)).toBe('2026-09-18');
+    expect(parseDateExpression('in 3 days', fixedBaseDate)).toBe('2026-09-19');
+    expect(parseDateExpression('next week', fixedBaseDate)).toBe('2026-09-23');
+    expect(parseDateExpression('25th of September', fixedBaseDate)).toBe('2026-09-25');
+  });
+
+  it('correctly parses Filipino date and time expressions', () => {
+    expect(parseDateExpression('bukas ng hapon', fixedBaseDate)).toBe('2026-09-17');
+    expect(parseDateExpression('sa susunod na linggo', fixedBaseDate)).toBe('2026-09-23');
+    expect(parseTimeExpression('alas tres ng hapon')).toBe('15:00');
+    expect(parseTimeExpression('alas diyes ng umaga')).toBe('10:00');
+    expect(parseTimeExpression('alas dose ng tanghali')).toBe('12:00');
+  });
+
+  it('returns null for sentences without future scheduling intent or dates', () => {
+    expect(detectEventFromSentence('Thank you everyone for joining today’s meeting.', fixedBaseDate)).toBeNull();
+    expect(detectEventFromSentence('In our last meeting yesterday we decided on Postgres.', fixedBaseDate)).toBeNull();
+    expect(detectEventFromSentence('I think this feature is very cool.', fixedBaseDate)).toBeNull();
+  });
 });
 
 describe('iCalendar (.ics) Generator', () => {

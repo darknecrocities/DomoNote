@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { OllamaModel } from '../types';
 import { ollama, type PullProgressUpdate } from '../services/ai/ollama';
-import { db } from '../db';
+import { db, DEFAULT_SETTINGS } from '../db';
 
 export type { PullProgressUpdate };
 
@@ -24,11 +24,19 @@ interface AIContextType {
 
 const AIContext = createContext<AIContextType | null>(null);
 
+const STORAGE_KEY_SELECTED_MODEL = 'domonote_user_selected_model';
+
 export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(true);
   const [models, setModels] = useState<OllamaModel[]>([]);
-  const [selectedModel, setSelectedModelState] = useState<string>('');
+  // Synchronous initial load from localStorage ensures zero-flicker and instant persistence across reloads
+  const [selectedModel, setSelectedModelState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(STORAGE_KEY_SELECTED_MODEL) || '';
+    }
+    return '';
+  });
   const [baseUrl, setBaseUrlState] = useState<string>('http://localhost:11434');
 
   // Load persisted settings on mount
@@ -38,12 +46,20 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
     async function loadSettings() {
       try {
         const settings = await db.settings.get('current');
+        const localSaved =
+          typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_SELECTED_MODEL) : null;
+        const modelToUse = localSaved || settings?.selectedModel || '';
+
+        if (modelToUse && isMounted) {
+          setSelectedModelState(modelToUse);
+          if (typeof window !== 'undefined' && !localSaved) {
+            localStorage.setItem(STORAGE_KEY_SELECTED_MODEL, modelToUse);
+          }
+        }
+
         if (settings && isMounted) {
           setBaseUrlState(settings.ollamaBaseUrl || 'http://localhost:11434');
           ollama.setBaseUrl(settings.ollamaBaseUrl || 'http://localhost:11434');
-          if (settings.selectedModel) {
-            setSelectedModelState(settings.selectedModel);
-          }
         }
       } catch (err) {
         console.warn('[DomoNote] Could not read settings:', err);
@@ -65,17 +81,35 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
         const fetchedModels = await ollama.getModels();
         setModels(fetchedModels);
 
-        // Auto-select first model if none currently selected
+        // Auto-select first model ONLY if the user has NEVER selected any model anywhere
         if (fetchedModels.length > 0) {
           setSelectedModelState((curr) => {
-            const exists = fetchedModels.some((m) => m.name === curr || m.model === curr);
-            if (!curr || !exists) {
-              const defaultPick = fetchedModels[0].name;
-              // Persist to DB
-              db.settings.update('current', { selectedModel: defaultPick }).catch(() => {});
-              return defaultPick;
+            const savedChoice =
+              typeof window !== 'undefined'
+                ? localStorage.getItem(STORAGE_KEY_SELECTED_MODEL)
+                : null;
+
+            // If user already has an active model choice, NEVER switch or overwrite it
+            if (curr && curr.trim()) {
+              return curr;
             }
-            return curr;
+            if (savedChoice && savedChoice.trim()) {
+              return savedChoice;
+            }
+
+            // Fresh install with no user choice: initialize with first available model
+            const defaultPick = fetchedModels[0].name || fetchedModels[0].model;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(STORAGE_KEY_SELECTED_MODEL, defaultPick);
+            }
+            db.settings.get('current').then((existing) => {
+              if (existing) {
+                db.settings.update('current', { selectedModel: defaultPick }).catch(() => {});
+              } else {
+                db.settings.put({ ...DEFAULT_SETTINGS, selectedModel: defaultPick }).catch(() => {});
+              }
+            }).catch(() => {});
+            return defaultPick;
           });
         }
       } else {
@@ -99,9 +133,23 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [checkConnection]);
 
   const setSelectedModel = async (model: string) => {
-    setSelectedModelState(model);
+    if (!model || !model.trim()) return;
+    const cleanModel = model.trim();
+    setSelectedModelState(cleanModel);
+
+    // Save to localStorage immediately (synchronous, immune to DB delays)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_SELECTED_MODEL, cleanModel);
+    }
+
+    // Persist to Dexie IndexedDB
     try {
-      await db.settings.update('current', { selectedModel: model });
+      const existing = await db.settings.get('current');
+      if (existing) {
+        await db.settings.update('current', { selectedModel: cleanModel });
+      } else {
+        await db.settings.put({ ...DEFAULT_SETTINGS, selectedModel: cleanModel });
+      }
     } catch (err) {
       console.warn('[DomoNote] Failed to persist selected model:', err);
     }

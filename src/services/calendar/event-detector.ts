@@ -140,6 +140,17 @@ export function parseTimeExpression(text: string): string | null {
     }
   }
 
+  // Support "morning" -> "09:00", "afternoon" -> "14:00", "evening" -> "18:00", "night" -> "19:00" if explicitly specified in scheduling context
+  if (/\b(in the morning|tomorrow morning|bukas ng umaga|ngayong umaga)\b/.test(lower) && !lower.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/)) {
+    return '09:00';
+  }
+  if (/\b(in the afternoon|tomorrow afternoon|bukas ng hapon|ngayong hapon)\b/.test(lower) && !lower.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/)) {
+    return '14:00';
+  }
+  if (/\b(in the evening|tonight|bukas ng gabi|ngayong gabi)\b/.test(lower) && !lower.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/)) {
+    return '18:00';
+  }
+
   return null;
 }
 
@@ -151,21 +162,48 @@ export function parseDateExpression(text: string, baseDate: Date = new Date()): 
   const lower = text.toLowerCase();
 
   // "day after tomorrow" / Filipino "sa makalawa" / Japanese "明後日" / Chinese "后天"
-  if (/\b(day after tomorrow|sa makalawa)\b/.test(lower) || /明後日|后天/.test(text)) {
+  if (/\b(day after tomorrow|sa makalawa|samakalawa)\b/.test(lower) || /明後日|后天/.test(text)) {
     const next = new Date(baseDate);
     next.setDate(next.getDate() + 2);
     return formatIsoDate(next);
   }
 
-  // "today" / Filipino "ngayon" / "ngayong araw" / Japanese "今日" / Chinese "今天"
-  if (/\b(today|ngayon|ngayong araw)\b/.test(lower) || /今日|今天/.test(text)) {
+  // "today" / "tonight" / Filipino "ngayon" / "ngayong araw" / "ngayong gabi" / Japanese "今日" / Chinese "今天"
+  if (/\b(today|tonight|ngayon|ngayong araw|ngayong gabi|this afternoon|ngayong hapon)\b/.test(lower) || /今日|今天/.test(text)) {
     return formatIsoDate(baseDate);
   }
 
   // "tomorrow" / Filipino "bukas" / Japanese "明日" / Chinese "明天"
-  if (/\b(tomorrow|bukas)\b/.test(lower) || /明日|明天/.test(text)) {
+  if (/\b(tomorrow|bukas|darating na bukas)\b/.test(lower) || /明日|明天/.test(text)) {
     const next = new Date(baseDate);
     next.setDate(next.getDate() + 1);
+    return formatIsoDate(next);
+  }
+
+  // "in X days / weeks"
+  const inDaysMatch = lower.match(/\bin\s+(\d+|two|three|four|five|six|seven|a couple of|a|1|2|3|4|5)\s+(days?|weeks?)\b/);
+  if (inDaysMatch) {
+    const wordNum = inDaysMatch[1];
+    const unit = inDaysMatch[2];
+    let count = 1;
+    if (wordNum === 'two' || wordNum === 'a couple of' || wordNum === '2') count = 2;
+    else if (wordNum === 'three' || wordNum === '3') count = 3;
+    else if (wordNum === 'four' || wordNum === '4') count = 4;
+    else if (wordNum === 'five' || wordNum === '5') count = 5;
+    else if (wordNum === 'six' || wordNum === '6') count = 6;
+    else if (wordNum === 'seven' || wordNum === '7') count = 7;
+    else if (!isNaN(parseInt(wordNum, 10))) count = parseInt(wordNum, 10);
+
+    const daysToAdd = unit.startsWith('week') ? count * 7 : count;
+    const next = new Date(baseDate);
+    next.setDate(next.getDate() + daysToAdd);
+    return formatIsoDate(next);
+  }
+
+  // "next week" / Filipino "sa susunod na linggo"
+  if (/\b(next week|sa susunod na linggo|susunod na linggo)\b/.test(lower)) {
+    const next = new Date(baseDate);
+    next.setDate(next.getDate() + 7);
     return formatIsoDate(next);
   }
 
@@ -184,7 +222,7 @@ export function parseDateExpression(text: string, baseDate: Date = new Date()): 
   }
 
   // "next [weekday]" or "this [weekday]" or "on [weekday]"
-  const weekdayMatch = lower.match(/\b(next|this|on)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/);
+  const weekdayMatch = lower.match(/\b(next|this|on|coming)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/);
   if (weekdayMatch) {
     const prefix = weekdayMatch[1] || '';
     const targetDayName = weekdayMatch[2];
@@ -202,6 +240,18 @@ export function parseDateExpression(text: string, baseDate: Date = new Date()): 
 
       const res = new Date(baseDate);
       res.setDate(res.getDate() + diff);
+      return formatIsoDate(res);
+    }
+  }
+
+  // Ordinal Month Day: "25th of September", "1st of October", "3rd of November"
+  const ordinalMonthMatch = lower.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+of\s+(january|february|march|april|may|june|july|august|september|sept|sep|october|oct|november|nov|december|dec)(?:\s*,?\s*(\d{4}))?\b/);
+  if (ordinalMonthMatch) {
+    const day = parseInt(ordinalMonthMatch[1], 10);
+    const month = MONTH_NAMES[ordinalMonthMatch[2]];
+    const year = ordinalMonthMatch[3] ? parseInt(ordinalMonthMatch[3], 10) : baseDate.getFullYear();
+    if (month !== undefined && day >= 1 && day <= 31) {
+      const res = new Date(year, month, day);
       return formatIsoDate(res);
     }
   }
@@ -249,6 +299,7 @@ export function extractEventTitle(text: string): string {
     /(?:schedule|have|there will be|plan|set up)?\s*(?:a|an)?\s*([a-z0-9\s-]+?(?:meeting|sync|call|demo|event|review|standup|session|presentation|workshop|discussion|deadline|milestone))/i,
     /(?:deadline|due date)(?:\s+is)?(?:\s+for)?\s*([^,.\n]+)/i,
     /(?:event|appointment)(?:\s+called|\s+for|\s+on|\s+:)?\s*([^,.\n]+)/i,
+    /(?:mag-meeting|mag-sync|usapan|pagpupulong)\s*(?:para sa|tungkol sa)?\s*([^,.\n]+)/i,
   ];
 
   for (const pattern of titlePatterns) {
@@ -264,7 +315,7 @@ export function extractEventTitle(text: string): string {
   }
 
   // Fallback: Use the first 4-7 words of the sentence
-  const words = cleaned.replace(/^(let's|we have|there is|can we|we will|i will|please)\s+/i, '').split(' ');
+  const words = cleaned.replace(/^(let's|we have|there is|can we|we will|i will|please|mag|may)\s+/i, '').split(' ');
   const titleSlice = words.slice(0, 5).join(' ');
   return titleSlice.charAt(0).toUpperCase() + titleSlice.slice(1);
 }
@@ -274,10 +325,10 @@ export function extractEventTitle(text: string): string {
  */
 export function inferCategory(text: string): ScheduleCategory {
   const lower = text.toLowerCase();
-  if (/\b(deadline|due|milestone|cutoff|submission)\b/.test(lower)) return 'deadline';
-  if (/\b(review|audit|code review|feedback|retrospective)\b/.test(lower)) return 'review';
-  if (/\b(deep work|focus|coding|writing|investigation)\b/.test(lower)) return 'deep-work';
-  if (/\b(sop|manual|procedure|operation|recording)\b/.test(lower)) return 'manual';
+  if (/\b(deadline|due|milestone|cutoff|submission|pasa|takdang-aralin)\b/.test(lower)) return 'deadline';
+  if (/\b(review|audit|code review|feedback|retrospective|pagsusuri|ire-review)\b/.test(lower)) return 'review';
+  if (/\b(deep work|focus|coding|writing|investigation|pokus)\b/.test(lower)) return 'deep-work';
+  if (/\b(sop|manual|procedure|operation|recording|gabay)\b/.test(lower)) return 'manual';
   return 'meeting';
 }
 
@@ -289,11 +340,24 @@ export function detectEventFromSentence(
   sentence: string,
   baseDate: Date = new Date()
 ): DetectedEventMatch | null {
-  if (!sentence || sentence.length < 5) return null;
+  // Reject non-scheduling statements, past tense, or conversational remarks
+  const nonSchedulingPatterns = [
+    /\b(?:thank\s+you|thanks)\s+(?:everyone|all|guys|folks)?\s*(?:for\s+(?:joining|coming|attending|being here))/i,
+    /\bwelcome\s+to\s+(?:the|our|today'?s)?\s*(?:meeting|call|session|sync)\b/i,
+    /\b(?:in\s+our\s+last|in\s+the\s+previous|earlier\s+in\s+the|during\s+this|end\s+of\s+the)\s*meeting\b/i,
+    /\b(?:yesterday|earlier today|last week|last month|last year)\b/i,
+    /\b(?:good\s+morning|good\s+afternoon|good\s+evening|see\s+you\s+all|have\s+a\s+good\s+day)\b/i,
+  ];
+
+  for (const pattern of nonSchedulingPatterns) {
+    if (pattern.test(sentence)) {
+      return null;
+    }
+  }
 
   // Keyword check for scheduling context
-  const triggerKeywords = /\b(meeting|sync|call|demo|event|deadline|due|schedule|appointment|presentation|standup|workshop|catch up|session|follow up|calendar|conference)\b/i;
-  const timeKeywords = /\b(at\s+\d|am\b|pm\b|\d{1,2}:\d{2}|noon|midnight|tomorrow|next\s+(?:mon|tue|wed|thu|fri|sat|sun)|today|on\s+(?:friday|monday|tuesday|wednesday|thursday|saturday|sunday))\b/i;
+  const triggerKeywords = /\b(meeting|sync|call|demo|event|deadline|due|schedule|appointment|presentation|standup|workshop|catch up|session|follow up|calendar|conference|pulong|usapan|pagpupulong|sesyon|talakayan|takdang-aralin|ire-review)\b/i;
+  const timeKeywords = /\b(at\s+\d|am\b|pm\b|\d{1,2}:\d{2}|noon|midnight|tomorrow|bukas|sa\s+makalawa|next\s+(?:week|mon|tue|wed|thu|fri|sat|sun)|today|on\s+(?:friday|monday|tuesday|wednesday|thursday|saturday|sunday)|alas\s+\w+|sa\s+(?:lunes|martes|miyerkules|huwebes|biyernes|sabado|linggo))\b/i;
 
   const hasTrigger = triggerKeywords.test(sentence);
   const hasTimeIndicator = timeKeywords.test(sentence);
@@ -306,6 +370,7 @@ export function detectEventFromSentence(
 
   // We require at least a date OR a time to consider it a scheduled event
   if (!parsedDate && !parsedTime) return null;
+  if (!hasTrigger && !parsedDate) return null;
 
   const finalDate = parsedDate || formatIsoDate(baseDate);
   const finalTime = parsedTime || '10:00';

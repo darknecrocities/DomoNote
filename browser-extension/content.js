@@ -379,11 +379,54 @@
       lastActiveSpeakerTimestamp = Date.now();
     }
 
+    // ─── Identify the local user (the "(You)" participant) ───────────────────
+    // Google Meet marks the local user with "(You)" in various places.
+    // We detect this BEFORE cleaning the name so we don't lose the marker.
+    let selfParticipant = null;
+    const selfSelectors = [
+      // People sidebar list items — aria-label contains "(You)"
+      '[role="listitem"]',
+      '[role="option"]',
+      '[data-participant-id]',
+      '.VfPpkd-rymPhb-ibnC6b',
+    ];
+    outer: for (const sel of selfSelectors) {
+      const els = document.querySelectorAll(sel);
+      for (const el of els) {
+        const rawText = (el.textContent || '').trim();
+        const ariaLabel = (el.getAttribute('aria-label') || '').trim();
+        const combined = ariaLabel || rawText;
+        if (/\(you\)/i.test(combined)) {
+          // Extract name: everything before "(You)" or role labels
+          const raw = combined
+            .replace(/\s*\(you\).*/i, '')
+            .replace(/\s*(?:meeting\s+host|is\s+muted|co-host|host).*$/i, '')
+            .trim();
+          const cleaned = cleanParticipantName(raw);
+          if (cleaned) {
+            selfParticipant = cleaned;
+            break outer;
+          }
+        }
+      }
+    }
+
+    // Fallback: look for data-self-name or [is-self] attribute
+    if (!selfParticipant) {
+      const selfEl = document.querySelector('[data-self-name], [is-self="true"], .JBnKlb [dir="auto"]');
+      if (selfEl) {
+        const raw = (selfEl.getAttribute('data-self-name') || selfEl.textContent || '').trim();
+        const cleaned = cleanParticipantName(raw);
+        if (cleaned) selfParticipant = cleaned;
+      }
+    }
+
     const payload = {
       type: 'DOMONOTE_MEETING_PARTICIPANTS',
       app: app || 'Meeting',
       participants,
       activeSpeaker: active || domActiveSpeaker || undefined,
+      selfParticipant: selfParticipant || undefined,
       timestamp: Date.now(),
     };
 

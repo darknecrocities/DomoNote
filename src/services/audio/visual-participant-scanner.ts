@@ -104,16 +104,31 @@ export function captureVideoFrame(videoEl: HTMLVideoElement): string | null {
 export async function extractParticipantsFromFrame(
   imageBase64: string,
   visionModel: string
-): Promise<string[]> {
-  const prompt = `Look at this meeting screenshot. Find ALL participant names or speaker names visible — including in the People panel, video tile labels, subtitle/caption bars, or any name chips.
+): Promise<{ names: string[]; selfName: string | null }> {
+  const prompt = `You are a precision meeting OCR reader. Look closely at this meeting screenshot (Google Meet / Zoom / Microsoft Teams).
+Extract ONLY real participant names actually visible in the video tiles, participants sidebar, or active speaker subtitles.
 
-Return ONLY a JSON array of name strings, nothing else. Example: ["Arron Parejas","german"]
-If no names are visible, return: []
+CRITICAL RULES:
+1. ONLY return real human names you can legibly read in the image.
+2. NEVER invent, hallucinate, or guess placeholder names. NEVER output "Name1", "Name2", "John Doe", "Jane Smith", "Speaker 1".
+3. If no participant names are legible, return: {"participants": [], "selfParticipant": null}
+4. Strip UI roles like "(You)", "(Host)", "(Co-host)", "(Muted)".
+5. If a participant name has "(You)" next to it, place that exact name in "selfParticipant".
 
-Important:
-- Include everyone visible, not just the active speaker
-- Strip "(You)", "(Host)", "(Co-host)", "(Muted)" suffixes from names
-- Do NOT include UI labels like "Add people", "Search for people", "All muted"`;
+Return ONLY valid JSON in this exact structure:
+{
+  "participants": [],
+  "selfParticipant": null
+}`;
+
+  const DUMMY_NAMES = new Set([
+    'name1', 'name2', 'name3', 'name4', 'name5',
+    'john doe', 'jane doe', 'jane smith', 'john smith', 'smith', 'doe',
+    'john', 'jane', 'foo bar', 'sample name', 'test user', 'dummy user',
+    'participant', 'participant 1', 'participant 2', 'speaker', 'speaker 1', 'speaker 2',
+    'user', 'user 1', 'user 2', 'example name', 'placeholder', 'host', 'you',
+    'none', 'n/a', 'null',
+  ]);
 
   try {
     const res = await fetch(`${OLLAMA_URL}/api/generate`, {
@@ -124,45 +139,45 @@ Important:
         prompt,
         images: [imageBase64],
         stream: false,
-        options: { temperature: 0.1, num_predict: 150 },
+        options: { temperature: 0.1, num_predict: 200 },
       }),
     });
 
-    if (!res.ok) return [];
+    if (!res.ok) return { names: [], selfName: null };
     const data = await res.json();
     const response: string = data.response || '';
 
-    // Parse JSON array from response (handle markdown code blocks or raw JSON)
-    const jsonMatch = response.match(/\[[\s\S]*?\]/);
-    if (!jsonMatch) return [];
+    // Parse JSON object from response (handle markdown code blocks)
+    const jsonMatch = response.match(/\{[\s\S]*?\}/);
+    if (!jsonMatch) return { names: [], selfName: null };
 
     const parsed = JSON.parse(jsonMatch[0]);
-    if (!Array.isArray(parsed)) return [];
+    const rawNames: string[] = Array.isArray(parsed.participants) ? parsed.participants : [];
+    const rawSelf: string | null = typeof parsed.selfParticipant === 'string' ? parsed.selfParticipant : null;
 
     // Clean and validate each name
-    const names: string[] = [];
-    for (const raw of parsed) {
-      if (typeof raw !== 'string') continue;
-
-      // Strip role suffixes
+    const cleanName = (raw: string): string | null => {
       const stripped = raw
         .replace(/\s*\((?:you|host|co-host|guest|muted|external|presenter)\)/gi, '')
         .replace(/\s*(?:meeting host|is muted|is speaking).*$/i, '')
         .trim();
-
       const cleaned = cleanSpeakerName(stripped);
-      if (!cleaned) continue;
-      if (IGNORE_LABELS.has(cleaned.toLowerCase())) continue;
-      if (cleaned.length < 2 || cleaned.length > 50) continue;
-      // Reject strings that look like URLs or timestamps
-      if (/https?:|localhost|\d{2}:\d{2}/.test(cleaned)) continue;
+      if (!cleaned) return null;
+      const lower = cleaned.toLowerCase();
+      if (IGNORE_LABELS.has(lower)) return null;
+      if (DUMMY_NAMES.has(lower)) return null;
+      if (/^(?:name|speaker|participant|user)\s*\d*$/i.test(cleaned)) return null;
+      if (cleaned.length < 2 || cleaned.length > 50) return null;
+      if (/https?:|localhost|\d{2}:\d{2}/.test(cleaned)) return null;
+      return cleaned;
+    };
 
-      names.push(cleaned);
-    }
+    const names = rawNames.map(cleanName).filter(Boolean) as string[];
+    const selfName = rawSelf ? cleanName(rawSelf) : null;
 
-    return names;
+    return { names, selfName };
   } catch {
-    return [];
+    return { names: [], selfName: null };
   }
 }
 
@@ -211,11 +226,11 @@ export function startVisualParticipantScanner(
       // Detect app name from document title or URL hint
       const appHint = detectAppFromTab();
 
-      const names = await extractParticipantsFromFrame(imageBase64, visionModel);
+      const { names, selfName } = await extractParticipantsFromFrame(imageBase64, visionModel);
 
       if (names.length > 0) {
         // Deduplicate with previous scan to avoid redundant updates
-        const signature = names.sort().join(',');
+        const signature = [...names].sort().join(',');
         if (signature !== lastScanSignature) {
           lastScanSignature = signature;
 
@@ -224,6 +239,7 @@ export function startVisualParticipantScanner(
             type: 'DOMONOTE_MEETING_PARTICIPANTS',
             app: appHint,
             participants: names,
+            selfParticipant: selfName || undefined,
           });
 
           onParticipantsFound?.(names, appHint);

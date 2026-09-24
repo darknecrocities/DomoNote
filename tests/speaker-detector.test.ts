@@ -21,7 +21,7 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
       expect(cleanSpeakerName('🚀 Marcus Vance')).toBe('Marcus Vance');
     });
 
-    it('rejects UI buttons, controls and non-human labels', () => {
+    it('rejects UI buttons, controls, non-human labels, and dummy placeholder names', () => {
       expect(cleanSpeakerName('Mute')).toBeNull();
       expect(cleanSpeakerName('Unmute')).toBeNull();
       expect(cleanSpeakerName('Turn off microphone')).toBeNull();
@@ -30,6 +30,13 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
       expect(cleanSpeakerName('Participants')).toBeNull();
       expect(cleanSpeakerName('Chat')).toBeNull();
       expect(cleanSpeakerName('Speaker 1')).toBeNull();
+      expect(cleanSpeakerName('Speaker 2')).toBeNull();
+      expect(cleanSpeakerName('Participant 1')).toBeNull();
+      expect(cleanSpeakerName('Participant 2')).toBeNull();
+      expect(cleanSpeakerName('Name1')).toBeNull();
+      expect(cleanSpeakerName('Name2')).toBeNull();
+      expect(cleanSpeakerName('Jane Smith')).toBeNull();
+      expect(cleanSpeakerName('John Doe')).toBeNull();
       expect(cleanSpeakerName('10:45')).toBeNull();
       expect(cleanSpeakerName('')).toBeNull();
     });
@@ -148,7 +155,7 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
 
       // Turn 2: Reply comes in
       const turn2 = hook.processSegment('Thanks Arron, I have the slides open', 'You / Host', roster);
-      expect(turn2.assignedSpeaker).toBe('Sarah');
+      expect(turn2.assignedSpeaker).toBe('Sarah Connor');
     });
 
     it('handles two-part conversational self-introductions split across segments', () => {
@@ -173,6 +180,21 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
       // When host mic analyser detects host speaking
       const hostTurn = hook.processSegment('Sounds good, let us proceed', 'German', roster, 'host');
       expect(hostTurn.assignedSpeaker).toBe('You / Host');
+    });
+
+    it('never introduces dummy names like Participant 2 or Speaker 1 when remote channel speaks without roster', () => {
+      const roster = ['You / Host'];
+      // When remote audio arrives before any OCR/DOM roster is available
+      const remoteTurn = hook.processSegment('Hello everyone, can you see my screen?', 'You / Host', roster, 'remote');
+      expect(remoteTurn.assignedSpeaker).toBe('Remote Participant');
+      expect(remoteTurn.assignedSpeaker).not.toBe('Participant 2');
+      expect(remoteTurn.assignedSpeaker).not.toBe('Speaker 1');
+      expect(remoteTurn.assignedSpeaker).not.toBe('Jane Smith');
+      expect(remoteTurn.assignedSpeaker).not.toBe('John Doe');
+      // Roster must not be polluted with dummy names
+      expect(remoteTurn.updatedRoster).not.toContain('Participant 2');
+      expect(remoteTurn.updatedRoster).not.toContain('Speaker 1');
+      expect(remoteTurn.updatedRoster).not.toContain('Jane Smith');
     });
 
     it('cleans Google Meet tile names and ignores UI controls', () => {
