@@ -1,11 +1,13 @@
 import React from 'react';
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Sparkles, Star } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { PandaMascot } from '../components/ui/panda-mascot';
 import { TiltCard } from '../components/ui/tilt-card';
+import { useGitHubStars } from '../services/github/stars';
 import logoImg from '../assets/official_domonote.png';
 
 export const AboutView: React.FC = () => {
+  const { starCount } = useGitHubStars();
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Brand Header */}
@@ -25,10 +27,14 @@ export const AboutView: React.FC = () => {
             href="https://github.com/darknecrocities/DomoNote"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors font-medium shadow-xs"
+            className="inline-flex items-center gap-2 text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors font-medium shadow-xs group"
           >
             <GithubIcon className="w-3.5 h-3.5" />
-            <span>GitHub Repository</span>
+            <span>GitHub</span>
+            <span className="flex items-center gap-1 font-mono text-[11px] text-amber-500">
+              <Star className="w-3 h-3 fill-amber-500" />
+              <span>{starCount !== null ? starCount.toLocaleString() : 'Star'}</span>
+            </span>
             <ExternalLink className="w-3 h-3 text-slate-500 dark:text-zinc-500" />
           </a>
         </div>

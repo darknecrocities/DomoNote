@@ -4,7 +4,7 @@ import { useSound } from '../context/sound-context';
 import { useLanguage } from '../context/language-context';
 import { useTheme } from '../context/theme-context';
 import { LanguageSwitcher } from '../components/ui/language-switcher';
-import { PhysicsRopeToggle } from '../components/ui/physics-rope-toggle';
+import { ThemeToggle } from '../components/ui/theme-toggle';
 import { Button } from '../components/ui/button';
 import {
   Mic,
@@ -41,6 +41,7 @@ import { StarfieldBackground } from '../components/landing/starfield-background'
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import { BrandCarouselBelts } from '../components/landing/brand-carousel-belts';
 import { TiltCard } from '../components/ui/tilt-card';
+import { useGitHubStars } from '../services/github/stars';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/official_domonote.png';
 
@@ -83,41 +84,7 @@ export const LandingPage: React.FC = () => {
 
   const mascotRef = React.useRef<HTMLDivElement>(null);
   const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
-  const [starCount, setStarCount] = useState<number | null>(() => {
-    try {
-      const cached = sessionStorage.getItem('github_stars_domonote');
-      return cached !== null ? parseInt(cached, 10) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchStars = async () => {
-      try {
-        const cached = sessionStorage.getItem('github_stars_domonote');
-        if (cached !== null) {
-          setStarCount(parseInt(cached, 10));
-          return;
-        }
-        const res = await fetch('https://api.github.com/repos/darknecrocities/DomoNote');
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted && typeof data.stargazers_count === 'number') {
-            setStarCount(data.stargazers_count);
-            sessionStorage.setItem('github_stars_domonote', data.stargazers_count.toString());
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to fetch github stars', err);
-      }
-    };
-    fetchStars();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { starCount, refreshStars } = useGitHubStars();
 
   const handleOpenWorkspace = () => {
     if (isCloudHost) {
@@ -333,6 +300,9 @@ export const LandingPage: React.FC = () => {
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                setTimeout(refreshStars, 3000);
+              }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900/90 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-850 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm group"
               title="Star DomoNote on GitHub"
             >
@@ -353,15 +323,8 @@ export const LandingPage: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
 
-            {/* Subtle Divider */}
-            <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
-
-            {/* Physics Lampcord Toggle Hanging Seamlessly Under Action Bar */}
-            <div className="relative flex items-center justify-center w-8 h-full self-stretch">
-              <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-                <PhysicsRopeToggle />
-              </div>
-            </div>
+            {/* Theme Toggle (Light / Dark) */}
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -411,24 +374,24 @@ export const LandingPage: React.FC = () => {
 
               {/* Benefit-Focused Subtitle */}
               <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-400 max-w-xl leading-relaxed font-normal">
-                {t('landing.hero.subheadline', 'Capture meeting audio, read and query documents, record screens with dynamic auto-annotation, and organize notes without cloud servers. Everything stays private on your machine with local Ollama intelligence.')}
+                {t('landing.hero.subheadline', 'Record meeting voice notes, search documents, create illustrated how-to guides, and take notes without cloud servers. Everything stays 100% private on your own computer.')}
               </p>
 
               {/* Primary Hero Actions */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Button variant="primary" size="lg" onClick={handleOpenWorkspace}>
+              <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                <Button variant="primary" size="md" onClick={handleOpenWorkspace}>
                   <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download Desktop App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
                   {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="lg"
+                  size="md"
                   className="border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setIsExtensionModalOpen(true)}
                   title="1-Click Chrome Extension Setup"
                 >
-                  <ChromeIcon className="w-4 h-4 shrink-0" />
+                  <ChromeIcon className="w-3.5 h-3.5 shrink-0" />
                   <span>Chrome Extension</span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-300 dark:border-emerald-800">
                     1-Click
@@ -437,48 +400,35 @@ export const LandingPage: React.FC = () => {
 
                 <Button
                   variant="outline"
-                  size="lg"
+                  size="md"
                   className="border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setActiveView('download')}
                 >
-                  <Download className="w-4 h-4 text-slate-500 dark:text-zinc-300" />
+                  <Download className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-300" />
                   <span>{t('landing.hero.downloadAll', 'Download (Mac / Win / Linux)')}</span>
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="lg"
+                  size="md"
                   className="border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setActiveView('studio')}
                 >
-                  <Video className="w-4 h-4 text-slate-500 dark:text-zinc-300" />
-                  <span>{t('landing.hero.screenStudio', 'Screen Studio')}</span>
+                  <Video className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-300" />
+                  <span>{t('landing.hero.screenStudio', 'Screen Recorder')}</span>
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="lg"
+                  size="md"
                   className="border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => {
                     const el = document.getElementById('demo-video-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
-                  <Play className="w-4 h-4 fill-current text-slate-700 dark:text-zinc-300" />
+                  <Play className="w-3.5 h-3.5 fill-current text-slate-700 dark:text-zinc-300" />
                   <span>{t('landing.demo.watchDemo', 'Watch Demo')}</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white"
-                  onClick={() => {
-                    const el = document.getElementById('setup-section');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                  <Terminal className="w-4 h-4" />
-                  <span>{t('landing.hero.quickSetup', 'Quick Setup')}</span>
                 </Button>
               </div>
 
@@ -986,10 +936,16 @@ cd DomoNote
               href="https://github.com/darknecrocities/DomoNote"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <GithubIcon className="w-3.5 h-3.5" />
               <span>GitHub</span>
+              {starCount !== null && (
+                <span className="flex items-center gap-0.5 text-[11px] font-mono text-amber-500">
+                  <Star className="w-3 h-3 fill-amber-500" />
+                  <span>{starCount.toLocaleString()}</span>
+                </span>
+              )}
             </a>
           </div>
         </div>

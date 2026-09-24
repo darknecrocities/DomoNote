@@ -586,10 +586,10 @@ CRITICAL RULES:
             <h1 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">
               Screen Recording Studio
             </h1>
-            <Badge variant="outline">FLIGHT RECORDER</Badge>
+            <Badge variant="outline">STEP RECORDER</Badge>
           </div>
           <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
-            Capture workflows dynamically with auto-annotated keyframes and generate standard operating procedures.
+            Record your screen step-by-step with automatic screenshots and create helpful how-to guides.
           </p>
         </div>
 
@@ -768,20 +768,20 @@ CRITICAL RULES:
               <Monitor className="w-7 h-7" />
             </div>
             <h3 className="text-lg font-bold text-white tracking-tight">
-              Dynamic Auto-Annotating Screen Studio
+              Screen Recording Studio
             </h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Start capture to record your desktop or app window. As you demonstrate workflows,
-              DomoNote automatically stamps numbered focal badges, coordinates, and instructions into a clean Standard Operating Procedure.
+              Start recording your screen or window. As you demonstrate tasks,
+              DomoNote automatically captures steps and screenshots into an easy-to-follow guide.
             </p>
             <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
               <Button variant="primary" size="md" onClick={handleStartScreenStream}>
                 <Play className="w-4 h-4" />
-                <span>Initialize Dynamic Capture</span>
+                <span>Start Screen Recording</span>
               </Button>
               <Button variant="outline" size="md" onClick={handleSimulateWorkflow}>
                 <Sparkles className="w-4 h-4" />
-                <span>Simulate Demo SOP Workflow</span>
+                <span>Try Sample Guide</span>
               </Button>
             </div>
           </div>
@@ -794,9 +794,9 @@ CRITICAL RULES:
           <div className="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Dynamically Annotated Keyframes ({capturedSteps.length})</span>
+              <span>Captured Steps ({capturedSteps.length})</span>
             </div>
-            <span className="text-[10px] text-zinc-500">Edit titles & instructions inline before saving</span>
+            <span className="text-[10px] text-zinc-500">Edit titles & notes before saving</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-x-auto pb-2">

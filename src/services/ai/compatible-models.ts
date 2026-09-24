@@ -16,38 +16,38 @@ export const MODEL_TIERS: Record<ModelTier, ModelTierInfo> = {
   minimum: {
     tier: 'minimum',
     rank: 1,
-    label: 'Minimal / Ultra-Light (1B – 2B)',
-    badge: '⚡ Low RAM & Battery Friendly',
+    label: 'Lightweight & Fast (1B – 2B)',
+    badge: '⚡ Fast & Battery Friendly',
     minRam: '4 GB RAM',
-    targetHardware: 'Budget laptops, older CPUs, low-spec virtual machines',
-    description: 'Ultra-lean parameters designed for near-instant latency and tiny memory footprint. Ideal for quick note structuring and meeting transcripts on any hardware.',
+    targetHardware: 'Everyday laptops, older computers',
+    description: 'Runs fast on any computer with low battery use. Great for quick notes, outlines, and meeting minutes.',
   },
   standard: {
     tier: 'standard',
     rank: 2,
-    label: 'Balanced / Standard (3B – 4B)',
-    badge: '⭐ DomoNote Recommended Sweet Spot',
+    label: 'Balanced & Daily (3B – 4B)',
+    badge: '⭐ Best for Most People',
     minRam: '8 GB RAM',
-    targetHardware: 'Modern laptops, MacBook Air, 8GB–16GB PCs',
-    description: 'The golden balance between high-speed generation and strong analytical reasoning. Excels at document summaries, meeting action items, and Q&A.',
+    targetHardware: 'Modern laptops, MacBook Air, standard PCs',
+    description: 'The best balance of speed and helpfulness. Great for reading documents, meeting action items, and answering questions.',
   },
   pro: {
     tier: 'pro',
     rank: 3,
-    label: 'High Performance / Pro (7B – 8B)',
-    badge: '🚀 Deep RAG & Synthesis',
+    label: 'High Detail & Research (7B – 8B)',
+    badge: '🚀 In-Depth & Detailed',
     minRam: '16 GB RAM',
-    targetHardware: 'Apple Silicon (M1/M2/M3/M4), dedicated GPUs, 16GB+ RAM PCs',
-    description: 'Gold-standard open weights for deep knowledge retrieval, nuanced multi-speaker meeting breakdown, and complex cross-note synthesis.',
+    targetHardware: 'Apple Silicon Macs, 16GB+ RAM PCs',
+    description: 'Detailed answers for long meetings, complex documents, and thorough note summaries.',
   },
   advanced: {
     tier: 'advanced',
     rank: 4,
-    label: 'Advanced / Power (14B)',
-    badge: '🧠 Maximum Rigor & Depth',
+    label: 'Maximum Depth (14B)',
+    badge: '🧠 Maximum Detail',
     minRam: '24+ GB RAM',
-    targetHardware: 'Workstations, Mac Studio / Pro, 24GB+ Unified Memory / VRAM',
-    description: 'Frontier-grade local synthesis with deep contextual awareness and complex multi-step logical deduction across large document archives.',
+    targetHardware: 'High-power computers, 24GB+ RAM',
+    description: 'Best for very large document collections. Requires a powerful computer with plenty of memory.',
   },
 };
 
@@ -84,8 +84,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'minimum',
     tierRank: 1,
     speedRating: 'Fastest',
-    summary: 'Ultra-lightweight architecture with instantaneous reply speed. Runs smoothly on budget hardware and consumes negligible battery.',
-    recommendedFor: 'Entry-level machines, fast note drafting, battery preservation',
+    summary: 'Fast responses with almost no battery drain. Runs smoothly on any computer.',
+    recommendedFor: 'Older computers, quick notes, saving battery',
   },
   {
     id: 'qwen2.5:1.5b',
@@ -98,8 +98,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'minimum',
     tierRank: 1,
     speedRating: 'Fastest',
-    summary: 'Remarkably nimble instruction adherence with multilingual fluency and high token throughput for quick summaries.',
-    recommendedFor: 'Lightweight systems, multilingual notes, rapid summaries',
+    summary: 'Fast and easy to use. Great for multiple languages and quick summaries.',
+    recommendedFor: 'Everyday laptops, multiple languages, quick summaries',
   },
   {
     id: 'gemma2:2b',
@@ -112,8 +112,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'minimum',
     tierRank: 1,
     speedRating: 'Fastest',
-    summary: 'Google’s dense architecture offering clean formatting and coherent logical reasoning on machines with limited RAM.',
-    recommendedFor: 'Clean note outlines, rapid meeting takeaways',
+    summary: 'Clean formatting and dependable notes, even on computers with less memory.',
+    recommendedFor: 'Clear note outlines, meeting takeaways',
   },
 
   // --- TIER 2: BALANCED / STANDARD (3B - 4B) ---
@@ -128,8 +128,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'standard',
     tierRank: 2,
     speedRating: 'Very Fast',
-    summary: '⭐ Official DomoNote Recommended Model. Outstanding sweet spot of high quality, structured Markdown generation, low memory overhead, and snappy execution.',
-    recommendedFor: 'Most users, daily note taking, meeting transcripts, document search',
+    summary: '⭐ Recommended. The perfect balance of clear writing, fast answers, and smooth performance.',
+    recommendedFor: 'Most people, everyday notes, meeting transcripts, reading documents',
     isAppDefault: true,
   },
   {
@@ -143,8 +143,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'standard',
     tierRank: 2,
     speedRating: 'Very Fast',
-    summary: 'Exceptional structured tables, JSON extraction, and concise bulleted action item synthesis for meetings and manuals.',
-    recommendedFor: 'Structured documentation, tabular data, task checklists',
+    summary: 'Great for organized checklists, clear tables, and concise meeting takeaways.',
+    recommendedFor: 'Organized documents, tables, task checklists',
   },
   {
     id: 'phi3.5:3.8b',
@@ -157,8 +157,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'standard',
     tierRank: 2,
     speedRating: 'Very Fast',
-    summary: 'Strong multi-step logical chain-of-thought in a compact footprint. Highly effective for technical operation step guides.',
-    recommendedFor: 'Step-by-step operation manuals, technical synthesis',
+    summary: 'Clear step-by-step thinking in a compact size. Great for guides and how-to manuals.',
+    recommendedFor: 'Step-by-step guides, how-to manuals',
   },
 
   // --- TIER 3: HIGH PERFORMANCE / PRO (7B - 8B) ---
@@ -173,8 +173,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'pro',
     tierRank: 3,
     speedRating: 'Moderate',
-    summary: '⭐ Pro Recommendation. The open-weights gold standard. Deep analytical synthesis, robust 128k context reasoning, and nuanced long meeting understanding.',
-    recommendedFor: 'Apple Silicon Macs, 16GB+ RAM PCs, comprehensive RAG archives',
+    summary: '⭐ Recommended for powerful computers. Thoroughly analyzes long meetings, large documents, and detailed notes.',
+    recommendedFor: 'Apple Silicon Macs, 16GB+ RAM PCs, large document collections',
   },
   {
     id: 'qwen2.5:7b',
@@ -187,8 +187,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'pro',
     tierRank: 3,
     speedRating: 'Moderate',
-    summary: 'State-of-the-art multilingual and technical synthesis with razor-sharp instruction compliance and expansive contextual comprehension.',
-    recommendedFor: 'Technical documentation, large PDF analysis, multilingual RAG',
+    summary: 'Top performance across multiple languages and complex documents.',
+    recommendedFor: 'Detailed documentation, large PDF files, multiple languages',
   },
   {
     id: 'mistral:7b',
@@ -201,8 +201,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'pro',
     tierRank: 3,
     speedRating: 'Moderate',
-    summary: 'Crisp prose and proven reliability for executive summaries, speech-to-text refinement, and note consolidation.',
-    recommendedFor: 'Executive summaries, high-fidelity transcription polishing',
+    summary: 'Clean writing and reliable summaries for meetings and notes.',
+    recommendedFor: 'Meeting summaries, polishing notes',
   },
   {
     id: 'gemma2:9b',
@@ -215,8 +215,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'pro',
     tierRank: 3,
     speedRating: 'Moderate',
-    summary: 'Google’s heavyweight model delivering deep contextual reasoning and sophisticated knowledge base query responses.',
-    recommendedFor: 'Complex research synthesis, high-accuracy Q&A',
+    summary: 'High-accuracy answers and thorough document research.',
+    recommendedFor: 'Research notes, high-accuracy answers',
   },
 
   // --- TIER 4: ADVANCED / POWER (14B) ---
@@ -231,8 +231,8 @@ export const COMPATIBLE_MODELS: CompatibleModel[] = [
     tier: 'advanced',
     tierRank: 4,
     speedRating: 'Heavy',
-    summary: 'Frontier-grade local intelligence with exceptional depth and nuanced reasoning across massive knowledge repositories.',
-    recommendedFor: 'High-spec workstations, 24GB+ Unified Memory Apple Silicon, enterprise research',
+    summary: 'Deepest analysis for very large libraries of files. Requires 24GB+ RAM.',
+    recommendedFor: 'High-power workstations, 24GB+ RAM Apple Silicon, thorough research',
   },
 ];
 
@@ -287,49 +287,58 @@ export function detectSystemHardware(): SystemHardwareProfile {
     isAppleSilicon = true;
   }
 
+  // Friendly GPU name display
+  let cleanGpu = 'Standard Graphics Engine';
+  if (isAppleSilicon) {
+    const mMatch = gpuRenderer.match(/Apple M\d(\s*(Pro|Max|Ultra))?/i);
+    cleanGpu = mMatch ? mMatch[0] : 'Apple Silicon GPU';
+  } else if (gpuRenderer) {
+    cleanGpu = gpuRenderer.split(',')[0].replace(/^ANGLE\s*\(/i, '').replace(/\)$/, '').trim();
+  }
+
   let recommendedTier: ModelTier = 'standard';
   let recommendedModelId = 'llama3.2:3b';
-  let recommendationTitle = 'Llama 3.2 (3B) — Balanced Standard';
-  let recommendationReason = 'Optimal sweet spot of rapid speed and high accuracy for your setup.';
+  let recommendationTitle = 'Llama 3.2 (3B) — Recommended for Your Computer';
+  let recommendationReason = 'Great balance of fast speed and clear, helpful notes for your computer.';
 
   if (isAppleSilicon) {
     if (cpuCores >= 10 || rawMemory >= 16) {
       recommendedTier = 'pro';
       recommendedModelId = 'llama3.1:8b';
-      recommendationTitle = 'Llama 3.1 (8B) — High Performance Pro';
+      recommendationTitle = 'Llama 3.1 (8B) — Recommended for Your Mac';
       recommendationReason =
-        'Apple Silicon with high compute detected. 8B parameter models run with near-instant token streaming and top-tier reasoning.';
+        'Your Mac has plenty of power. Runs fast and handles long notes and detailed summaries smoothly.';
     } else {
       recommendedTier = 'standard';
       recommendedModelId = 'llama3.2:3b';
-      recommendationTitle = 'Llama 3.2 (3B) — Balanced Standard';
+      recommendationTitle = 'Llama 3.2 (3B) — Recommended for Your Mac';
       recommendationReason =
-        'Apple Silicon detected. Llama 3.2 (3B) delivers lightning-fast token streaming, minimal battery drain, and sharp note synthesis.';
+        'Fast performance with great battery life. Perfect for everyday notes and meeting summaries.';
     }
   } else if (rawMemory >= 16 || cpuCores >= 12) {
     recommendedTier = 'pro';
     recommendedModelId = 'llama3.1:8b';
-    recommendationTitle = 'Llama 3.1 (8B) — High Performance Pro';
+    recommendationTitle = 'Llama 3.1 (8B) — Recommended for Your PC';
     recommendationReason =
-      'High-thread CPU / 16GB+ memory profile detected. Ideal for 8B models with deep cross-document retrieval.';
+      'Great computer performance detected. Handles larger models and deep document searches easily.';
   } else if (rawMemory <= 4 || cpuCores <= 4) {
     recommendedTier = 'minimum';
     recommendedModelId = 'llama3.2:1b';
-    recommendationTitle = 'Llama 3.2 (1B) — Ultra-Lightweight Minimum';
+    recommendationTitle = 'Llama 3.2 (1B) — Lightweight & Fast';
     recommendationReason =
-      'Entry hardware profile detected (≤4GB RAM / ≤4 Cores). 1B model guarantees snappy, zero-lag execution.';
+      'Lightweight setup detected. This model runs quickly and smoothly without slowing down your computer.';
   } else {
     recommendedTier = 'standard';
     recommendedModelId = 'llama3.2:3b';
-    recommendationTitle = 'Llama 3.2 (3B) — Balanced Standard';
+    recommendationTitle = 'Llama 3.2 (3B) — Recommended for Your Computer';
     recommendationReason =
-      'Standard hardware profile detected (8GB+ RAM). 3B tier delivers the ideal balance between processing speed and comprehension.';
+      'Recommended for your computer. Great balance of fast speed and clear, helpful notes.';
   }
 
   return {
     cpuCores,
     memoryEstimateGb: rawMemory,
-    gpuRenderer: gpuRenderer || 'Standard Graphics Engine',
+    gpuRenderer: cleanGpu,
     isAppleSilicon,
     recommendedTier,
     recommendedModelId,
@@ -337,6 +346,7 @@ export function detectSystemHardware(): SystemHardwareProfile {
     recommendationReason,
   };
 }
+
 
 /**
  * Check if an installed Ollama model matches any compatible model in our catalog

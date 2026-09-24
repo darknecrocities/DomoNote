@@ -28,7 +28,7 @@ export const SoundToggle: React.FC = () => {
           </div>
         </div>
       )}
-      <span className="text-[10px] hidden md:inline">
+      <span className="text-[10px] hidden xl:inline">
         {isMuted ? 'MUTED' : 'THOCK'}
       </span>
     </button>

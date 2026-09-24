@@ -73,6 +73,7 @@ export const TiltCard: React.FC<TiltCardProps> = ({
     (e: React.MouseEvent<HTMLDivElement>) => {
       onMouseEnter?.(e);
       if (cardRef.current) {
+        cardRef.current.style.zIndex = '20';
         cardRef.current.style.transition = 'transform 0.12s ease-out';
       }
     },
@@ -86,6 +87,7 @@ export const TiltCard: React.FC<TiltCardProps> = ({
         cancelAnimationFrame(rafIdRef.current);
       }
       if (cardRef.current) {
+        cardRef.current.style.zIndex = '';
         cardRef.current.style.transition = 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)';
         cardRef.current.style.transform = `perspective(${perspective}px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
       }

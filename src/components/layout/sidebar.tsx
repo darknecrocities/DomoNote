@@ -21,12 +21,14 @@ import {
   Download,
   Sparkles,
   Layers,
+  Star,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
 import { ChromeIcon } from '../ui/chrome-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
 import { useLanguage } from '../../context/language-context';
 import { useAI } from '../../context/ai-context';
+import { useGitHubStars } from '../../services/github/stars';
 import logoImg from '../../assets/official_domonote.png';
 
 export const Sidebar: React.FC = () => {
@@ -39,6 +41,7 @@ export const Sidebar: React.FC = () => {
   } = useWorkspace();
   const { t } = useLanguage();
   const { isConnected, isChecking, selectedModel, checkConnection, startOllamaService } = useAI();
+  const { starCount } = useGitHubStars();
 
   // Collapsible state persisted to localStorage for desktop
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -75,7 +78,6 @@ export const Sidebar: React.FC = () => {
   ];
 
   const secondaryItems: Array<{ id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
-    { id: 'landing', label: t('nav.landing', 'Landing Page'), icon: Sparkles },
     { id: 'download', label: t('nav.download'), icon: Download },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
     { id: 'about', label: t('nav.about'), icon: Info },
@@ -269,9 +271,16 @@ export const Sidebar: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 hover:text-black dark:hover:text-zinc-300 transition-colors"
+              title="Star DomoNote on GitHub"
             >
               <GithubIcon className="w-3 h-3" />
               <span>GitHub</span>
+              {starCount !== null && (
+                <span className="flex items-center gap-0.5 text-[9px] font-mono text-amber-500">
+                  <Star className="w-2.5 h-2.5 fill-amber-500" />
+                  <span>{starCount.toLocaleString()}</span>
+                </span>
+              )}
             </a>
           </div>
         )}

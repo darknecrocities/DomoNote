@@ -148,7 +148,7 @@ export const ModeSwitcher: React.FC = () => {
 
       {/* Sleek Floating Menu Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-80 sm:w-96 rounded-xl bg-white dark:bg-[#111114] backdrop-blur-2xl border border-slate-200 dark:border-white/15 shadow-2xl p-2 z-50 animate-fade-in divide-y divide-slate-100 dark:divide-white/10">
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] rounded-xl bg-white dark:bg-[#111114] backdrop-blur-2xl border border-slate-200 dark:border-white/15 shadow-2xl p-2 z-50 animate-fade-in divide-y divide-slate-100 dark:divide-white/10">
           <div className="px-3 py-2 text-[10px] font-mono text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center justify-between font-bold">
             <span>Workspace Modes</span>
             <span className="text-[10px] text-slate-500 dark:text-zinc-400">Quick Switch</span>

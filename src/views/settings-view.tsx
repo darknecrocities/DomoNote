@@ -475,7 +475,7 @@ export const SettingsView: React.FC = () => {
                     disabled={pullingModelId !== null}
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Pull Recommended ({recommendedModel.downloadSize})</span>
+                    <span>Download Recommended ({recommendedModel.downloadSize})</span>
                   </Button>
                 ) : selectedModel !== recommendedModel.id ? (
                   <Button
@@ -485,7 +485,7 @@ export const SettingsView: React.FC = () => {
                     onClick={() => setSelectedModel(recommendedModel.id)}
                   >
                     <Check className="w-3.5 h-3.5" />
-                    <span>Activate Recommendation</span>
+                    <span>Use Recommended</span>
                   </Button>
                 ) : (
                   <span className="text-[11px] font-bold text-slate-950 dark:text-white flex items-center gap-1">
