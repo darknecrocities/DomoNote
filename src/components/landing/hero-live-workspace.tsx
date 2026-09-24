@@ -12,7 +12,7 @@ export const HeroLiveWorkspace: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl overflow-hidden font-sans text-left">
+    <div className="relative w-full rounded-2xl border border-zinc-800 bg-zinc-950 p-4 sm:p-8 shadow-2xl overflow-hidden font-sans text-left">
       {/* Top Window Chrome */}
       <div className="flex items-center justify-between border-b border-zinc-850 pb-4 mb-6">
         <div className="flex items-center gap-2 text-xs text-zinc-300">
@@ -28,7 +28,7 @@ export const HeroLiveWorkspace: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[300px]">
         {/* Left: Document Reading Page */}
-        <div className="md:col-span-7 bg-white text-zinc-900 rounded-xl p-6 paper-desk-shadow relative flex flex-col justify-between select-none">
+        <div className="md:col-span-7 bg-white text-zinc-900 rounded-xl p-4 sm:p-6 paper-desk-shadow relative flex flex-col justify-between select-none">
           <div className="space-y-3">
             <div className="text-xs text-zinc-500 font-semibold uppercase tracking-wide">
               Section 2.4 — Privacy & Local Storage
@@ -72,7 +72,7 @@ export const HeroLiveWorkspace: React.FC = () => {
 
           {/* Contextual Floating Toolbar */}
           {stage === 1 && (
-            <div className="absolute top-28 left-12 z-20 flex items-center gap-1 bg-zinc-950 border border-zinc-700 text-white rounded-lg p-1 shadow-2xl text-xs animate-fade-in font-sans">
+            <div className="absolute top-28 left-4 sm:left-12 z-20 flex items-center gap-1 bg-zinc-950 border border-zinc-700 text-white rounded-lg p-1 shadow-2xl text-xs animate-fade-in font-sans">
               <span className="px-2 py-1 bg-zinc-800 text-white rounded font-medium">
                 Explain
               </span>
@@ -83,7 +83,7 @@ export const HeroLiveWorkspace: React.FC = () => {
         </div>
 
         {/* Right: Sliding AI Context & Note Panel */}
-        <div className="md:col-span-5 flex flex-col justify-between bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 text-xs text-zinc-300">
+        <div className="md:col-span-5 flex flex-col justify-between bg-zinc-900/60 border border-zinc-800 rounded-xl p-3.5 sm:p-5 text-xs text-zinc-300">
           <div>
             <div className="flex items-center justify-between border-b border-zinc-850 pb-2.5 mb-3">
               <div className="flex items-center gap-2">

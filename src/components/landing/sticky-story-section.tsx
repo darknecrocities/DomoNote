@@ -103,8 +103,8 @@ export const StickyStorySection: React.FC = () => {
   ];
 
   return (
-    <section className="py-24 border-t border-slate-200 dark:border-zinc-850 text-left">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <section className="py-12 sm:py-24 border-t border-slate-200 dark:border-zinc-850 text-left">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Content */}
         <div className="lg:col-span-5 lg:sticky lg:top-32 space-y-6">
           <div className="inline-flex items-center text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -127,7 +127,7 @@ export const StickyStorySection: React.FC = () => {
                 <button
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between ${
+                  className={`w-full text-left p-3 sm:p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between ${
                     isActive
                       ? 'bg-white dark:bg-zinc-900/90 border-slate-400 dark:border-white/40 text-slate-900 dark:text-white shadow-md'
                       : 'bg-slate-50/70 dark:bg-zinc-950/40 border-slate-200 dark:border-zinc-850 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-750 hover:text-slate-900 dark:hover:text-zinc-200'
@@ -147,7 +147,7 @@ export const StickyStorySection: React.FC = () => {
                   </div>
 
                   {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white shrink-0" />
                   )}
                 </button>
               );
@@ -177,10 +177,10 @@ export const StickyStorySection: React.FC = () => {
         </div>
 
         {/* Right Dynamic Interface with Sliding-In Card */}
-        <div className="lg:col-span-7 overflow-hidden relative min-h-[440px]">
+        <div className="lg:col-span-7 overflow-hidden relative min-h-[400px]">
           <div
             key={activeStep}
-            className="animate-slide-in-right rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-xl dark:shadow-2xl relative overflow-hidden"
+            className="animate-slide-in-right rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:p-8 shadow-xl dark:shadow-2xl relative overflow-hidden"
           >
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3 mb-6">
               <span className="text-xs font-medium text-slate-700 dark:text-zinc-300 tracking-wide font-mono">
@@ -195,12 +195,12 @@ export const StickyStorySection: React.FC = () => {
               {stages[activeStep].desc}
             </p>
 
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 min-h-[260px] flex flex-col justify-center">
+            <div className="p-3.5 sm:p-5 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 min-h-[240px] flex flex-col justify-center">
               {stages[activeStep].content}
             </div>
 
             {/* Next stage callout button */}
-            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-zinc-850 flex items-center justify-between text-xs">
+            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-zinc-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
               <span className="text-slate-500 dark:text-zinc-500 font-mono text-[11px]">
                 Click step or Next to preview stage transformation
               </span>

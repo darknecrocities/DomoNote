@@ -246,8 +246,8 @@ export const BrandCarouselBelts: React.FC = () => {
   return (
     <div className="w-full py-6 my-2 relative overflow-hidden flex flex-col gap-3.5 select-none">
       {/* Left and Right edge gradient fade overlays for seamless luxury aesthetic */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 sm:w-44 z-20 bg-gradient-to-r from-[var(--bg-page)] to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 sm:w-44 z-20 bg-gradient-to-l from-[var(--bg-page)] to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 sm:w-44 z-20 bg-gradient-to-r from-[var(--bg-page)] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 sm:w-44 z-20 bg-gradient-to-l from-[var(--bg-page)] to-transparent" />
 
       {/* BELT 1: Video Platforms (Non-stop looping to the Left) */}
       <div className="flex w-full overflow-hidden">

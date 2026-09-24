@@ -23,6 +23,8 @@ import {
   RotateCcw,
   Download,
   Star,
+  Menu,
+  X,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { ChromeIcon } from '../components/ui/chrome-icon';
@@ -84,9 +86,21 @@ export const LandingPage: React.FC = () => {
 
   const mascotRef = React.useRef<HTMLDivElement>(null);
   const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { starCount, refreshStars } = useGitHubStars();
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleOpenWorkspace = () => {
+    setIsMobileMenuOpen(false);
     if (isCloudHost) {
       setIsCloudModalOpen(true);
     } else {
@@ -269,14 +283,18 @@ export const LandingPage: React.FC = () => {
       <StarfieldBackground isDark={theme === 'dark'} className="fixed inset-0 pointer-events-none z-0" />
 
       {/* Top Navigation - Sticky Appbar */}
-      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-black/85 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850/80 px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
+      <header className="sticky top-0 z-50 relative bg-white/90 dark:bg-black/85 backdrop-blur-md border-b border-slate-200 dark:border-zinc-850/80 px-4 sm:px-6 h-14 flex items-center transition-all shadow-sm dark:shadow-lg">
         <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-between relative">
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-2.5 cursor-pointer select-none"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
             <img src={logoImg} alt="DomoNote" className="w-7 h-7 rounded-lg object-contain shadow-xs" />
             <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">DomoNote</span>
           </div>
 
-          <div className="flex items-center gap-2.5 h-full">
+          {/* Desktop Navigation Items (Hidden on Mobile) */}
+          <div className="hidden md:flex items-center gap-2.5 h-full">
             {/* 1-Click Chrome Extension Button */}
             <button
               onClick={() => setIsExtensionModalOpen(true)}
@@ -284,7 +302,7 @@ export const LandingPage: React.FC = () => {
               title="DomoNote Chrome Extension (1-Click Automated Setup)"
             >
               <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
-              <span className="hidden sm:inline font-medium">Chrome Extension</span>
+              <span className="font-medium">Chrome Extension</span>
             </button>
 
             <button
@@ -292,7 +310,7 @@ export const LandingPage: React.FC = () => {
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('common.download', 'Download')}</span>
+              <span>{t('common.download', 'Download')}</span>
             </button>
 
             {/* GitHub Star Count Button */}
@@ -307,8 +325,8 @@ export const LandingPage: React.FC = () => {
               title="Star DomoNote on GitHub"
             >
               <GithubIcon className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-              <span className="font-medium hidden sm:inline">{t('landing.hero.star', 'Star')}</span>
-              <span className="h-3 w-[1px] bg-slate-200 dark:bg-zinc-800 hidden sm:inline" />
+              <span className="font-medium">{t('landing.hero.star', 'Star')}</span>
+              <span className="h-3 w-[1px] bg-slate-200 dark:bg-zinc-800" />
               <span className="flex items-center gap-1 text-[11px] font-mono text-slate-500 dark:text-zinc-400 group-hover:text-amber-500 transition-colors">
                 <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                 <span>{starCount !== null ? starCount.toLocaleString() : 'Star'}</span>
@@ -326,14 +344,129 @@ export const LandingPage: React.FC = () => {
             {/* Theme Toggle (Light / Dark) */}
             <ThemeToggle />
           </div>
+
+          {/* Mobile Right Bar: Theme Toggle + Hamburger Button */}
+          <div className="flex md:hidden items-center gap-1.5">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-850 transition-colors"
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </header>
 
+      {/* Mobile Drawer Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden sticky top-14 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-2xl border-b border-slate-200 dark:border-zinc-850 shadow-2xl px-5 py-4 space-y-3.5 animate-fade-in transition-all">
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full justify-center shadow-md py-2.5 text-xs font-bold"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              handleOpenWorkspace();
+            }}
+          >
+            <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download Desktop App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
+            <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsExtensionModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-zinc-700 transition-colors"
+            >
+              <ChromeIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Extension</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setActiveView('download');
+              }}
+              className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-zinc-700 transition-colors"
+            >
+              <Download className="w-4 h-4 text-slate-600 dark:text-zinc-300 shrink-0" />
+              <span>{t('common.download', 'Download')}</span>
+            </button>
+          </div>
+
+          <div className="space-y-0.5 pt-2 border-t border-slate-100 dark:border-zinc-900 text-xs">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setActiveView('studio');
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2.5 font-medium">
+                <Video className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
+                <span>Screen Recorder Studio</span>
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">HD</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                const el = document.getElementById('demo-video-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2.5 font-medium"
+            >
+              <Play className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
+              <span>{t('landing.demo.watchDemo', 'Watch Demo')}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                const el = document.getElementById('setup-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2.5 font-medium"
+            >
+              <Terminal className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
+              <span>{t('landing.setup.badge', 'Quick Setup Guide')}</span>
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 dark:border-zinc-900 flex items-center justify-between gap-3">
+            <a
+              href="https://github.com/darknecrocities/DomoNote"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                setTimeout(refreshStars, 3000);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-medium text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <GithubIcon className="w-3.5 h-3.5" />
+              <span>GitHub</span>
+              <span className="flex items-center gap-1 text-[11px] font-mono text-amber-500">
+                <Star className="w-3 h-3 fill-amber-500" />
+                <span>{starCount !== null ? starCount.toLocaleString() : 'Star'}</span>
+              </span>
+            </a>
+
+            <LanguageSwitcher />
+          </div>
+        </div>
+      )}
+
       {/* Main Hero Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 pt-10 pb-24 relative z-10 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-20 sm:pb-24 relative z-10 w-full overflow-hidden sm:overflow-visible">
         {/* 2-Column Hero Section with Interactive Background */}
         <div
-          className="relative w-full overflow-hidden rounded-3xl transition-colors duration-500 border border-slate-200/60 dark:border-zinc-800"
+          className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl transition-colors duration-500 border border-slate-200/60 dark:border-zinc-800"
           style={{
             background: theme === 'light'
               ? 'linear-gradient(160deg, #d4dce8 0%, #dce4ef 30%, #e5eaf5 65%, #edf1f8 100%)'
@@ -349,21 +482,21 @@ export const LandingPage: React.FC = () => {
           {/* Neural Clusters Constellation Background in Dark Mode */}
           <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.7 : 0} className="z-0" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-8 pb-20 border-b border-slate-200/50 dark:border-zinc-850/60 mb-20 relative z-10 px-6 sm:px-10 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-6 sm:pt-8 pb-12 sm:pb-20 border-b border-slate-200/50 dark:border-zinc-850/60 mb-12 sm:mb-20 relative z-10 px-4 sm:px-10 lg:px-12">
             {/* Left Column: Text Content & Actions */}
-            <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
+            <div className="lg:col-span-6 flex flex-col items-start text-left space-y-5 sm:space-y-6 w-full">
               {/* Top Benefit Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-200 select-none shadow-sm backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-200 select-none shadow-sm backdrop-blur-sm">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
                 <span className="font-semibold text-slate-900 dark:text-white">Personal AI Secretary</span>
               </div>
 
               {/* Hero Headline with Looping Typewriter */}
-              <div className="space-y-3">
-                <h1 className="text-4xl sm:text-6xl xl:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.05]">
+              <div className="space-y-2 sm:space-y-3 w-full">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.08] sm:leading-[1.05]">
                   {t('landing.hero.headlinePrefix', 'Notes, meetings, and documents.')}
                 </h1>
-                <div className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-600 dark:text-zinc-400 tracking-tight h-[2.5rem] sm:h-[3rem] flex items-center overflow-hidden">
+                <div className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-600 dark:text-zinc-400 tracking-tight h-[2.25rem] sm:h-[3rem] flex items-center overflow-hidden">
                   <LoopingTypewriter
                     key={language}
                     phrases={activeTypewriterList}
@@ -373,13 +506,13 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Benefit-Focused Subtitle */}
-              <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-400 max-w-xl leading-relaxed font-normal">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-zinc-400 max-w-xl leading-relaxed font-normal">
                 {t('landing.hero.subheadline', 'Record meeting voice notes, search documents, create illustrated how-to guides, and take notes without cloud servers. Everything stays 100% private on your own computer.')}
               </p>
 
               {/* Primary Hero Actions */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                <Button variant="primary" size="md" onClick={handleOpenWorkspace}>
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 pt-2 w-full">
+                <Button variant="primary" size="md" onClick={handleOpenWorkspace} className="w-full sm:w-auto justify-center">
                   <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download Desktop App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
                   {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </Button>
@@ -387,7 +520,7 @@ export const LandingPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="md"
-                  className="border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
+                  className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setIsExtensionModalOpen(true)}
                   title="1-Click Chrome Extension Setup"
                 >
@@ -401,7 +534,7 @@ export const LandingPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="md"
-                  className="border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
+                  className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setActiveView('download')}
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-300" />
@@ -411,7 +544,7 @@ export const LandingPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="md"
-                  className="border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
+                  className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => setActiveView('studio')}
                 >
                   <Video className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-300" />
@@ -421,7 +554,7 @@ export const LandingPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="md"
-                  className="border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
+                  className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-white bg-white dark:bg-transparent"
                   onClick={() => {
                     const el = document.getElementById('demo-video-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -433,7 +566,7 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Spec / Security Credentials Strip */}
-              <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200 dark:border-zinc-850/80 w-full">
+              <div className="pt-4 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-6 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200 dark:border-zinc-850/80 w-full">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
                   <span>{t('landing.hero.clientDb', '100% Private on Your Device')}</span>
@@ -450,11 +583,11 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Right Column: Mascot — frameless dark / black-framed light */}
-            <div className="lg:col-span-6 flex items-center justify-center relative select-none">
+            <div className="lg:col-span-6 flex items-center justify-center relative select-none w-full py-4 sm:py-0">
 
               {/* Ambient glow — adapts per theme */}
               <div
-                className="absolute w-[460px] h-[460px] sm:w-[580px] sm:h-[580px] lg:w-[680px] lg:h-[680px] rounded-full pointer-events-none blur-3xl transition-opacity duration-500"
+                className="absolute w-[240px] h-[240px] sm:w-[420px] sm:h-[420px] lg:w-[680px] lg:h-[680px] rounded-full pointer-events-none blur-3xl transition-opacity duration-500"
                 style={{
                   opacity: 1,
                   background: theme === 'light'
@@ -470,7 +603,7 @@ export const LandingPage: React.FC = () => {
               */}
               <div
                 ref={mascotRef}
-                className="relative z-10 cursor-pointer group flex items-center justify-center w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] lg:w-[560px] lg:h-[560px] rounded-full transition-all duration-500 hover:scale-105 outline-none"
+                className="relative z-10 cursor-pointer group flex items-center justify-center w-[240px] h-[240px] sm:w-[380px] sm:h-[380px] lg:w-[560px] lg:h-[560px] max-w-full rounded-full transition-all duration-500 hover:scale-105 outline-none"
                 style={{
                   border: theme === 'light' ? '3px solid rgba(9,9,11,0.88)' : '2px solid transparent',
                   background: theme === 'light'
@@ -527,7 +660,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Product Demo Video Showcase with Quantum Lattice Constellation */}
         <ScrollReveal direction="up" delayMs={50}>
-          <div id="demo-video-section" className="w-full py-10 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div id="demo-video-section" className="w-full py-8 sm:py-10 text-left mb-16 sm:mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-4 sm:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="quantum-lattice" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
@@ -545,10 +678,10 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* View Switcher: Interactive Studio vs Full Walkthrough */}
-                <div className="flex items-center gap-2 shrink-0 bg-slate-100 dark:bg-zinc-900/80 p-1 rounded-xl border border-slate-200 dark:border-zinc-800">
+                <div className="grid grid-cols-2 sm:flex items-center gap-1.5 shrink-0 bg-slate-100 dark:bg-zinc-900/80 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 w-full sm:w-auto">
                   <button
                     onClick={() => setDemoMode('interactive')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-center ${
                       demoMode === 'interactive'
                         ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-md'
                         : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
@@ -558,7 +691,7 @@ export const LandingPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setDemoMode('video')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-center ${
                       demoMode === 'video'
                         ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-md'
                         : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
@@ -624,7 +757,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Live Interactive Workspace Preview with Synaptic Flow Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div className="w-full mb-16 sm:mb-28 relative overflow-hidden rounded-3xl px-4 sm:px-8 lg:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="synaptic-flow" opacity={theme === 'dark' ? 0.5 : 0} />
             <div className="relative z-10">
@@ -639,7 +772,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Storytelling Section with Harmonic Wave Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div className="w-full mb-16 sm:mb-28 relative overflow-hidden rounded-3xl px-4 sm:px-8 lg:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="harmonic-wave" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
@@ -650,7 +783,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Before / After Comparison with Audio Nodes Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div className="w-full py-10 sm:py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-16 sm:mb-28 relative overflow-hidden rounded-3xl px-4 sm:px-8 lg:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="audio-nodes" opacity={theme === 'dark' ? 0.6 : 0} />
             <div className="relative z-10">
@@ -672,7 +805,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Horizontal Feature Carousel with Stellar Vortex Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div className="w-full py-10 sm:py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-16 sm:mb-28 relative overflow-hidden rounded-3xl px-4 sm:px-8 lg:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="stellar-vortex" opacity={theme === 'dark' ? 0.65 : 0} />
             <div className="relative z-10">
@@ -694,14 +827,14 @@ export const LandingPage: React.FC = () => {
 
         {/* Unified Feature Explorer Map */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full mb-28">
+          <div className="w-full mb-16 sm:mb-28">
             <FeatureMap />
           </div>
         </ScrollReveal>
 
         {/* Local Setup Section with Crystalline Polyhedra Constellation */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div id="setup-section" className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-6 sm:px-10">
+          <div id="setup-section" className="w-full py-10 sm:py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-16 sm:mb-28 scroll-mt-20 relative overflow-hidden rounded-3xl px-4 sm:px-8 lg:px-10">
             <HeroCloudBackground isLight={theme === 'light'} />
             <SectionConstellation variant="crystalline-polyhedra" opacity={theme === 'dark' ? 0.55 : 0} />
             <div className="relative z-10">
@@ -717,7 +850,7 @@ export const LandingPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
                 <div className="lg:col-span-7 space-y-4">
                   <CodeBlock
                     title={t('landing.setup.oneClickInit', 'ONE-CLICK INITIALIZATION')}
@@ -729,38 +862,40 @@ cd DomoNote
 ./start.sh`}
                   />
 
-                  <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 text-xs text-slate-600 dark:text-zinc-400 space-y-2 shadow-sm">
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 text-xs text-slate-600 dark:text-zinc-400 space-y-2.5 shadow-sm">
                     <div className="text-slate-900 dark:text-zinc-200 font-semibold mb-1">
                       {t('landing.setup.whatLauncherAutomates', 'What the launcher automates:')}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    <div className="flex items-start sm:items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
                       <span>{t('landing.setup.checkOllama', 'Checks if Ollama is installed (prompts installation if missing)')}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    <div className="flex items-start sm:items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
                       <span>{t('landing.setup.configCors', 'Configures cross-origin settings for local browser communication')}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    <div className="flex items-start sm:items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
                       <span>{t('landing.setup.pullModels', 'Pulls lightweight models automatically if none exist')}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    <div className="flex items-start sm:items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
                       <span>{t('landing.setup.startServer', 'Starts the development server and launches your workspace in browser')}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 space-y-4">
-                  <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
-                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-2">
-                      <Cpu className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
-                      <span>{t('landing.setup.supportedModels', 'Supported Local Models')}</span>
+                <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                  <div className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-2">
+                        <Cpu className="w-4 h-4 text-slate-500 dark:text-zinc-400 shrink-0" />
+                        <span>{t('landing.setup.supportedModels', 'Supported Local Models')}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed mb-4">
+                        {t('landing.setup.supportedModelsDesc', 'Compatible with any model running on Ollama, including llama3.2, gemma, mistral, qwen2.5, phi3, and llava.')}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed mb-4">
-                      {t('landing.setup.supportedModelsDesc', 'Compatible with any model running on Ollama, including llama3.2, gemma, mistral, qwen2.5, phi3, and llava.')}
-                    </p>
                     <div className="flex flex-wrap gap-1.5 text-xs">
                       <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300">
                         llama3.2
@@ -777,14 +912,16 @@ cd DomoNote
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
-                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-2">
-                      <Shield className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
-                      <span>{t('landing.setup.privacyBoundaries', 'Privacy Boundaries')}</span>
+                  <div className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-2">
+                        <Shield className="w-4 h-4 text-slate-500 dark:text-zinc-400 shrink-0" />
+                        <span>{t('landing.setup.privacyBoundaries', 'Privacy Boundaries')}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                        {t('landing.setup.privacyBoundariesDesc', 'Your notes and recordings never leave your device. AI requests travel exclusively between your web browser and http://localhost:11434.')}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-                      {t('landing.setup.privacyBoundariesDesc', 'Your notes and recordings never leave your device. AI requests travel exclusively between your web browser and http://localhost:11434.')}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -794,7 +931,7 @@ cd DomoNote
 
         {/* Why DomoNote / Foundations */}
         <ScrollReveal direction="up" delayMs={60}>
-          <div className="w-full py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-20">
+          <div className="w-full py-10 sm:py-16 border-t border-slate-200 dark:border-zinc-850 text-left mb-16 sm:mb-20 px-2 sm:px-0">
             <div className="mb-10 text-center">
               <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                 {t('landing.why.badge', 'Why DomoNote')}
@@ -804,8 +941,8 @@ cd DomoNote
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <TiltCard className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 flex flex-col justify-start space-y-2.5 shadow-sm h-full w-full">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card1Tag', 'Private by Default')}
                 </span>
@@ -817,7 +954,7 @@ cd DomoNote
                 </p>
               </TiltCard>
 
-              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 flex flex-col justify-start space-y-2.5 shadow-sm h-full w-full">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card2Tag', 'Zero Tracking')}
                 </span>
@@ -829,7 +966,7 @@ cd DomoNote
                 </p>
               </TiltCard>
 
-              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 flex flex-col justify-start space-y-2.5 shadow-sm h-full w-full">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card3Tag', 'Universal Formats')}
                 </span>
@@ -841,7 +978,7 @@ cd DomoNote
                 </p>
               </TiltCard>
 
-              <TiltCard className="p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 space-y-2 shadow-sm">
+              <TiltCard className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-zinc-850 bg-white dark:bg-zinc-950 flex flex-col justify-start space-y-2.5 shadow-sm h-full w-full">
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase">
                   {t('landing.why.card4Tag', 'Open Source')}
                 </span>
@@ -858,7 +995,7 @@ cd DomoNote
 
         {/* Final Launch Callout Card */}
         <ScrollReveal direction="up" delayMs={60}>
-          <TiltCard maxTilt={3} scale={1.01} className="w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-left flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-xl dark:shadow-2xl">
+          <TiltCard maxTilt={3} scale={1.01} className="w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-12 text-left flex flex-col md:flex-row items-start md:items-center justify-between gap-6 sm:gap-8 shadow-xl dark:shadow-2xl">
             <div className="max-w-xl">
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
                 {t('landing.cta.title', 'Start taking notes with private local AI.')}
@@ -868,15 +1005,15 @@ cd DomoNote
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <Button variant="primary" size="lg" onClick={handleOpenWorkspace}>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
+              <Button variant="primary" size="lg" className="w-full sm:w-auto justify-center" onClick={handleOpenWorkspace}>
                 <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download Desktop App') : t('landing.cta.openApp', 'Open DomoNote')}</span>
                 {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-white/40 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
+                className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-white/40 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
                 onClick={() => setActiveView('download')}
               >
                 <Download className="w-4 h-4 text-slate-500 dark:text-zinc-300" />

@@ -388,8 +388,8 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
       </div>
 
       {/* Minimal Stepper Tabs */}
-      <div className="px-3 sm:px-6 pt-3 pb-2 border-b border-zinc-850 bg-zinc-950 overflow-x-auto no-scrollbar">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-w-[500px] md:min-w-0">
+      <div className="px-3 sm:px-6 pt-3 pb-2 border-b border-zinc-850 bg-zinc-950">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
           {stages.map((stage) => {
             const Icon = stage.icon;
             const isActive = activeStage === stage.id;
@@ -434,8 +434,8 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
         </div>
       </div>
 
-      {/* Main Slide Content - Fixed stable height across all tabs to prevent layout shift */}
-      <div key={activeStage} className="p-4 sm:p-6 h-[560px] sm:h-[500px] flex flex-col justify-between bg-[#080808] animate-slide-in-right overflow-y-auto lg:overflow-hidden">
+      {/* Main Slide Content - Responsive stable height across all tabs */}
+      <div key={activeStage} className="p-4 sm:p-6 min-h-[520px] sm:h-[500px] flex flex-col justify-between bg-[#080808] animate-slide-in-right overflow-y-auto lg:overflow-hidden">
         {/* ================= STAGE 1: CALL RECORDING ================= */}
         {activeStage === 'calls' && (
           <div className="space-y-5">

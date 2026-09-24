@@ -14,8 +14,8 @@ export const FeatureMap: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 border-t border-slate-200 dark:border-zinc-850 text-left select-none">
-      <div className="mb-10">
+    <section className="py-10 sm:py-20 border-t border-slate-200 dark:border-zinc-850 text-left select-none">
+      <div className="mb-8 sm:mb-10">
         <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
           Workspace Features
         </span>
@@ -25,7 +25,7 @@ export const FeatureMap: React.FC = () => {
       </div>
 
       {/* Horizontal Interactive Selector */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-850 pb-3 mb-8 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-850 pb-3 mb-6 sm:mb-8 overflow-x-auto scrollbar-none w-full">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -33,7 +33,7 @@ export const FeatureMap: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-slate-900 dark:bg-zinc-800 text-white font-bold border border-slate-900 dark:border-zinc-700 shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-900'
@@ -50,7 +50,7 @@ export const FeatureMap: React.FC = () => {
       <TiltCard
         maxTilt={3}
         scale={1.01}
-        className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-500"
+        className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:p-8 shadow-sm dark:shadow-2xl min-h-[380px] flex flex-col justify-between transition-colors duration-500"
       >
         {activeTab === 'meetings' && (
           <div className="space-y-6 animate-fade-in">

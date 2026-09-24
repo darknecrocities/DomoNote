@@ -125,7 +125,7 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
               key={panel.id}
               maxTilt={4}
               scale={1.01}
-              className="w-full shrink-0 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/95 shadow-lg dark:shadow-2xl flex flex-col justify-between min-h-[440px]"
+              className="w-full shrink-0 p-4 sm:p-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/95 shadow-lg dark:shadow-2xl flex flex-col justify-between min-h-[440px]"
             >
               <div>
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-3 mb-6">
@@ -146,7 +146,7 @@ export const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({
               </div>
 
               {/* In-Panel Preview Content */}
-              <div className="w-full rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 p-4 font-mono text-xs overflow-hidden">
+              <div className="w-full rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 p-3 sm:p-4 font-mono text-xs overflow-hidden">
                 {panel.previewContent}
               </div>
             </TiltCard>
