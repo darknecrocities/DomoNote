@@ -31,6 +31,7 @@ export interface FloatingMeetingControllerProps {
   audioLevel: number;
   transcript: TranscriptSegment[];
   screenshots: MeetingScreenshot[];
+  autoOpenPiP?: boolean;
   onStopAndCompile: () => void;
   onTogglePause: () => void;
   onToggleMicMute: () => void;
@@ -66,6 +67,7 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
   audioLevel,
   transcript,
   screenshots,
+  autoOpenPiP,
   onStopAndCompile,
   onTogglePause,
   onToggleMicMute,
@@ -97,6 +99,7 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
   const [quickNoteText, setQuickNoteText] = useState('');
   const [copiedTranscript, setCopiedTranscript] = useState(false);
   const [isPiPActive, setIsPiPActive] = useState(false);
+  const pipWindowRef = useRef<any>(null);
 
   const transcriberEndRef = useRef<HTMLDivElement>(null);
 
@@ -166,71 +169,293 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
     setActiveDrawer(null);
   };
 
-  // Toggle Picture-in-Picture (PiP) Window
+  // Real-time synchronization to Always-on-Top PiP window (timer, waves, transcript count, states)
+  useEffect(() => {
+    if (pipWindowRef.current && !pipWindowRef.current.closed) {
+      const doc = pipWindowRef.current.document;
+      const timer = doc.getElementById('pip-timer');
+      if (timer) timer.textContent = formatSecondsToTime(elapsedSeconds);
+      const label = doc.getElementById('pip-label');
+      if (label) label.textContent = isPaused ? 'PAUSED' : 'RECORDING';
+      const badge = doc.getElementById('pip-tr-badge');
+      if (badge) badge.textContent = String(transcript.length);
+      const pauseBtn = doc.getElementById('pip-pause-btn');
+      if (pauseBtn) pauseBtn.textContent = isPaused ? '▶' : '⏸';
+      const micBtn = doc.getElementById('pip-mic-btn');
+      if (micBtn) micBtn.textContent = isMicMuted ? '🔇' : '🎙';
+
+      // Live transcript drawer update inside PiP
+      const drawer = doc.getElementById('pip-drawer');
+      if (drawer && drawer.style.display !== 'none') {
+        drawer.innerHTML =
+          transcript.length === 0
+            ? '<span style="color:#71717a">Listening for meeting speech...</span>'
+            : transcript
+                .slice(-10)
+                .map(
+                  (s) =>
+                    `<div style="margin-bottom:6px;"><span style="color:#10b981;font-weight:600;font-size:10px;">${s.speaker}</span> <span style="color:#71717a;font-size:9px;">${formatSecondsToTime(s.timestampSeconds)}</span><br/><span style="color:#f4f4f5;">${s.text}</span></div>`
+                )
+                .join('');
+        drawer.scrollTop = drawer.scrollHeight;
+      }
+
+      // Audio wave bars
+      const waves = doc.getElementById('pip-waves');
+      if (waves && !isPaused && !isMicMuted) {
+        const bars = waves.querySelectorAll('.hud-wave-bar');
+        [0.4, 0.8, 0.5, 1.0, 0.6].forEach((scale, i) => {
+          const bar = bars[i] as HTMLElement;
+          if (bar) {
+            const h = Math.max(2, Math.min(12, (audioLevel / 100) * 12 * scale));
+            bar.style.height = `${h}px`;
+          }
+        });
+      }
+    }
+  }, [elapsedSeconds, transcript, audioLevel, isPaused, isMicMuted]);
+
+  // Toggle Picture-in-Picture (PiP) Window (Always-on-Top over Google Meet, Windows & Fullscreen)
   const handleTogglePiP = async () => {
     if ('documentPictureInPicture' in window) {
       try {
-        if (!isPiPActive) {
+        if (!isPiPActive && !pipWindowRef.current) {
           const pipWindow = await (window as any).documentPictureInPicture.requestWindow({
-            width: 440,
-            height: 240,
+            width: 780,
+            height: 60,
           });
+          pipWindowRef.current = pipWindow;
 
-          // Copy styles
-          [...document.styleSheets].forEach((styleSheet) => {
-            try {
-              const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
-              const style = document.createElement('style');
-              style.textContent = cssRules;
-              pipWindow.document.head.appendChild(style);
-            } catch {
-              if (styleSheet.href) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.type = styleSheet.type;
-                link.media = styleSheet.media.toString();
-                link.href = styleSheet.href;
-                pipWindow.document.head.appendChild(link);
-              }
-            }
-          });
-
-          // Set background to dark monochrome
-          pipWindow.document.body.className = 'bg-black text-white p-4 font-sans antialiased overflow-hidden';
+          // Set background and inject full horizontal controller matching DomoNote HUD
           pipWindow.document.body.innerHTML = `
-            <div style="font-family: sans-serif; display: flex; flex-direction: column; height: 100%; justify-content: space-between; color: white;">
-              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: white; animation: pulse 1.5s infinite;"></span>
-                  <span style="font-weight: bold; font-size: 12px; letter-spacing: 0.5px;">DomoNote Active</span>
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+              html, body {
+                background: #09090b !important;
+                color: #fff;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                height: 100vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+              }
+              .hud-bar {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 10px;
+                background: rgba(18, 18, 22, 0.96);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                border-radius: 14px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+                height: 48px;
+                margin: auto 4px;
+              }
+              .hud-grip {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #71717a;
+                cursor: grab;
+                padding: 0 4px;
+                font-size: 14px;
+              }
+              .hud-status {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 10px;
+                padding: 4px 8px;
+              }
+              .hud-dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: #fff;
+                box-shadow: 0 0 6px #fff;
+                animation: pulse 1.5s infinite;
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.35; transform: scale(0.85); }
+              }
+              .hud-timer {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 11px;
+                font-weight: 700;
+                color: #fff;
+                line-height: 1.1;
+              }
+              .hud-label {
+                font-size: 8px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: #a1a1aa;
+                line-height: 1;
+              }
+              .hud-waves {
+                display: flex;
+                align-items: flex-end;
+                gap: 1.5px;
+                height: 12px;
+                margin-left: 2px;
+              }
+              .hud-wave-bar {
+                width: 2px;
+                background: #d4d4d8;
+                border-radius: 1px;
+                transition: height 0.08s ease;
+                min-height: 2px;
+              }
+              .hud-divider {
+                width: 1px;
+                height: 20px;
+                background: rgba(255,255,255,0.14);
+                margin: 0 2px;
+              }
+              .hud-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 5px 9px;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.06);
+                color: #e4e4e7;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.12s ease;
+                white-space: nowrap;
+              }
+              .hud-btn:hover {
+                background: rgba(255,255,255,0.16);
+                color: #fff;
+                border-color: rgba(255,255,255,0.25);
+              }
+              .hud-btn-stop {
+                background: #ffffff !important;
+                color: #000000 !important;
+                border: 1px solid #ffffff !important;
+                font-weight: 700 !important;
+                padding: 5px 11px !important;
+              }
+              .hud-btn-stop:hover {
+                background: #e4e4e7 !important;
+              }
+              .hud-badge {
+                background: rgba(255,255,255,0.22);
+                color: #fff;
+                font-size: 9px;
+                font-family: monospace;
+                padding: 0 4px;
+                border-radius: 4px;
+              }
+              .hud-drawer {
+                display: none;
+                flex: 1;
+                background: #121216;
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 10px;
+                margin: 4px;
+                padding: 8px 10px;
+                overflow-y: auto;
+                font-size: 11px;
+                color: #e4e4e7;
+                line-height: 1.4;
+              }
+            </style>
+            <div class="hud-bar">
+              <div class="hud-grip" title="Always on Top Window (Google Meet & Windows)">⠿</div>
+              <div class="hud-status">
+                <div class="hud-dot" id="pip-dot"></div>
+                <div>
+                  <div class="hud-timer" id="pip-timer">${formatSecondsToTime(elapsedSeconds)}</div>
+                  <div class="hud-label" id="pip-label">${isPaused ? 'PAUSED' : 'RECORDING'}</div>
                 </div>
-                <span id="pip-timer" style="font-family: monospace; font-size: 13px; font-weight: bold; color: #e4e4e7;">${formatSecondsToTime(elapsedSeconds)}</span>
+                <div class="hud-waves" id="pip-waves">
+                  <div class="hud-wave-bar" style="height:3px"></div>
+                  <div class="hud-wave-bar" style="height:6px"></div>
+                  <div class="hud-wave-bar" style="height:4px"></div>
+                  <div class="hud-wave-bar" style="height:8px"></div>
+                  <div class="hud-wave-bar" style="height:5px"></div>
+                </div>
               </div>
-              <div id="pip-live-text" style="font-size: 11px; color: #a1a1aa; max-height: 80px; overflow-y: auto; line-height: 1.4; padding: 6px 0;">
-                ${transcript.length > 0 ? transcript[transcript.length - 1].text : 'Listening for audio & meeting speech...'}
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button id="pip-snap-btn" style="flex: 1; padding: 6px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 11px; font-weight: 600; cursor: pointer;">Screenshot</button>
-                <button id="pip-stop-btn" style="flex: 1.2; padding: 6px 10px; background: white; border: 1px solid white; border-radius: 6px; color: black; font-size: 11px; font-weight: bold; cursor: pointer;">Stop & Report</button>
-              </div>
+              <div class="hud-divider"></div>
+              <button class="hud-btn hud-btn-stop" id="pip-stop-btn" title="End recording and generate documentation">■ Stop & Report</button>
+              <button class="hud-btn" id="pip-full-btn" title="Capture full screenshot">📷 Full</button>
+              <button class="hud-btn" id="pip-snip-btn" title="Capture portion screenshot">✂ Snip</button>
+              <button class="hud-btn" id="pip-tr-btn" title="View live transcript">💬 Transcribe <span class="hud-badge" id="pip-tr-badge">${transcript.length}</span></button>
+              <button class="hud-btn" id="pip-bm-btn" title="Add milestone bookmark">🔖 Bookmark</button>
+              <button class="hud-btn" id="pip-note-btn" title="Add timestamped note">📝 Note</button>
+              <button class="hud-btn" id="pip-pause-btn" title="Pause / Resume" style="padding: 5px 7px;">${isPaused ? '▶' : '⏸'}</button>
+              <button class="hud-btn" id="pip-mic-btn" title="Mute / Unmute Mic" style="padding: 5px 7px;">${isMicMuted ? '🔇' : '🎙'}</button>
+              <button class="hud-btn" id="pip-focus-btn" title="Focus DomoNote tab" style="padding: 5px 7px;">⤢</button>
             </div>
+            <div class="hud-drawer" id="pip-drawer"></div>
           `;
 
-          pipWindow.document.getElementById('pip-snap-btn')?.addEventListener('click', () => {
-            onTakeFullScreenshot();
-          });
-
+          // Button event listeners in the Always-on-Top PiP window
           pipWindow.document.getElementById('pip-stop-btn')?.addEventListener('click', () => {
             pipWindow.close();
             onStopAndCompile();
           });
 
+          pipWindow.document.getElementById('pip-full-btn')?.addEventListener('click', () => {
+            onTakeFullScreenshot();
+          });
+
+          pipWindow.document.getElementById('pip-snip-btn')?.addEventListener('click', () => {
+            window.focus();
+            onStartPortionSnip();
+          });
+
+          pipWindow.document.getElementById('pip-tr-btn')?.addEventListener('click', () => {
+            const drawer = pipWindow.document.getElementById('pip-drawer');
+            if (drawer) {
+              const isHidden = drawer.style.display === 'none' || !drawer.style.display;
+              drawer.style.display = isHidden ? 'block' : 'none';
+              try {
+                pipWindow.resizeTo(780, isHidden ? 220 : 60);
+              } catch {}
+            }
+          });
+
+          pipWindow.document.getElementById('pip-bm-btn')?.addEventListener('click', () => {
+            onAddBookmark('highlight');
+          });
+
+          pipWindow.document.getElementById('pip-note-btn')?.addEventListener('click', () => {
+            const note = pipWindow.prompt('Enter quick meeting note:');
+            if (note && note.trim()) {
+              onAddQuickNote(note.trim());
+            }
+          });
+
+          pipWindow.document.getElementById('pip-pause-btn')?.addEventListener('click', () => {
+            onTogglePause();
+          });
+
+          pipWindow.document.getElementById('pip-mic-btn')?.addEventListener('click', () => {
+            onToggleMicMute();
+          });
+
+          pipWindow.document.getElementById('pip-focus-btn')?.addEventListener('click', () => {
+            window.focus();
+          });
+
           pipWindow.addEventListener('pagehide', () => {
             setIsPiPActive(false);
+            pipWindowRef.current = null;
           });
 
           setIsPiPActive(true);
-        } else {
+        } else if (pipWindowRef.current) {
+          pipWindowRef.current.close();
+          pipWindowRef.current = null;
           setIsPiPActive(false);
         }
       } catch (err) {
@@ -238,6 +463,13 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
       }
     }
   };
+
+  // Auto-open Always-on-Top floating PiP window when requested (e.g. tab capture starts)
+  useEffect(() => {
+    if (autoOpenPiP && 'documentPictureInPicture' in window && !isPiPActive && !pipWindowRef.current) {
+      handleTogglePiP().catch(() => {});
+    }
+  }, [autoOpenPiP]);
 
   return (
     <aside
@@ -433,12 +665,12 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
             {'documentPictureInPicture' in window && (
               <button
                 onClick={handleTogglePiP}
-                className={`p-2 rounded-xl border transition-all ${
+                className={`p-2 rounded-xl border transition-all flex items-center gap-1 ${
                   isPiPActive
-                    ? 'bg-white/25 border-white/40 text-white'
+                    ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm'
                     : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/15 hover:text-white'
                 }`}
-                title="Pop out Always-on-Top floating window"
+                title="Stay on top of Google Meet, other windows & Fullscreen (Always-on-Top PiP)"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>

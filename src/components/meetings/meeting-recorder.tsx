@@ -92,6 +92,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [transcriptViewMode, setTranscriptViewMode] = useState<'dual' | 'translated' | 'original'>('dual');
   const [isTranslatingAll, setIsTranslatingAll] = useState<boolean>(false);
   const [liveInterimText, setLiveInterimText] = useState<string>('');
+  const [shouldAutoOpenPiP, setShouldAutoOpenPiP] = useState<boolean>(false);
 
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
@@ -557,6 +558,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       speechTranscriberRef.current?.setLanguage(spokenLanguage);
       speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
 
+      // Automatically launch Always-on-Top floating controller over Google Meet and Windows
+      setShouldAutoOpenPiP(true);
+
       addToast(`${appName} / Tab audio capture started with multi-speaker detection.`, 'info');
     } catch (err: any) {
       console.warn('[DomoNote] Tab capture cancelled:', err?.message);
@@ -756,6 +760,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       diarizerContextRef.current = null;
     }
     activeAudioChannelRef.current = 'unknown';
+    setShouldAutoOpenPiP(false);
 
     setIsRecording(false);
     setIsProcessingAI(true);
@@ -1410,6 +1415,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           audioLevel={audioLevel}
           transcript={transcript}
           screenshots={screenshots}
+          autoOpenPiP={shouldAutoOpenPiP}
           onStopAndCompile={stopAndSaveMeeting}
           onTogglePause={handleTogglePause}
           onToggleMicMute={handleToggleMicMute}
