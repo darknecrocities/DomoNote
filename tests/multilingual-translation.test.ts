@@ -460,5 +460,24 @@ describe('Multilingual Speech Recognition & AI Translation System', () => {
       expect(translated).toBe('Wir werden morgen die neue Benutzeroberfläche bereitstellen.');
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
+
+    it('has zero restrictions on language codes and translates any dialect without filtering', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          response: 'Wszystkie zadania zostały pomyślnie zrealizowane.'
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const input = 'All deliverables have been completed successfully.';
+      // Polish ('pl') or any language code in the world
+      const translated = await translateTextAI(input, 'en', 'pl', 'llama3:8b');
+
+      expect(translated).toBe('Wszystkie zadania zostały pomyślnie zrealizowane.');
+      const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(requestBody.prompt).toContain('zero restrictions');
+      expect(requestBody.prompt).toContain('Do NOT censor');
+    });
   });
 });

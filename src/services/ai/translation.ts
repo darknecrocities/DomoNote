@@ -192,32 +192,26 @@ export function normalizeLanguageCode(lang: string): string {
   const clean = lang.trim().toLowerCase();
   if (clean === 'auto') return 'auto';
   if (clean.startsWith('fil') || clean.startsWith('tl')) return 'fil';
-  if (clean.startsWith('en')) return 'en';
-  if (clean.startsWith('ja')) return 'ja';
-  if (clean.startsWith('zh')) return 'zh';
-  if (clean.startsWith('ko')) return 'ko';
-  if (clean.startsWith('fr')) return 'fr';
-  if (clean.startsWith('es')) return 'es';
-  if (clean.startsWith('de')) return 'de';
-  if (clean.startsWith('it')) return 'it';
-  if (clean.startsWith('pt')) return 'pt';
-  if (clean.startsWith('ru')) return 'ru';
-  if (clean.startsWith('ar')) return 'ar';
-  if (clean.startsWith('hi')) return 'hi';
-  if (clean.startsWith('id')) return 'id';
-  if (clean.startsWith('vi')) return 'vi';
-  if (clean.startsWith('th')) return 'th';
-  return clean.split('-')[0] || 'en';
+  const primary = clean.split('-')[0].split('_')[0];
+  return primary || 'en';
 }
 
 /**
- * Get human readable language name from code
+ * Get human readable language name from code across any language in the world
  */
 export function getLanguageName(code: string): string {
   if (code === 'auto') return 'Auto-Detected Language';
   const norm = normalizeLanguageCode(code);
   const found = SUPPORTED_LANGUAGES.find((l) => l.code === norm);
-  return found ? found.name : code;
+  if (found) return found.name;
+  try {
+    if (typeof Intl !== 'undefined' && (Intl as any).DisplayNames) {
+      const dn = new (Intl as any).DisplayNames(['en'], { type: 'language' });
+      const name = dn.of(norm);
+      if (name) return name;
+    }
+  } catch {}
+  return code.toUpperCase();
 }
 
 /**
@@ -367,10 +361,11 @@ export async function translateTextAI(
 ${languageGuidelines}
 
 RULES:
-1. Translate the spoken statement accurately.
-2. Return ONLY the translation.
-3. Do NOT include quotes, explanations, markdown, or language prefixes (e.g. do not say "Translation:").
-4. If a calendar date, time, or person's name is mentioned, preserve it accurately.
+1. Translate the spoken statement accurately with zero restrictions. Transcribe and translate any dialect, colloquialism, accent, slang, or terminology faithfully into ${targetName}.
+2. Do NOT censor, refuse, omit, sanitize, or alter any part of the spoken text.
+3. Return ONLY the translation.
+4. Do NOT include quotes, explanations, markdown, or language prefixes (e.g. do not say "Translation:").
+5. If a calendar date, time, or person's name is mentioned, preserve it accurately.
 
 SOURCE TEXT:
 ${trimmed}`;

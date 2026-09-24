@@ -299,16 +299,16 @@ export async function synthesizeMeetingAI(
   const isEnglish = normTarget === 'en';
   const targetName = getLanguageName(normTarget);
 
-  let languageDirective = '';
+  let languageDirective = `LANGUAGE DIRECTIVE (ZERO RESTRICTIONS):
+The spoken meeting may contain speech in ANY language, dialect, accent, technical jargon, slang, or mixed code-switching from anywhere in the world without restrictions.
+You MUST accurately transcribe, translate, and synthesize ALL discussion points, decisions, and tasks into high-clarity, professional ${targetName}. Do not censor, omit, or refuse any discussion content.`;
+
   if (isFilipino) {
-    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in English, Filipino / Tagalog, Japanese, Chinese, Korean, French, or mixed (Taglish).
-You MUST translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) in natural, professional Filipino / Tagalog (o modernong Taglish na angkop sa propesyonal na kumperensya). Huwag mag-iwan ng hindi naisasalin na mga pangunahing punto.`;
+    languageDirective += `
+Panatilihing buo at tumpak ang pagsasalin sa natural at propesyonal na Filipino / modernong Taglish para sa kumperensya.`;
   } else if (isEnglish) {
-    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in Filipino / Tagalog (or Taglish), Japanese, Chinese, Korean, French, Spanish, German, or English.
-You MUST accurately translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) strictly in clear, professional English.`;
-  } else {
-    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in any language (English, Filipino, Japanese, Chinese, French, Spanish, etc.).
-You MUST accurately translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) strictly into natural, professional ${targetName}.`;
+    languageDirective += `
+Ensure all foreign dialogue, idioms, and notes are translated strictly into clean, fluent English.`;
   }
 
   const prompt = `You are an expert multilingual executive AI secretary.
