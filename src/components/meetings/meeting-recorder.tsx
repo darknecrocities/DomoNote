@@ -9,6 +9,10 @@ import {
 } from '../../services/audio/transcriber';
 import { speakerHookManager, cleanSpeakerName } from '../../services/audio/speaker-detector';
 import {
+  startVisualParticipantScanner,
+  detectVisionModel,
+} from '../../services/audio/visual-participant-scanner';
+import {
   detectEventFromSentence,
   detectAllEventsInText,
   createScheduleEventFromMatch,
@@ -104,6 +108,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const activeAudioChannelRef = useRef<'host' | 'remote' | 'unknown'>('unknown');
   const diarizerContextRef = useRef<AudioContext | null>(null);
   const diarizerIntervalRef = useRef<any>(null);
+
+  // Visual Participant Scanner — works without Chrome extension
+  const visualScannerStopRef = useRef<(() => void) | null>(null);
 
   // Subscribe to automatic speaker hook events from meeting apps & extension
   useEffect(() => {
@@ -382,6 +389,10 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       if (screenStream) {
         screenStream.getTracks().forEach((t) => t.stop());
       }
+      if (visualScannerStopRef.current) {
+        visualScannerStopRef.current();
+        visualScannerStopRef.current = null;
+      }
     };
   }, []);
 
@@ -570,6 +581,26 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       // Ensure tab audio is transcribed through the full speaker hook and real-time interim pipeline
       speechTranscriberRef.current?.setLanguage(spokenLanguage);
       speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
+
+      // ─── Visual Participant Scanner (no extension needed) ────────────────
+      // Starts scanning screen frames with Ollama vision to auto-detect participant names.
+      // Works with any meeting app visible on screen.
+      if (visualScannerStopRef.current) {
+        visualScannerStopRef.current(); // stop previous if any
+      }
+      detectVisionModel().then((model) => {
+        if (model) {
+          console.log(`[DomoNote] Visual participant scanner started (${model})`);
+          visualScannerStopRef.current = startVisualParticipantScanner(
+            () => screenVideoRef.current,
+            (names, source) => {
+              addToast(`👥 ${names.length} participant(s) detected via screen scan`, 'info');
+            }
+          );
+        } else {
+          console.info('[DomoNote] No vision model available — install llava-phi3 for extension-free speaker detection');
+        }
+      });
 
       addToast(`${appName} / Tab audio capture started with multi-speaker detection.`, 'info');
     } catch (err: any) {
@@ -768,6 +799,11 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     if (diarizerContextRef.current) {
       diarizerContextRef.current.close().catch(() => {});
       diarizerContextRef.current = null;
+    }
+    // Stop visual participant scanner
+    if (visualScannerStopRef.current) {
+      visualScannerStopRef.current();
+      visualScannerStopRef.current = null;
     }
     activeAudioChannelRef.current = 'unknown';
     setShouldAutoOpenPiP(false);
