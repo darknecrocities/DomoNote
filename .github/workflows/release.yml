@@ -62,4 +62,7 @@ jobs:
             public/downloads/DomoNote-Setup-x64.exe
             public/downloads/DomoNote-Windows-Portable.zip
             public/downloads/DomoNote-Setup.bat
+            public/downloads/DomoNote-macOS-Universal.dmg
+            public/downloads/DomoNote-macOS-arm64.dmg
+            public/downloads/DomoNote-macOS-x64.dmg
             public/downloads/SHA256SUMS.txt

@@ -42,6 +42,7 @@ browser-extension/*.zip
 # Desktop & Native builds
 *.app
 *.dmg
+!public/downloads/*.dmg
 desktop/DomoNote
 AppIcon.iconset/
 *.pdf
@@ -52,7 +53,7 @@ AppIcon.iconset/
 desktop/bundle/
 public/downloads/*.exe
 public/downloads/*.zip
-public/downloads/*.dmg
+# public/downloads/*.dmg tracked for direct Vercel & native download delivery
 public/downloads/*.AppImage
 public/downloads/*.deb
 dist/downloads/

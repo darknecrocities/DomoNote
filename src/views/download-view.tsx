@@ -83,18 +83,7 @@ export const DownloadView: React.FC = () => {
   const GITHUB_RELEASE_BASE = `${GITHUB_REPO}/releases/latest/download`;
 
   const handleDownload = async (filename: string, osName: string) => {
-    // ─── Binary Package Downloads (.exe, .zip, .dmg, .AppImage, .deb) ────────
-    // Strategy:
-    //  1. Check the local static server (/downloads/) for the file.
-    //     This works when DomoNote is served from the desktop app bundle
-    //     or a locally built dev server with /public/downloads/ assets.
-    //  2. If the local file doesn't exist (404 or returns HTML rewrite),
-    //     redirect to the GitHub Releases page for the user to download
-    //     manually. We do NOT attempt a direct GitHub Releases asset URL
-    //     because releases may not exist yet (avoids broken download links).
-    //  3. macOS .dmg / .zip packages additionally provide the start.sh
-    //     script as an alternative since the binary release may not be
-    //     published yet. Users on macOS can always clone + run start.sh.
+    // ─── Binary Package Downloads (.dmg, .exe, .zip, .AppImage, .deb) ────────
     if (
       filename.endsWith('.exe') ||
       filename.endsWith('.zip') ||
@@ -103,55 +92,52 @@ export const DownloadView: React.FC = () => {
       filename.endsWith('.deb')
     ) {
       const localUrl = `/downloads/${filename}`;
+      const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
 
-      // Probe local static server first (works in desktop app bundle)
+      const triggerFileDownload = (url: string) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          if (document.body.contains(a)) {
+            document.body.removeChild(a);
+          }
+        }, 500);
+      };
+
+      // Probe local static server first (works if served locally or from Vercel static)
       try {
         const res = await fetch(localUrl, { method: 'HEAD', signal: AbortSignal.timeout(1500) });
         const ctype = res.headers.get('content-type') || '';
         if (res.ok && !ctype.includes('text/html')) {
-          // Local binary found — serve it directly
-          const a = document.createElement('a');
-          a.href = localUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          addToast(`Downloading ${filename}. Launch to install DomoNote.`, 'success');
+          triggerFileDownload(localUrl);
+          const label = filename.endsWith('.dmg')
+            ? 'macOS Disk Image (.dmg)'
+            : filename.endsWith('.exe')
+            ? 'Windows Installer (.exe)'
+            : filename;
+          addToast(`Downloading ${label}. Open the DMG to install DomoNote.`, 'success');
           return;
         }
       } catch {
-        // Local probe failed (network error, timeout) — fall through to GitHub
+        // Local probe failed — fallback to direct GitHub Releases download
       }
 
-      // macOS: binary release may not be published yet.
-      // Redirect to GitHub releases page so user can grab the latest.
-      if (filename.endsWith('.dmg')) {
-        addToast(
-          'Redirecting to GitHub Releases — download the latest macOS .dmg from there.',
-          'info'
-        );
-        window.open(`${GITHUB_REPO}/releases/latest`, '_blank', 'noopener,noreferrer');
-        return;
-      }
+      // Direct binary download from GitHub release asset (genuine 21MB .dmg / .exe)
+      triggerFileDownload(releaseUrl);
 
-      // Windows / Linux: attempt GitHub releases asset URL
-      const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
-      const a = document.createElement('a');
-      a.href = releaseUrl;
-      a.download = filename;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      const label = filename.endsWith('.exe')
-        ? 'native Windows Installer (.EXE)'
+      const label = filename.endsWith('.dmg')
+        ? 'macOS Disk Image (.dmg)'
+        : filename.endsWith('.exe')
+        ? 'Windows Installer (.exe)'
         : filename.endsWith('.zip')
-        ? 'Windows Portable Package (.ZIP)'
+        ? 'Windows Portable Package (.zip)'
         : 'Linux package';
 
-      addToast(`Downloading ${label} (${filename}). Launch to install DomoNote.`, 'success');
+      addToast(`Downloading ${label} (${filename}).`, 'success');
       return;
     }
 
@@ -374,8 +360,8 @@ bash start.sh
               Download for{' '}
               {detectedOS === 'macos'
                 ? isAppleSilicon
-                  ? 'Mac (Apple Silicon)'
-                  : 'Mac (Intel)'
+                  ? 'Mac (.dmg · Apple Silicon)'
+                  : 'Mac (.dmg · Intel)'
                 : detectedOS === 'windows'
                 ? 'Windows (64-bit)'
                 : 'Linux (AppImage)'}
@@ -503,34 +489,33 @@ bash start.sh
 
           {/* Download Buttons */}
           <div className="pt-6 space-y-2 mt-auto">
-            {/* Primary: GitHub Releases page — both Silicon & Intel DMG are listed there */}
+            {/* Apple Silicon DMG */}
             <button
               onClick={() => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)')}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
-              title="Downloads from GitHub Releases page — supports Apple Silicon M1/M2/M3/M4"
-              aria-label="Download macOS Apple Silicon build from GitHub Releases"
+              title="Download Apple Silicon .dmg installer (M1, M2, M3, M4) · 21 MB"
+              aria-label="Download macOS Apple Silicon .dmg"
             >
               <Download className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Apple Silicon (DMG) → GitHub</span>
+              <span>Apple Silicon (.dmg)</span>
             </button>
             <button
               onClick={() => handleDownload('DomoNote-macOS-x64.dmg', 'macOS (Intel)')}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
-              title="Downloads from GitHub Releases page — supports Intel Core i5/i7/i9"
-              aria-label="Download macOS Intel build from GitHub Releases"
+              title="Download Intel Mac .dmg installer (Core i5, i7, i9) · 21 MB"
+              aria-label="Download macOS Intel .dmg"
             >
               <Download className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Intel Mac (DMG) → GitHub</span>
+              <span>Intel Mac (.dmg)</span>
             </button>
-            {/* Alternative: clone + run via Terminal (always works, no binary required) */}
             <button
-              onClick={() => handleDownload('start-macos.sh', 'macOS (Source Run)')}
-              className="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-500 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
-              title="Download a shell script that clones and runs DomoNote from source — no binary needed"
-              aria-label="Download macOS Terminal start script"
+              onClick={() => handleDownload('DomoNote-macOS-Universal.dmg', 'macOS (Universal)')}
+              className="w-full py-1.5 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-400 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
+              title="Download Universal .dmg installer — works on any Mac · 21 MB"
+              aria-label="Download Universal macOS .dmg"
             >
-              <Terminal className="w-3 h-3" aria-hidden="true" />
-              <span>Quick Start via Terminal (git clone + npm)</span>
+              <Download className="w-3 h-3" aria-hidden="true" />
+              <span>Universal Mac (.dmg)</span>
             </button>
           </div>
         </div>
