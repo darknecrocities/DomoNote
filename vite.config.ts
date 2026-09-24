@@ -9,9 +9,51 @@ function chromeExtensionInstallerPlugin() {
     name: 'domonote-chrome-extension-installer',
     configureServer(server: any) {
       console.log('[Extension Installer] configureServer initialized');
+      let latestMeetingRoster: any = null;
+
       server.middlewares.use(async (req: any, res: any, next: any) => {
         const url = req.url || '';
-        console.log('[Extension Installer] Request URL:', url);
+
+        // Real-time meeting sync endpoint for companion extension & cross-origin tabs
+        if (url.startsWith('/api/meeting-sync')) {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+          if (req.method === 'OPTIONS') {
+            res.writeHead(200);
+            res.end();
+            return;
+          }
+
+          if (req.method === 'POST') {
+            let body = '';
+            req.on('data', (chunk: any) => {
+              body += chunk;
+            });
+            req.on('end', () => {
+              try {
+                const parsed = JSON.parse(body);
+                latestMeetingRoster = {
+                  ...parsed,
+                  receivedAt: Date.now(),
+                };
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: true }));
+              } catch {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid JSON' }));
+              }
+            });
+            return;
+          }
+
+          if (req.method === 'GET') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(latestMeetingRoster || {}));
+            return;
+          }
+        }
 
         if (url.startsWith('/api/chrome-extension/auto-install')) {
           const extensionDir = path.resolve(__dirname, 'browser-extension');

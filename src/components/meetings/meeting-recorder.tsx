@@ -99,13 +99,30 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const transcriptBottomRef = useRef<HTMLDivElement>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Hardware/Audio level diarization between Host Mic and Meeting Tab Audio
+  const activeAudioChannelRef = useRef<'host' | 'remote' | 'unknown'>('unknown');
+  const diarizerContextRef = useRef<AudioContext | null>(null);
+  const diarizerIntervalRef = useRef<any>(null);
+
   // Subscribe to automatic speaker hook events from meeting apps & extension
   useEffect(() => {
     const unsubscribe = speakerHookManager.subscribe((roster, app, activeSpeaker) => {
       if (roster && roster.length > 0) {
         setSpeakerRoster((prev) => {
-          const merged = [...new Set(['You / Host', ...prev, ...roster])];
-          return merged;
+          const nonHostReal = roster.filter((r) => r.toLowerCase() !== 'you / host');
+          if (nonHostReal.length > 0) {
+            const realName = nonHostReal[0];
+            // Retroactively replace any generic 'Participant 2' or 'Speaker 2' in transcript with the discovered name
+            setTranscript((curr) =>
+              curr.map((seg) =>
+                seg.speaker === 'Participant 2' || /^speaker\s*\d*$/i.test(seg.speaker)
+                  ? { ...seg, speaker: realName }
+                  : seg
+              )
+            );
+            return [...new Set(['You / Host', ...nonHostReal])];
+          }
+          return [...new Set(['You / Host', ...prev, ...roster])];
         });
       }
       if (app) {
@@ -122,6 +139,33 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     };
   }, []);
 
+  // Poll /api/meeting-sync during active recording to receive live participants from meeting apps
+  useEffect(() => {
+    if (!isRecording) return;
+    const syncInterval = setInterval(() => {
+      fetch('/api/meeting-sync')
+        .then((res) => {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then((data) => {
+          if (data && Array.isArray(data.participants) && data.participants.length > 0) {
+            speakerHookManager.handleIncomingPayload({
+              type: 'DOMONOTE_MEETING_PARTICIPANTS',
+              app: data.app || detectedMeetingApp || 'Google Meet',
+              participants: data.participants,
+              activeSpeaker: data.activeSpeaker,
+            });
+          }
+        })
+        .catch(() => {});
+    }, 1200);
+
+    return () => {
+      clearInterval(syncInterval);
+    };
+  }, [isRecording, detectedMeetingApp]);
+
   // Load user default speechLanguage setting if present
   useEffect(() => {
     db.settings.get('current').then((settings) => {
@@ -134,15 +178,32 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
   const handleIncomingInterim = (interim: string) => {
     setLiveInterimText(interim);
+    if (activeAudioChannelRef.current === 'remote') {
+      const nonHost = speakerRoster.find((s) => s.toLowerCase() !== 'you / host');
+      if (nonHost && currentSpeaker === 'You / Host') {
+        setCurrentSpeaker(nonHost);
+      }
+    } else if (activeAudioChannelRef.current === 'host') {
+      if (currentSpeaker !== 'You / Host') {
+        setCurrentSpeaker('You / Host');
+      }
+    }
   };
 
   const handleIncomingSegment = (seg: TranscriptSegment) => {
     setLiveInterimText('');
     const rawText = seg.text;
 
+    const channelHint =
+      activeAudioChannelRef.current === 'remote'
+        ? 'remote'
+        : activeAudioChannelRef.current === 'host'
+        ? 'host'
+        : undefined;
+
     // Automatic Speaker Name Hook:
     // Attributes to real participant names from meeting apps, self-introductions, or question handoffs
-    const hookResult = speakerHookManager.processSegment(rawText, currentSpeaker, speakerRoster);
+    const hookResult = speakerHookManager.processSegment(rawText, currentSpeaker, speakerRoster, channelHint);
     const resolvedSpeaker = hookResult.assignedSpeaker;
 
     if (hookResult.isNewDetection && resolvedSpeaker !== currentSpeaker) {
@@ -433,6 +494,61 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       else if (trackLabel.includes('discord')) appName = 'Discord';
       setDetectedMeetingApp(appName);
 
+      // Automatically initialize multi-speaker roster for meeting tab capture
+      setSpeakerRoster((prev) => {
+        if (prev.length <= 1) {
+          return ['You / Host', 'Participant 2'];
+        }
+        return prev;
+      });
+
+      // Request host microphone to perform dual-channel hardware diarization (Host Mic vs Meeting Tab Audio)
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        diarizerContextRef.current = audioCtx;
+
+        const tabSource = audioCtx.createMediaStreamSource(new MediaStream([audioTracks[0]]));
+        const tabAnalyser = audioCtx.createAnalyser();
+        tabAnalyser.fftSize = 128;
+        tabSource.connect(tabAnalyser);
+
+        let micAnalyser: AnalyserNode | null = null;
+        if (micStream && micStream.getAudioTracks().length > 0) {
+          const micSource = audioCtx.createMediaStreamSource(micStream);
+          micAnalyser = audioCtx.createAnalyser();
+          micAnalyser.fftSize = 128;
+          micSource.connect(micAnalyser);
+        }
+
+        const tabData = new Uint8Array(tabAnalyser.frequencyBinCount);
+        const micData = micAnalyser ? new Uint8Array(micAnalyser.frequencyBinCount) : null;
+
+        diarizerIntervalRef.current = setInterval(() => {
+          tabAnalyser.getByteFrequencyData(tabData);
+          let tabSum = 0;
+          for (let i = 0; i < tabData.length; i++) tabSum += tabData[i];
+          const tabAvg = tabSum / tabData.length;
+
+          let micAvg = 0;
+          if (micAnalyser && micData) {
+            micAnalyser.getByteFrequencyData(micData);
+            let micSum = 0;
+            for (let i = 0; i < micData.length; i++) micSum += micData[i];
+            micAvg = micSum / micData.length;
+          }
+
+          if (tabAvg > 8 && tabAvg > micAvg * 1.15) {
+            activeAudioChannelRef.current = 'remote';
+          } else if (micAvg > 8 && micAvg > tabAvg * 1.15) {
+            activeAudioChannelRef.current = 'host';
+          }
+        }, 150);
+      } catch (e) {
+        console.warn('[DomoNote] Audio diarizer setup error:', e);
+      }
+
       timerIntervalRef.current = setInterval(() => {
         setElapsedSeconds((s) => s + 1);
       }, 1000);
@@ -441,7 +557,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       speechTranscriberRef.current?.setLanguage(spokenLanguage);
       speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
 
-      addToast(`${appName} / Tab audio capture started.`, 'info');
+      addToast(`${appName} / Tab audio capture started with multi-speaker detection.`, 'info');
     } catch (err: any) {
       console.warn('[DomoNote] Tab capture cancelled:', err?.message);
     }
@@ -631,6 +747,16 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
   const stopAndSaveMeeting = async () => {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    if (diarizerIntervalRef.current) {
+      clearInterval(diarizerIntervalRef.current);
+      diarizerIntervalRef.current = null;
+    }
+    if (diarizerContextRef.current) {
+      diarizerContextRef.current.close().catch(() => {});
+      diarizerContextRef.current = null;
+    }
+    activeAudioChannelRef.current = 'unknown';
+
     setIsRecording(false);
     setIsProcessingAI(true);
 

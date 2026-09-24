@@ -150,5 +150,35 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
       const turn2 = hook.processSegment('Thanks Arron, I have the slides open', 'You / Host', roster);
       expect(turn2.assignedSpeaker).toBe('Sarah');
     });
+
+    it('handles two-part conversational self-introductions split across segments', () => {
+      const roster = ['You / Host'];
+      // Segment 1: ends in "hi guys my name is"
+      const seg1 = hook.processSegment('hi guys my name is', 'You / Host', roster);
+      expect(seg1.assignedSpeaker).toBe('You / Host');
+
+      // Segment 2: user says "german" or "german here"
+      const seg2 = hook.processSegment('german from backend', 'You / Host', roster);
+      expect(seg2.assignedSpeaker).toBe('German');
+      expect(seg2.updatedRoster).toContain('German');
+    });
+
+    it('accurately attributes speakers using audio channel hints (Host Mic vs Remote Meeting Tab Audio)', () => {
+      const roster = ['You / Host', 'German'];
+
+      // When tab audio analyser detects remote participant audio
+      const remoteTurn = hook.processSegment('I agree with the roadmap', 'You / Host', roster, 'remote');
+      expect(remoteTurn.assignedSpeaker).toBe('German');
+
+      // When host mic analyser detects host speaking
+      const hostTurn = hook.processSegment('Sounds good, let us proceed', 'German', roster, 'host');
+      expect(hostTurn.assignedSpeaker).toBe('You / Host');
+    });
+
+    it('cleans Google Meet tile names and ignores UI controls', () => {
+      expect(cleanSpeakerName('german')).toBe('German');
+      expect(cleanSpeakerName('Track Attendance')).toBeNull();
+      expect(cleanSpeakerName('Stop Sharing')).toBeNull();
+    });
   });
 });

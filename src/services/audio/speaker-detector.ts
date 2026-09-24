@@ -90,6 +90,11 @@ export function cleanSpeakerName(raw: string): string | null {
     'ok',
     'yes',
     'no',
+    'track attendance',
+    'stop sharing',
+    'sharing this tab',
+    'meeting details',
+    'info',
   ]);
 
   // Exclude common adjectives, pronouns and non-name words following "this is", "it is"
@@ -306,6 +311,7 @@ export class MeetingSpeakerHook {
   private detectedApp: string | null = null;
   private activeSpeaker: string | null = null;
   private pendingHandoff: string | null = null;
+  private pendingIntroPrefix: boolean = false;
 
   private constructor() {
     this.initBroadcastChannel();
@@ -400,7 +406,8 @@ export class MeetingSpeakerHook {
   public processSegment(
     text: string,
     currentSpeaker: string,
-    roster: string[]
+    roster: string[],
+    channelHint?: 'host' | 'remote'
   ): {
     assignedSpeaker: string;
     updatedRoster: string[];
@@ -410,7 +417,44 @@ export class MeetingSpeakerHook {
     let isNewDetection = false;
     const currentList = [...new Set([...roster, ...Array.from(this.discoveredSpeakers.keys())])];
 
-    // 1. If previous segment was handed off to someone, that handed-off person is speaking now!
+    // 0. Handle two-part self-introductions (e.g. segment 1: "hi guys my name is", segment 2: "german")
+    if (this.pendingIntroPrefix) {
+      this.pendingIntroPrefix = false;
+      const candidateWords = text.trim().split(/\s+/).slice(0, 2).join(' ');
+      const candidate = cleanSpeakerName(candidateWords);
+      if (candidate) {
+        assigned = candidate;
+        this.addSpeaker(candidate, 'conversational', 0.95);
+        this.activeSpeaker = candidate;
+        isNewDetection = true;
+      }
+    }
+
+    // Check if current text ends with an in-progress self-intro (e.g. "hi guys my name is")
+    if (/\b(?:my\s+name\s+is|this\s+is|it'?s|i'?m|i\s+am|ako\s+nga\s+pala\s+si)\s*$/i.test(text.trim())) {
+      this.pendingIntroPrefix = true;
+    }
+
+    // 1. If audio channel hint is provided (Hardware/Audio Analyser level diarization)
+    if (channelHint === 'remote') {
+      const nonHostSpeakers = currentList.filter(
+        (s) => s.toLowerCase() !== 'you / host' && !/^speaker\s*\d*$/i.test(s)
+      );
+      if (nonHostSpeakers.length > 0) {
+        assigned = nonHostSpeakers[0];
+      } else {
+        assigned = 'Participant 2';
+        this.addSpeaker('Participant 2', 'manual', 0.85);
+      }
+      this.activeSpeaker = assigned;
+      isNewDetection = assigned !== currentSpeaker;
+    } else if (channelHint === 'host') {
+      assigned = 'You / Host';
+      this.activeSpeaker = 'You / Host';
+      isNewDetection = currentSpeaker !== 'You / Host';
+    }
+
+    // 2. If previous segment was handed off to someone, that handed-off person is speaking now!
     if (this.pendingHandoff) {
       assigned = this.pendingHandoff;
       this.activeSpeaker = this.pendingHandoff;
@@ -430,19 +474,19 @@ export class MeetingSpeakerHook {
           this.pendingHandoff = conversational.name;
           this.addSpeaker(conversational.name, 'conversational', 0.85);
         }
-      } else if (this.activeSpeaker && this.activeSpeaker !== currentSpeaker) {
+      } else if (this.activeSpeaker && this.activeSpeaker !== currentSpeaker && !channelHint) {
         // If a meeting app DOM hook signaled an active speaker
         assigned = this.activeSpeaker;
       }
     }
 
-    // 2. Eradicate generic "Speaker 1" / "Speaker 2" if we have known participants
+    // 3. Eradicate generic "Speaker 1" / "Speaker 2" if we have known participants
     if (/^speaker\s*\d*$/i.test(assigned) || assigned.toLowerCase() === 'guest') {
       const nonHostSpeakers = currentList.filter(
         (s) => s.toLowerCase() !== 'you / host' && !/^speaker\s*\d*$/i.test(s)
       );
       if (nonHostSpeakers.length > 0) {
-        // If "Speaker 2" or "Guest", assign to the first discovered external participant
+        // Assign to the first discovered external participant
         assigned = nonHostSpeakers[0];
       } else {
         assigned = 'You / Host';
@@ -467,6 +511,7 @@ export class MeetingSpeakerHook {
     this.detectedApp = null;
     this.activeSpeaker = null;
     this.pendingHandoff = null;
+    this.pendingIntroPrefix = false;
   }
 
   public addSpeaker(name: string, source: DiscoveredSpeaker['source'] = 'manual', confidence = 1.0) {

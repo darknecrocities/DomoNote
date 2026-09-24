@@ -121,7 +121,8 @@
       'show more', 'pin to screen', 'unpin', 'settings', 'share screen', 'present now',
       'whiteboard', 'breakout rooms', 'captions', 'audio', 'video', 'search', 'close',
       'turn on microphone', 'turn on camera', 'meeting host', 'all muted', 'add people',
-      'search for people', 'in the meeting', 'contributors'
+      'search for people', 'in the meeting', 'contributors', 'track attendance', 'stop sharing',
+      'sharing this tab', 'meeting details', 'info'
     ]);
     if (UI_IGNORE.has(name.toLowerCase())) return null;
 
@@ -235,24 +236,24 @@
     const names = new Set();
 
     // Google Meet
-    document.querySelectorAll('[data-participant-id]').forEach(el => {
-      const nameEl = el.querySelector('[data-self-name], .zWGUib, .NMhWlb, .nxzRjb, [jsname="A7TdRd"]');
-      const n = cleanParticipantName(nameEl?.textContent || '');
-      if (n) names.add(n);
-    });
-    document.querySelectorAll('[data-self-name]').forEach(el => {
+    // 1. All .notranslate elements (universally used by Google Meet for participant names on video tiles, subtitles & panels)
+    document.querySelectorAll('.notranslate, [data-self-name], [data-name], span[jsname], [data-requested-participant-id]').forEach(el => {
       const n = cleanParticipantName(el.textContent);
       if (n) names.add(n);
     });
-    document.querySelectorAll('[aria-label][data-requested-participant-id]').forEach(el => {
-      const n = cleanParticipantName(el.getAttribute('aria-label') || '');
-      if (n) names.add(n);
+    // 2. Video tile containers and aria-labels (e.g. "german", "german's video")
+    document.querySelectorAll('[data-allocation-index], [data-tile-id], [data-participant-id], div[role="region"], div[data-is-speaking]').forEach(el => {
+      const label = el.getAttribute('aria-label') || '';
+      if (label) {
+        const n = cleanParticipantName(label.replace(/\s*(?:'s\s+video|'s\s+screen|'s\s+presentation|is\s+speaking|is\s+muted|has\s+raised\s+hand).*$/i, ''));
+        if (n) names.add(n);
+      }
     });
-    document.querySelectorAll('.KF4T6b, .xBI3Vc, .EjRRve, .NMhWlb, .cS7aqe, [jsname="A7TdRd"]').forEach(el => {
+    document.querySelectorAll('[data-participant-id] [dir="auto"], [jsname="A7TdRd"], .zWGUib, .NMhWlb, .nxzRjb, .Y5sE8d').forEach(el => {
       const n = cleanParticipantName(el.textContent);
       if (n) names.add(n);
     });
-    // Google Meet People Sidebar items & notranslate text elements
+    // 3. Google Meet People Sidebar items
     document.querySelectorAll('div[aria-label*="people" i] [role="listitem"], div[aria-label*="participant" i] [role="listitem"]').forEach(el => {
       const nameEl = el.querySelector('.notranslate, span[jsname], .zWGUib') || el;
       const n = cleanParticipantName(nameEl.textContent);
@@ -310,6 +311,14 @@
     return [...names].filter(n => n.length > 1 && n.length < 50);
   }
 
+  // Persistent BroadcastChannel instance
+  let liveBroadcastChannel = null;
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      liveBroadcastChannel = new BroadcastChannel('domonote_meeting_sync');
+    }
+  } catch {}
+
   // Broadcast sync to DomoNote web app and other tabs
   function broadcastMeetingSync() {
     const app = detectCurrentMeetingApp();
@@ -328,11 +337,9 @@
       timestamp: Date.now(),
     };
 
-    if (typeof BroadcastChannel !== 'undefined') {
+    if (liveBroadcastChannel) {
       try {
-        const bc = new BroadcastChannel('domonote_meeting_sync');
-        bc.postMessage(payload);
-        bc.close();
+        liveBroadcastChannel.postMessage(payload);
       } catch {}
     }
 
@@ -344,11 +351,22 @@
         data: payload,
       }).catch(() => {});
     }
+
+    // Direct HTTP bridge to DomoNote local server (ports 5174, 5173, 5175, 8765)
+    // Ensures seamless cross-origin participant synchronization
+    [5174, 5173, 5175, 8765].forEach((port) => {
+      fetch(`http://127.0.0.1:${port}/api/meeting-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        mode: 'cors',
+      }).catch(() => {});
+    });
   }
 
   if (detectCurrentMeetingApp()) {
-    setInterval(broadcastMeetingSync, 2000);
-    setTimeout(broadcastMeetingSync, 1000);
+    setInterval(broadcastMeetingSync, 1500);
+    setTimeout(broadcastMeetingSync, 500);
   }
 
   // ─── Smart speaker assignment ───────────────────────────────────────────────

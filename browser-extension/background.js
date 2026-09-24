@@ -5,6 +5,29 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('[DomoNote] Extension v2.0 installed and ready.');
   enableSidePanelOnAction();
 
+  // Auto-inject content script into already open meeting tabs so sync starts immediately
+  if (chrome.tabs?.query && chrome.scripting?.executeScript) {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (
+          tab.id &&
+          tab.url &&
+          (tab.url.includes('meet.google.com') ||
+            tab.url.includes('teams.microsoft.com') ||
+            tab.url.includes('zoom.us') ||
+            tab.url.includes('127.0.0.1'))
+        ) {
+          chrome.scripting
+            .executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js'],
+            })
+            .catch(() => {});
+        }
+      });
+    });
+  }
+
   if (chrome.contextMenus) {
     chrome.contextMenus.create({
       id: 'domonote-summarize-selection',
@@ -23,6 +46,29 @@ chrome.runtime.onInstalled.addListener(() => {
     });
   }
 });
+
+// Ensure newly opened or navigated meeting tabs have content script injected
+if (chrome.tabs?.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (
+      changeInfo.status === 'complete' &&
+      tab.url &&
+      (tab.url.includes('meet.google.com') ||
+        tab.url.includes('teams.microsoft.com') ||
+        tab.url.includes('zoom.us') ||
+        tab.url.includes('127.0.0.1'))
+    ) {
+      if (chrome.scripting?.executeScript) {
+        chrome.scripting
+          .executeScript({
+            target: { tabId },
+            files: ['content.js'],
+          })
+          .catch(() => {});
+      }
+    }
+  });
+}
 
 // Context menu actions
 if (chrome.contextMenus) {
