@@ -774,22 +774,24 @@ bash start.sh
           </div>
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-2">
             <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
-              Issue: "App is damaged" on launch
+              <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              Issue: "Apple could not verify DomoNote" / Not Opened
             </div>
-            <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">macOS quarantine flag is set. Pick one fix:</p>
+            <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">
+              Standard Apple Gatekeeper check for free open-source software without a paid $99/yr Apple certificate. Quick 5-second fix:
+            </p>
             <div className="space-y-2">
               <div>
-                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">A — Terminal (fastest):</div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-300 mb-0.5">Method 1 — System Settings (Easiest):</div>
+                <p className="text-slate-600 dark:text-zinc-400">Click <strong>Done</strong> → Open <strong>System Settings</strong> → <strong>Privacy &amp; Security</strong> → scroll to Security → click <strong>Open Anyway</strong>.</p>
+              </div>
+              <div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-300 mb-0.5">Method 2 — Right-Click Bypass:</div>
+                <p className="text-slate-600 dark:text-zinc-400">In Applications, <strong>Right-Click (or Control-Click)</strong> DomoNote.app → select <strong>Open</strong> → click <strong>Open</strong>.</p>
+              </div>
+              <div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-300 mb-0.5">Method 3 — Terminal 1-Liner:</div>
                 <code className="block font-mono text-[10px] bg-black/10 dark:bg-white/5 px-2.5 py-1.5 rounded border border-slate-200 dark:border-zinc-800 select-all text-slate-900 dark:text-zinc-200">xattr -cr /Applications/DomoNote.app</code>
-              </div>
-              <div>
-                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">B — Right-click workaround:</div>
-                <p className="text-slate-500 dark:text-zinc-500">Right-click DomoNote.app → Open → Open</p>
-              </div>
-              <div>
-                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">C — System Settings (macOS 13+):</div>
-                <p className="text-slate-500 dark:text-zinc-500">System Settings → Privacy &amp; Security → <strong>Open Anyway</strong></p>
               </div>
             </div>
           </div>

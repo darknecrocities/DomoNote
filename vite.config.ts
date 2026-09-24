@@ -14,6 +14,31 @@ function chromeExtensionInstallerPlugin() {
       server.middlewares.use(async (req: any, res: any, next: any) => {
         const url = req.url || '';
 
+        // Direct binary downloads with explicit Content-Disposition and MIME types
+        if (url.startsWith('/downloads/')) {
+          const rawFilename = path.basename(url.split('?')[0]);
+          const filePath = path.resolve(__dirname, 'public/downloads', rawFilename);
+          if (fs.existsSync(filePath)) {
+            const stat = fs.statSync(filePath);
+            const contentType = rawFilename.endsWith('.dmg')
+              ? 'application/x-apple-diskimage'
+              : rawFilename.endsWith('.exe')
+              ? 'application/x-msdownload'
+              : rawFilename.endsWith('.zip')
+              ? 'application/zip'
+              : 'application/octet-stream';
+
+            res.writeHead(200, {
+              'Content-Type': contentType,
+              'Content-Length': stat.size,
+              'Content-Disposition': `attachment; filename="${rawFilename}"`,
+              'Access-Control-Allow-Origin': '*',
+            });
+            fs.createReadStream(filePath).pipe(res);
+            return;
+          }
+        }
+
         // Real-time meeting sync endpoint for companion extension & cross-origin tabs
         if (url.startsWith('/api/meeting-sync')) {
           res.setHeader('Access-Control-Allow-Origin', '*');
