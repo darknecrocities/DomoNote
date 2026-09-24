@@ -42,15 +42,66 @@ function formatIsoDate(d: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+const FILIPINO_DAY_NAMES: Record<string, number> = {
+  linggo: 0,
+  lunes: 1,
+  martes: 2,
+  miyerkules: 3, miyerkoles: 3,
+  huwebes: 4,
+  biyernes: 5,
+  sabado: 6,
+};
+
+const FILIPINO_HOURS: Record<string, number> = {
+  una: 1, '1': 1, isa: 1,
+  dos: 2, '2': 2, dalawa: 2,
+  tres: 3, '3': 3, tatlo: 3,
+  kuwatro: 4, cuatro: 4, '4': 4, apat: 4,
+  singko: 5, cinco: 5, '5': 5, lima: 5,
+  seis: 6, '6': 6, anim: 6,
+  siyete: 7, siete: 7, '7': 7, pito: 7,
+  otso: 8, ocho: 8, '8': 8, walo: 8,
+  nuwebe: 9, nueve: 9, '9': 9, siyam: 9,
+  diyes: 10, dyes: 10, diez: 10, '10': 10, sampu: 10,
+  onse: 11, once: 11, '11': 11,
+  dose: 12, doce: 12, '12': 12,
+};
+
 /**
  * Parses time expressions such as:
  * "at 3pm", "3:30 pm", "10 am", "14:00", "at 9:15", "noon", "12:00"
+ * as well as Filipino expressions like "alas tres ng hapon", "alas 4", "alas diyes ng umaga".
  */
 export function parseTimeExpression(text: string): string | null {
   const lower = text.toLowerCase();
 
   if (/\bnoon\b/.test(lower)) return '12:00';
   if (/\bmidnight\b/.test(lower)) return '00:00';
+
+  // Filipino pattern: "alas [tres/3/diyes] (ng hapon/umaga/gabi)?"
+  const filAlasMatch = lower.match(/\balas\s+([a-z0-9]+)(?::(\d{2}))?(?:\s*(?:ng|sa)\s*(hapon|gabi|umaga))?\b/);
+  if (filAlasMatch) {
+    const rawWord = filAlasMatch[1];
+    const minutes = filAlasMatch[2] ? parseInt(filAlasMatch[2], 10) : 0;
+    const period = filAlasMatch[3]; // 'hapon' (pm), 'gabi' (pm), 'umaga' (am)
+
+    let hours = FILIPINO_HOURS[rawWord];
+    if (hours === undefined && !isNaN(parseInt(rawWord, 10))) {
+      hours = parseInt(rawWord, 10);
+    }
+
+    if (hours !== undefined) {
+      if ((period === 'hapon' || period === 'gabi') && hours < 12) {
+        hours += 12;
+      } else if (period === 'umaga' && hours === 12) {
+        hours = 0;
+      } else if (!period && hours >= 1 && hours <= 7) {
+        // Typical work/meeting hours inference: "alas 3" -> 15:00
+        hours += 12;
+      }
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+  }
 
   // Pattern 1: explicitly has am or pm, e.g. "at 5:00 pm", "5pm", "10:30 am", "at 4 pm"
   const amPmRegex = /(?:at\s+)?\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i;
@@ -94,27 +145,42 @@ export function parseTimeExpression(text: string): string | null {
 
 /**
  * Resolves a date string or relative reference into YYYY-MM-DD.
+ * Supports English, Filipino, Japanese, and Chinese relative date terms.
  */
 export function parseDateExpression(text: string, baseDate: Date = new Date()): string | null {
   const lower = text.toLowerCase();
 
-  // "day after tomorrow" (must be before "tomorrow")
-  if (/\bday after tomorrow\b/.test(lower)) {
+  // "day after tomorrow" / Filipino "sa makalawa" / Japanese "明後日" / Chinese "后天"
+  if (/\b(day after tomorrow|sa makalawa)\b/.test(lower) || /明後日|后天/.test(text)) {
     const next = new Date(baseDate);
     next.setDate(next.getDate() + 2);
     return formatIsoDate(next);
   }
 
-  // "today"
-  if (/\btoday\b/.test(lower)) {
+  // "today" / Filipino "ngayon" / "ngayong araw" / Japanese "今日" / Chinese "今天"
+  if (/\b(today|ngayon|ngayong araw)\b/.test(lower) || /今日|今天/.test(text)) {
     return formatIsoDate(baseDate);
   }
 
-  // "tomorrow"
-  if (/\btomorrow\b/.test(lower)) {
+  // "tomorrow" / Filipino "bukas" / Japanese "明日" / Chinese "明天"
+  if (/\b(tomorrow|bukas)\b/.test(lower) || /明日|明天/.test(text)) {
     const next = new Date(baseDate);
     next.setDate(next.getDate() + 1);
     return formatIsoDate(next);
+  }
+
+  // Filipino weekday e.g. "sa lunes", "sa biyernes"
+  const filDayMatch = lower.match(/\b(?:sa|darating na)?\s*(lunes|martes|miyerkules|miyerkoles|huwebes|biyernes|sabado|linggo)\b/);
+  if (filDayMatch) {
+    const targetDayIndex = FILIPINO_DAY_NAMES[filDayMatch[1]];
+    if (targetDayIndex !== undefined) {
+      const currentDayIndex = baseDate.getDay();
+      let diff = targetDayIndex - currentDayIndex;
+      if (diff <= 0) diff += 7;
+      const res = new Date(baseDate);
+      res.setDate(res.getDate() + diff);
+      return formatIsoDate(res);
+    }
   }
 
   // "next [weekday]" or "this [weekday]" or "on [weekday]"

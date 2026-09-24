@@ -48,8 +48,10 @@ import {
   Calendar,
   Key,
   ExternalLink,
+  Languages,
 } from 'lucide-react';
 import { ChromeIcon } from '../components/ui/chrome-icon';
+import { SUPPORTED_LANGUAGES } from '../services/ai/translation';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -81,8 +83,22 @@ export const SettingsView: React.FC = () => {
   const [activeTierFilter, setActiveTierFilter] = useState<ModelTier | 'all'>('all');
   const [pullingModelId, setPullingModelId] = useState<string | null>(null);
   const [pullProgress, setPullProgress] = useState<PullProgressUpdate | null>(null);
-  const [customModelTag, setCustomModelTag] = useState<string>('');
+  const [customModelTag, setCustomModelTag] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // App Settings for Speech Recognition & Meeting Languages
+  const appSettings = useLiveQuery(() => db.settings.get('current'));
+  const currentSpeechLang = appSettings?.speechLanguage || 'en-US';
+
+  const handleUpdateSpeechLanguage = async (newLang: string) => {
+    try {
+      await db.settings.update('current', { speechLanguage: newLang });
+      const langObj = SUPPORTED_LANGUAGES.find((l) => l.bcp47 === newLang);
+      addToast(`Default speech recognition language set to ${langObj?.name || newLang}.`, 'success');
+    } catch {
+      addToast('Failed to update speech language preference.', 'error');
+    }
+  };
 
   const handlePullModel = async (modelTag: string, modelDisplayName?: string) => {
     if (!isConnected) {
@@ -1191,6 +1207,55 @@ export const SettingsView: React.FC = () => {
                   <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-white animate-pulse" />
                   <span>Streams audio directly to IndexedDB</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Multilingual Speech & Translation Preferences */}
+        <div id="section-speech" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center gap-3 border-b border-slate-200 dark:border-zinc-850 pb-4">
+            <Languages className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Speech Recognition & Translation</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400">Configure default language and AI translation targets for meeting recordings</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/60 dark:bg-zinc-900/40 space-y-2">
+              <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span>Default Spoken Language</span>
+              </label>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
+                The primary language your browser listens for when starting new meeting recordings.
+              </p>
+              <select
+                value={currentSpeechLang}
+                onChange={(e) => handleUpdateSpeechLanguage(e.target.value)}
+                className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white font-medium focus:outline-none focus:border-slate-500 dark:focus:border-zinc-500 cursor-pointer"
+              >
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.bcp47} value={lang.bcp47}>
+                    {lang.flag} {lang.name} ({lang.nativeName})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50/60 dark:bg-zinc-900/40 space-y-2">
+              <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span>Supported Multilingual Capabilities</span>
+              </label>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
+                Live transcription and AI translation dynamically support Filipino / Tagalog, English, Japanese, Chinese, Korean, French, Spanish, and German with offline phrasebooks and local model synthesis.
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {SUPPORTED_LANGUAGES.slice(0, 8).map((l) => (
+                  <span key={l.code} className="text-[11px] font-mono px-2 py-0.5 rounded bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300">
+                    {l.flag} {l.name.split(' ')[0]}
+                  </span>
+                ))}
               </div>
             </div>
           </div>

@@ -23,6 +23,14 @@ import { GoogleMeetGuideModal } from './google-meet-guide-modal';
 import { FloatingMeetingController } from './floating-meeting-controller';
 import { ScreenSnipperOverlay, type CropRect } from './screen-snipper-overlay';
 import {
+  SUPPORTED_LANGUAGES,
+  TRANSLATION_TARGETS,
+  translateTextAI,
+  translateTranscriptSegments,
+  getLanguageName,
+  normalizeLanguageCode,
+} from '../../services/ai/translation';
+import {
   Mic,
   MicOff,
   Square,
@@ -37,6 +45,8 @@ import {
   User,
   Users,
   Wand2,
+  Languages,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 interface MeetingRecorderProps {
@@ -72,21 +82,48 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [currentSpeaker, setCurrentSpeaker] = useState<string>('You / Host');
   const [isPolishingAI, setIsPolishingAI] = useState<boolean>(false);
 
+  // Multilingual Speech Recognition & AI Translation
+  const [spokenLanguage, setSpokenLanguage] = useState<string>('en-US');
+  const [translationTarget, setTranslationTarget] = useState<string>('en'); // 'en', 'fil', or 'none'
+  const [transcriptViewMode, setTranscriptViewMode] = useState<'dual' | 'translated' | 'original'>('dual');
+  const [isTranslatingAll, setIsTranslatingAll] = useState<boolean>(false);
+
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
   const timerIntervalRef = useRef<any>(null);
   const transcriptBottomRef = useRef<HTMLDivElement>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Load user default speechLanguage setting if present
+  useEffect(() => {
+    db.settings.get('current').then((settings) => {
+      if (settings?.speechLanguage) {
+        setSpokenLanguage(settings.speechLanguage);
+        speechTranscriberRef.current?.setLanguage(settings.speechLanguage);
+      }
+    }).catch(() => {});
+  }, []);
+
   const handleIncomingSegment = (seg: TranscriptSegment) => {
-    // Ensure active speaker name is applied
+    const rawText = seg.text;
+    const sourceLang = normalizeLanguageCode(spokenLanguage);
+    const targetLang = translationTarget;
+    const shouldTranslate = targetLang !== 'none' && targetLang !== sourceLang;
+
+    // Ensure active speaker name and language metadata are applied
     const enrichedSeg: TranscriptSegment = {
       ...seg,
       speaker: seg.speaker && seg.speaker !== 'Speaker' ? seg.speaker : currentSpeaker,
+      originalText: rawText,
+      sourceLanguage: sourceLang,
+      targetLanguage: targetLang !== 'none' ? targetLang : undefined,
+      isTranslating: shouldTranslate,
     };
 
     setTranscript((prev) => [...prev, enrichedSeg]);
-    const match = detectEventFromSentence(enrichedSeg.text);
+
+    // Check for calendar events in original text
+    const match = detectEventFromSentence(rawText);
     if (match) {
       const ev = createScheduleEventFromMatch(match, {
         source: 'transcript',
@@ -99,6 +136,47 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         addToast(`📅 Scheduled Event detected: "${ev.title}" on ${ev.date} at ${ev.time}`, 'info');
         return [...prev, ev];
       });
+    }
+
+    // Real-time asynchronous AI translation into target language
+    if (shouldTranslate) {
+      translateTextAI(rawText, sourceLang, targetLang, selectedModel)
+        .then((translated) => {
+          if (!translated) return;
+          setTranscript((prev) =>
+            prev.map((s) =>
+              s.id === enrichedSeg.id
+                ? {
+                    ...s,
+                    translation: translated,
+                    isTranslating: false,
+                  }
+                : s
+            )
+          );
+
+          // Check if translated text reveals scheduled event
+          const translatedMatch = detectEventFromSentence(translated);
+          if (translatedMatch) {
+            const ev = createScheduleEventFromMatch(translatedMatch, {
+              source: 'transcript',
+              sourceTitle: meetingTitle.trim() || 'Recorded Meeting',
+            });
+            setDetectedEvents((prev) => {
+              const exists = prev.some((e) => e.date === ev.date && e.time === ev.time);
+              if (exists) return prev;
+              notifyDetectedEvent(ev);
+              addToast(`📅 Scheduled Event detected from translation: "${ev.title}" on ${ev.date} at ${ev.time}`, 'info');
+              return [...prev, ev];
+            });
+          }
+        })
+        .catch((err) => {
+          console.warn('[DomoNote] Live translation error:', err);
+          setTranscript((prev) =>
+            prev.map((s) => (s.id === enrichedSeg.id ? { ...s, isTranslating: false } : s))
+          );
+        });
     }
   };
 
@@ -179,6 +257,26 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     };
   }, [isRecording, isPaused]);
 
+  const handleBatchTranslate = async (targetLang: string) => {
+    if (transcript.length === 0) return;
+    if (!selectedModel) {
+      addToast('Please select an AI model in settings to translate transcript.', 'warning');
+      return;
+    }
+    setIsTranslatingAll(true);
+    addToast(`Translating transcript to ${getLanguageName(targetLang)}...`, 'info');
+    try {
+      const updated = await translateTranscriptSegments(transcript, targetLang, selectedModel);
+      setTranscript(updated);
+      addToast(`Transcript translated to ${getLanguageName(targetLang)}.`, 'success');
+    } catch (err: any) {
+      console.warn('[DomoNote] Batch translation error:', err);
+      addToast('Failed to translate transcript.', 'error');
+    } finally {
+      setIsTranslatingAll(false);
+    }
+  };
+
   const startRecording = async () => {
     try {
       setTranscript([]);
@@ -190,7 +288,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         setAudioLevel(level);
       });
 
-      // Start speech recognition with real-time event detection
+      // Start speech recognition with configured spoken language
+      speechTranscriberRef.current?.setLanguage(spokenLanguage);
       speechTranscriberRef.current?.start(handleIncomingSegment);
 
       setIsRecording(true);
@@ -199,7 +298,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         setElapsedSeconds((s) => s + 1);
       }, 1000);
 
-      addToast('Microphone recording started.', 'info');
+      addToast(`Recording started (${getLanguageName(spokenLanguage)}).`, 'info');
     } catch (err: any) {
       console.error('[DomoNote] Microphone permission denied or failed:', err);
       addToast(
@@ -475,17 +574,21 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         });
       }
 
-      // Synthesize AI insights & extract events
+      // Synthesize AI insights & extract events with target language support
       let summaryData;
       let timelineData;
       let allDetected: ScheduleEvent[] = [...detectedEvents];
+
+      // If translationTarget is fil, summarize in Filipino; otherwise summarize in English
+      const targetSummaryLang = translationTarget === 'fil' ? 'fil' : 'en';
 
       if (isConnected && selectedModel && (transcript.length > 0 || manualNotes.trim())) {
         const result = await synthesizeMeetingAI(
           transcript,
           manualNotes,
           selectedModel,
-          meetingTitle.trim() || 'Untitled Meeting'
+          meetingTitle.trim() || 'Untitled Meeting',
+          targetSummaryLang
         );
         summaryData = result.summary;
         timelineData = result.timeline;
@@ -497,7 +600,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         }
       } else {
         // Fallback without AI: run offline NLP event detector on all text
-        const combined = `${transcript.map((s) => s.text).join(' ')}\n${manualNotes}`;
+        const combined = `${transcript.map((s) => s.translation || s.text).join(' ')}\n${manualNotes}`;
         const nlp = detectAllEventsInText(combined);
         for (const m of nlp) {
           const ev = createScheduleEventFromMatch(m, {
@@ -518,12 +621,13 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           actionItems: [],
           topics: [],
           followUpTasks: [],
+          summaryLanguage: targetSummaryLang,
         };
         timelineData = transcript.slice(0, 5).map((s, idx) => ({
           id: `tl-${idx}`,
           timestampSeconds: s.timestampSeconds,
           timeFormatted: formatSecondsToTime(s.timestampSeconds),
-          label: s.text.slice(0, 45) + '...',
+          label: (s.translation || s.text).slice(0, 45) + '...',
           type: 'topic' as const,
         }));
       }
@@ -549,6 +653,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         summary: summaryData,
         screenshots,
         createdAt: now,
+        spokenLanguage,
+        translationLanguage: translationTarget !== 'none' ? translationTarget : undefined,
       };
 
       await db.meetings.put(newMeeting);
@@ -729,6 +835,99 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
             </div>
           </div>
         )}
+
+        {/* Multilingual Speech Recognition & AI Translation Controls */}
+        <div className="pt-3 border-t border-zinc-850 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
+              <Languages className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Spoken Language:</span>
+            </div>
+            <select
+              value={spokenLanguage}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setSpokenLanguage(newLang);
+                speechTranscriberRef.current?.setLanguage(newLang);
+                const lName = SUPPORTED_LANGUAGES.find((l) => l.bcp47 === newLang)?.name || newLang;
+                addToast(`Speech recognition set to ${lName}`, 'info');
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-zinc-600 font-medium"
+              title="Select spoken language for speech recognition"
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.bcp47} value={lang.bcp47}>
+                  {lang.flag} {lang.name} ({lang.nativeName})
+                </option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
+              <ArrowRightLeft className="w-3 h-3 text-zinc-500" />
+              <span>Translate To:</span>
+            </div>
+            <select
+              value={translationTarget}
+              onChange={(e) => {
+                const newTarget = e.target.value;
+                setTranslationTarget(newTarget);
+                if (newTarget !== 'none') {
+                  const tName = TRANSLATION_TARGETS.find((t) => t.code === newTarget)?.name || newTarget;
+                  addToast(`Live AI translation set to ${tName}`, 'info');
+                } else {
+                  addToast('Live translation disabled (Original text only)', 'info');
+                }
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-zinc-600 font-medium"
+              title="Select target translation language"
+            >
+              {TRANSLATION_TARGETS.map((target) => (
+                <option key={target.code} value={target.code}>
+                  {target.flag} {target.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* View mode toggle (Dual / Translated / Original) when translation is active */}
+          {translationTarget !== 'none' && (
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-[11px] font-mono">
+              <button
+                onClick={() => setTranscriptViewMode('dual')}
+                className={`px-2 py-0.5 rounded transition-all ${
+                  transcriptViewMode === 'dual'
+                    ? 'bg-zinc-800 text-white font-bold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Show both original spoken language and translated text"
+              >
+                Dual View
+              </button>
+              <button
+                onClick={() => setTranscriptViewMode('translated')}
+                className={`px-2 py-0.5 rounded transition-all ${
+                  transcriptViewMode === 'translated'
+                    ? 'bg-zinc-800 text-white font-bold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Show translated text only"
+              >
+                Translation
+              </button>
+              <button
+                onClick={() => setTranscriptViewMode('original')}
+                className={`px-2 py-0.5 rounded transition-all ${
+                  transcriptViewMode === 'original'
+                    ? 'bg-zinc-800 text-white font-bold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Show original spoken text only"
+              >
+                Original
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main split: Live Transcript on left, Manual Notes on right */}
@@ -747,6 +946,20 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               <span className="text-[11px] text-zinc-500 font-mono">
                 {transcript.length} segments
               </span>
+
+              {transcript.length > 0 && translationTarget !== 'none' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBatchTranslate(translationTarget)}
+                  disabled={isTranslatingAll}
+                  className="text-xs font-mono py-1 px-2.5 h-7"
+                  title="Translate all transcript segments using Local AI"
+                >
+                  <Languages className={`w-3 h-3 mr-1 text-cyan-400 ${isTranslatingAll ? 'animate-spin' : ''}`} />
+                  <span>{isTranslatingAll ? 'Translating...' : `Translate (${translationTarget.toUpperCase()})`}</span>
+                </Button>
+              )}
 
               {transcript.length > 0 && (
                 <Button
@@ -817,20 +1030,57 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                   : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
 
+                const showDual = transcriptViewMode === 'dual' && seg.translation;
+                const showTranslatedOnly = transcriptViewMode === 'translated' && seg.translation;
+
                 return (
-                  <div key={seg.id || `seg-${idx}`} className="p-3 rounded-lg bg-zinc-900/70 border border-zinc-800 text-xs transition-colors hover:border-zinc-700">
-                    <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1.5">
-                      <button
-                        onClick={() => handleRenameSpeaker(seg.speaker)}
-                        className={`font-semibold px-1.5 py-0.5 rounded border text-[10px] font-mono flex items-center gap-1 hover:brightness-125 transition-all cursor-pointer ${badgeColor}`}
-                        title="Click to rename this speaker across all segments"
-                      >
-                        <User className="w-2.5 h-2.5" />
-                        <span>{seg.speaker}</span>
-                      </button>
+                  <div key={seg.id || `seg-${idx}`} className="p-3 rounded-lg bg-zinc-900/70 border border-zinc-800 text-xs transition-colors hover:border-zinc-700 space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleRenameSpeaker(seg.speaker)}
+                          className={`font-semibold px-1.5 py-0.5 rounded border text-[10px] font-mono flex items-center gap-1 hover:brightness-125 transition-all cursor-pointer ${badgeColor}`}
+                          title="Click to rename this speaker across all segments"
+                        >
+                          <User className="w-2.5 h-2.5" />
+                          <span>{seg.speaker}</span>
+                        </button>
+                        {seg.sourceLanguage && (
+                          <span className="text-[9px] font-mono px-1 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                            {seg.sourceLanguage}
+                          </span>
+                        )}
+                      </div>
                       <span className="font-mono text-zinc-500">{formatSecondsToTime(seg.timestampSeconds)}</span>
                     </div>
-                    <p className="text-zinc-200 leading-relaxed pl-1">{seg.text}</p>
+
+                    {showDual ? (
+                      <div className="space-y-1 pl-1">
+                        <div className="text-zinc-400 text-[11px] leading-relaxed italic border-l-2 border-zinc-700 pl-2">
+                          <span className="text-[9px] font-mono uppercase text-zinc-500 mr-1.5">Spoken:</span>
+                          {seg.originalText || seg.text}
+                        </div>
+                        <div className="text-zinc-100 text-xs font-medium leading-relaxed border-l-2 border-emerald-500/60 pl-2">
+                          <span className="text-[9px] font-mono uppercase text-emerald-400 mr-1.5">Translated:</span>
+                          {seg.translation}
+                        </div>
+                      </div>
+                    ) : showTranslatedOnly ? (
+                      <p className="text-zinc-100 text-xs leading-relaxed pl-1 font-medium">
+                        {seg.translation}
+                      </p>
+                    ) : (
+                      <p className="text-zinc-200 leading-relaxed pl-1">
+                        {seg.originalText || seg.text}
+                      </p>
+                    )}
+
+                    {seg.isTranslating && (
+                      <div className="text-[10px] font-mono text-amber-400 flex items-center gap-1 pl-1 animate-pulse">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        <span>Translating with AI...</span>
+                      </div>
+                    )}
                   </div>
                 );
               })

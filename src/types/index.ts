@@ -25,6 +25,11 @@ export interface TranscriptSegment {
   timestampSeconds: number;
   speaker: string;
   text: string;
+  originalText?: string;
+  translation?: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  isTranslating?: boolean;
 }
 
 export interface TimelineItem {
@@ -44,6 +49,7 @@ export interface MeetingSummary {
   }>;
   topics: string[];
   followUpTasks: string[];
+  summaryLanguage?: string;
 }
 
 /** A screenshot captured during a live meeting recording session. */
@@ -69,6 +75,8 @@ export interface Meeting {
   summary?: MeetingSummary;
   screenshots: MeetingScreenshot[];
   createdAt: number;
+  spokenLanguage?: string;
+  translationLanguage?: string;
 }
 
 export interface ExtractedPage {

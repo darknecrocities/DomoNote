@@ -67,6 +67,7 @@ export class LiveSpeechTranscriber {
                 timestampSeconds: elapsed,
                 speaker: this.activeSpeaker || 'Speaker 1',
                 text,
+                sourceLanguage: this.language,
               });
             }
           } else {
@@ -139,14 +140,27 @@ export class LiveSpeechTranscriber {
 
   /**
    * Set the language code for speech recognition.
-   * Must be called before `start()`. Defaults to 'en-US'.
-   * @param lang - BCP 47 language tag (e.g., 'en-US', 'fil-PH', 'ja-JP')
+   * Automatically restarts recognition if currently listening.
+   * @param lang - BCP 47 language tag (e.g., 'en-US', 'fil-PH', 'ja-JP', 'zh-CN', 'ko-KR', 'fr-FR')
    */
   setLanguage(lang: string): void {
+    if (!lang) return;
+    const changed = this.language !== lang;
     this.language = lang;
     if (this.recognition) {
       this.recognition.lang = lang;
+      if (changed && this.isListening) {
+        try {
+          this.recognition.stop();
+        } catch {
+          // auto-restarts with new language
+        }
+      }
     }
+  }
+
+  getLanguage(): string {
+    return this.language;
   }
 
   /**
@@ -218,29 +232,22 @@ export function formatSecondsToTime(totalSeconds: number): string {
 
 /**
  * Synthesize AI-powered meeting insights from transcript and manual notes.
- *
- * Sends the full transcript and manual notes to the local Ollama model,
- * which extracts:
- * - Executive overview
- * - Key decisions
- * - Action items with owners
- * - Discussion topics
- * - Follow-up tasks
- * - Timeline milestones
- *
- * Falls back to a deterministic summary if AI is unavailable or returns
- * malformed JSON.
+ * Supports multi-language input (Filipino/Tagalog, English, Japanese, Chinese, Korean, French)
+ * and accurately synthesizes into the target language (English or Filipino).
  *
  * @param transcript - Array of timestamped transcript segments.
  * @param manualNotes - Free-text notes taken during the meeting.
  * @param modelName - Ollama model name to use for synthesis.
+ * @param meetingTitle - Title of the meeting.
+ * @param targetSummaryLanguage - Target language for synthesis ('en' or 'fil').
  * @returns Structured summary and timeline milestones.
  */
 export async function synthesizeMeetingAI(
   transcript: TranscriptSegment[],
   manualNotes: string,
   modelName: string,
-  meetingTitle?: string
+  meetingTitle?: string,
+  targetSummaryLanguage: string = 'en'
 ): Promise<{
   summary: MeetingSummary;
   timeline: TimelineItem[];
@@ -249,18 +256,21 @@ export async function synthesizeMeetingAI(
   if (transcript.length === 0 && !manualNotes.trim()) {
     return {
       summary: {
-        overview: 'No transcript or manual notes recorded for this session.',
+        overview: targetSummaryLanguage === 'fil'
+          ? 'Walang naitalang transcript o tala para sa pulong na ito.'
+          : 'No transcript or manual notes recorded for this session.',
         decisions: [],
         actionItems: [],
         topics: [],
         followUpTasks: [],
+        summaryLanguage: targetSummaryLanguage,
       },
       timeline: [],
       detectedEvents: [],
     };
   }
 
-  const combinedText = `${transcript.map((s) => s.text).join(' ')}\n${manualNotes}`;
+  const combinedText = `${transcript.map((s) => s.translation || s.text).join(' ')}\n${manualNotes}`;
   const nlpMatches = detectAllEventsInText(combinedText);
   const detectedEvents: ScheduleEvent[] = nlpMatches.map((m) =>
     createScheduleEventFromMatch(m, {
@@ -270,10 +280,24 @@ export async function synthesizeMeetingAI(
   );
 
   const transcriptText = transcript
-    .map((s) => `[${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`)
+    .map((s) => {
+      const translationSnippet = s.translation && s.translation !== s.text ? ` [Translation: ${s.translation}]` : '';
+      return `[${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}${translationSnippet}`;
+    })
     .join('\n');
 
-  const prompt = `Analyze this actual meeting transcript and participant notes. Deriving facts ONLY from the text provided below, generate a factual structured JSON output.
+  const isFilipino = targetSummaryLanguage === 'fil';
+  const languageDirective = isFilipino
+    ? `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in English, Filipino / Tagalog, Japanese, Chinese, Korean, French, or mixed (Taglish).
+You MUST translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) in natural, professional Filipino / Tagalog (o modernong Taglish na angkop sa propesyonal na kumperensya). Huwag mag-iwan ng hindi naisasalin na mga pangunahing punto.`
+    : `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in Filipino / Tagalog (or Taglish), Japanese, Chinese, Korean, French, Spanish, German, or English.
+You MUST accurately translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) strictly in clear, professional English.`;
+
+  const prompt = `You are an expert multilingual executive AI secretary.
+Analyze this meeting transcript and participant notes.
+${languageDirective}
+
+Deriving facts ONLY from the text provided below, generate a factual structured JSON output.
 Do not hallucinate or invent owners if none are mentioned. If something was not discussed, leave that array empty.
 If any future events, meetings, syncs, presentations, or deadlines are mentioned with dates/times, include them in "detectedEvents".
 
@@ -285,7 +309,7 @@ ${manualNotes || '(No manual notes)'}
 
 Respond STRICTLY with valid JSON in this exact structure, with no extra text or commentary:
 {
-  "overview": "Brief 2-3 sentence meeting summary",
+  "overview": "Brief 2-3 sentence meeting summary in ${isFilipino ? 'Filipino' : 'English'}",
   "decisions": ["Decision 1", "Decision 2"],
   "actionItems": [{"task": "Task description", "owner": "Name or empty"}],
   "topics": ["Topic 1", "Topic 2"],
@@ -360,11 +384,12 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
 
     return {
       summary: {
-        overview: parsed.overview || 'Meeting completed.',
+        overview: parsed.overview || (targetSummaryLanguage === 'fil' ? 'Natapos ang pulong.' : 'Meeting completed.'),
         decisions: Array.isArray(parsed.decisions) ? parsed.decisions : [],
         actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
         topics: Array.isArray(parsed.topics) ? parsed.topics : [],
         followUpTasks: Array.isArray(parsed.followUpTasks) ? parsed.followUpTasks : [],
+        summaryLanguage: targetSummaryLanguage,
       },
       timeline,
       detectedEvents,
@@ -374,11 +399,14 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
     // Safe deterministic fallback when AI fails or model JSON malformed
     return {
       summary: {
-        overview: `Meeting recorded with ${transcript.length} transcript segment(s). AI analysis could not be parsed.`,
+        overview: targetSummaryLanguage === 'fil'
+          ? `Naitala ang pulong na may ${transcript.length} bahagi ng transcript.`
+          : `Meeting recorded with ${transcript.length} transcript segment(s). AI analysis could not be parsed.`,
         decisions: [],
         actionItems: [],
         topics: [],
         followUpTasks: [],
+        summaryLanguage: targetSummaryLanguage,
       },
       timeline: transcript.slice(0, 5).map((s, idx) => ({
         id: `tl-${idx}`,
