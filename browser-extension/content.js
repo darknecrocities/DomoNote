@@ -57,13 +57,35 @@
     return `domo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   }
 
-  // Relay messages from background script to web page
-  if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-    chrome.runtime.onMessage.addListener((msg) => {
-      if (msg.type === 'DOMONOTE_MEETING_PARTICIPANTS' || msg.type === 'DOMONOTE_ACTIVE_SPEAKER') {
-        window.postMessage(msg, '*');
-      }
-    });
+  // Relay messages from background script or storage to web page
+  if (typeof chrome !== 'undefined') {
+    if (chrome.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === 'DOMONOTE_MEETING_PARTICIPANTS' || msg.type === 'DOMONOTE_ACTIVE_SPEAKER') {
+          window.postMessage(msg, '*');
+        }
+      });
+    }
+
+    if (chrome.storage?.local) {
+      chrome.storage.local.get(['domo_live_meeting_roster'], (res) => {
+        if (res.domo_live_meeting_roster) {
+          window.postMessage({
+            type: 'DOMONOTE_MEETING_PARTICIPANTS',
+            ...res.domo_live_meeting_roster,
+          }, '*');
+        }
+      });
+
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.domo_live_meeting_roster?.newValue) {
+          window.postMessage({
+            type: 'DOMONOTE_MEETING_PARTICIPANTS',
+            ...changes.domo_live_meeting_roster.newValue,
+          }, '*');
+        }
+      });
+    }
   }
 
   // ─── Multi-App Participant & Active Speaker Hook ───────────────────────────
@@ -98,9 +120,16 @@
       'leave call', 'leave meeting', 'end call', 'participants', 'people', 'chat', 'more options',
       'show more', 'pin to screen', 'unpin', 'settings', 'share screen', 'present now',
       'whiteboard', 'breakout rooms', 'captions', 'audio', 'video', 'search', 'close',
-      'turn on microphone', 'turn on camera'
+      'turn on microphone', 'turn on camera', 'meeting host', 'all muted', 'add people',
+      'search for people', 'in the meeting', 'contributors'
     ]);
     if (UI_IGNORE.has(name.toLowerCase())) return null;
+
+    // Title case format so lowercase names become capitalized (e.g. "german" -> "German")
+    name = name
+      .split(/\s+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
 
     return name;
   }
@@ -219,8 +248,14 @@
       const n = cleanParticipantName(el.getAttribute('aria-label') || '');
       if (n) names.add(n);
     });
-    document.querySelectorAll('.KF4T6b, .xBI3Vc, .EjRRve, .NMhWlb, .cS7aqe').forEach(el => {
+    document.querySelectorAll('.KF4T6b, .xBI3Vc, .EjRRve, .NMhWlb, .cS7aqe, [jsname="A7TdRd"]').forEach(el => {
       const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+    // Google Meet People Sidebar items & notranslate text elements
+    document.querySelectorAll('div[aria-label*="people" i] [role="listitem"], div[aria-label*="participant" i] [role="listitem"]').forEach(el => {
+      const nameEl = el.querySelector('.notranslate, span[jsname], .zWGUib') || el;
+      const n = cleanParticipantName(nameEl.textContent);
       if (n) names.add(n);
     });
 

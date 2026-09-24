@@ -53,7 +53,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   companionUrl: 'http://localhost:8765',
   theme: 'dark',
   autoSaveIntervalSeconds: 3,
-  speechLanguage: 'en-US',
+  speechLanguage: 'auto',
 };
 
 // Built-in Templates
@@ -114,6 +114,9 @@ export async function initializeDatabase(): Promise<void> {
   const existingSettings = await db.settings.get('current');
   if (!existingSettings) {
     await db.settings.put(DEFAULT_SETTINGS);
+  } else if (!existingSettings.speechLanguage || existingSettings.speechLanguage === 'en-US') {
+    // Default spoken language is auto detect
+    await db.settings.update('current', { speechLanguage: 'auto' });
   }
 
   // Seed built-in templates if empty

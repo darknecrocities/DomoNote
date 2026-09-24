@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-US';
+        recognition.lang = navigator.language || 'en-US';
 
         recognition.onresult = (event) => {
           let currentTranscript = '';

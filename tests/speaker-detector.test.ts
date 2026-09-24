@@ -56,6 +56,18 @@ describe('Automatic Speaker Name Hook & Detection Engine', () => {
       expect(match4).not.toBeNull();
       expect(match4?.name).toBe('Dr. Watson');
       expect(match4?.isSelfIntro).toBe(true);
+
+      // Exact case from live meeting user screenshot:
+      const match5 = detectConversationalSpeaker('guys my name is liz from ivy');
+      expect(match5).not.toBeNull();
+      expect(match5?.name).toBe('Liz');
+      expect(match5?.isSelfIntro).toBe(true);
+    });
+
+    it('rejects common phrases that are not human names', () => {
+      expect(detectConversationalSpeaker('this is great')).toBeNull();
+      expect(detectConversationalSpeaker('this is working properly')).toBeNull();
+      expect(detectConversationalSpeaker('it is done')).toBeNull();
     });
 
     it('detects Filipino self-introductions accurately', () => {

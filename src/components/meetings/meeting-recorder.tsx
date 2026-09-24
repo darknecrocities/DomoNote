@@ -91,6 +91,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [translationTarget, setTranslationTarget] = useState<string>('en'); // 'en' default: translates foreign/Filipino/Asian/European speech to English
   const [transcriptViewMode, setTranscriptViewMode] = useState<'dual' | 'translated' | 'original'>('dual');
   const [isTranslatingAll, setIsTranslatingAll] = useState<boolean>(false);
+  const [liveInterimText, setLiveInterimText] = useState<string>('');
 
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const speechTranscriberRef = useRef<LiveSpeechTranscriber | null>(null);
@@ -131,7 +132,12 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     }).catch(() => {});
   }, []);
 
+  const handleIncomingInterim = (interim: string) => {
+    setLiveInterimText(interim);
+  };
+
   const handleIncomingSegment = (seg: TranscriptSegment) => {
+    setLiveInterimText('');
     const rawText = seg.text;
 
     // Automatic Speaker Name Hook:
@@ -145,6 +151,22 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     }
     if (hookResult.updatedRoster.length > speakerRoster.length) {
       setSpeakerRoster(hookResult.updatedRoster);
+    }
+
+    // Retroactively update recent generic segments when a new speaker is identified
+    if (hookResult.isNewDetection && resolvedSpeaker !== 'You / Host') {
+      setTranscript((prev) => {
+        if (prev.length === 0) return prev;
+        const lastSeg = prev[prev.length - 1];
+        if (
+          lastSeg &&
+          (/^speaker\s*\d*$/i.test(lastSeg.speaker) || lastSeg.speaker === 'You / Host') &&
+          Math.abs(seg.timestampSeconds - lastSeg.timestampSeconds) < 45
+        ) {
+          return prev.map((s, idx) => (idx === prev.length - 1 ? { ...s, speaker: resolvedSpeaker } : s));
+        }
+        return prev;
+      });
     }
 
     const sourceLang = spokenLanguage === 'auto'
@@ -340,9 +362,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         setAudioLevel(level);
       });
 
-      // Start speech recognition with configured spoken language
+      // Start speech recognition with configured spoken language and real-time interim streaming
       speechTranscriberRef.current?.setLanguage(spokenLanguage);
-      speechTranscriberRef.current?.start(handleIncomingSegment);
+      speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
 
       setIsRecording(true);
 
@@ -397,17 +419,29 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       setTranscript([]);
       setElapsedSeconds(0);
       setScreenshots([]);
+      setLiveInterimText('');
       setIsRecording(true);
+
+      // Detect meeting app from track label
+      const videoTrack = stream.getVideoTracks()[0];
+      const trackLabel = (videoTrack?.label || '').toLowerCase();
+      let appName = 'Google Meet';
+      if (trackLabel.includes('teams')) appName = 'Microsoft Teams';
+      else if (trackLabel.includes('zoom')) appName = 'Zoom';
+      else if (trackLabel.includes('webex')) appName = 'Cisco Webex';
+      else if (trackLabel.includes('slack')) appName = 'Slack Huddle';
+      else if (trackLabel.includes('discord')) appName = 'Discord';
+      setDetectedMeetingApp(appName);
 
       timerIntervalRef.current = setInterval(() => {
         setElapsedSeconds((s) => s + 1);
       }, 1000);
 
-      speechTranscriberRef.current?.start((seg) => {
-        setTranscript((prev) => [...prev, seg]);
-      });
+      // Ensure tab audio is transcribed through the full speaker hook and real-time interim pipeline
+      speechTranscriberRef.current?.setLanguage(spokenLanguage);
+      speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
 
-      addToast('Google Meet / Tab audio capture started.', 'info');
+      addToast(`${appName} / Tab audio capture started.`, 'info');
     } catch (err: any) {
       console.warn('[DomoNote] Tab capture cancelled:', err?.message);
     }
@@ -1076,12 +1110,29 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           )}
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-            {transcript.length === 0 ? (
+            {/* Real-time zero-delay interim speech bubble */}
+            {liveInterimText && (
+              <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-xs animate-in fade-in duration-100 flex items-start gap-2 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping mt-1 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 font-semibold mb-0.5">
+                    <span>{currentSpeaker}</span>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-emerald-300 italic font-normal">speaking now (live)...</span>
+                  </div>
+                  <p className="text-zinc-100 text-xs leading-relaxed font-sans">
+                    {liveInterimText}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {transcript.length === 0 && !liveInterimText ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-500 text-xs">
                 {isRecording ? (
                   <>
                     <Mic className="w-6 h-6 mb-2 text-zinc-400 animate-pulse" />
-                    <span>Listening to conversation... Speech recognition is streaming transcript.</span>
+                    <span>Listening to conversation... Speech recognition is streaming transcript live.</span>
                   </>
                 ) : (
                   <span>Transcript will appear live with speaker names once recording begins.</span>
@@ -1089,8 +1140,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               </div>
             ) : (
               transcript.map((seg, idx) => {
-                const isSpeaker1 = seg.speaker.includes('1') || seg.speaker.toLowerCase().includes('host') || seg.speaker.toLowerCase().includes('you');
-                const badgeColor = isSpeaker1
+                const displaySpeaker = /^speaker\s*\d*$/i.test(seg.speaker) ? 'You / Host' : seg.speaker;
+                const isHost = displaySpeaker.toLowerCase().includes('host') || displaySpeaker.toLowerCase().includes('you');
+                const badgeColor = isHost
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                   : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
 
@@ -1102,12 +1154,12 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                     <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleRenameSpeaker(seg.speaker)}
+                          onClick={() => handleRenameSpeaker(displaySpeaker)}
                           className={`font-semibold px-1.5 py-0.5 rounded border text-[10px] font-mono flex items-center gap-1 hover:brightness-125 transition-all cursor-pointer ${badgeColor}`}
                           title="Click to rename this speaker across all segments"
                         >
                           <User className="w-2.5 h-2.5" />
-                          <span>{seg.speaker}</span>
+                          <span>{displaySpeaker}</span>
                         </button>
                         {seg.sourceLanguage && (
                           <span className="text-[9px] font-mono px-1 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">

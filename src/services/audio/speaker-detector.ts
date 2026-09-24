@@ -92,13 +92,99 @@ export function cleanSpeakerName(raw: string): string | null {
     'no',
   ]);
 
-  if (UI_BLACKLIST.has(cleaned.toLowerCase())) {
+  // Exclude common adjectives, pronouns and non-name words following "this is", "it is"
+  const NON_NAME_WORDS = new Set([
+    'great',
+    'good',
+    'bad',
+    'working',
+    'going',
+    'happening',
+    'ready',
+    'fine',
+    'cool',
+    'ok',
+    'okay',
+    'nice',
+    'awesome',
+    'weird',
+    'crazy',
+    'interesting',
+    'true',
+    'false',
+    'done',
+    'important',
+    'critical',
+    'amazing',
+    'a',
+    'an',
+    'the',
+    'it',
+    'not',
+    'here',
+    'there',
+    'our',
+    'your',
+    'my',
+    'what',
+    'how',
+    'why',
+    'who',
+    'when',
+    'where',
+    'this',
+    'that',
+    'these',
+    'those',
+    'all',
+    'team',
+    'everyone',
+    'guys',
+    'properly',
+    'sure',
+    'well',
+    'really',
+    'just',
+    'too',
+    'very',
+    'still',
+    'already',
+    'now',
+    'right',
+    'wrong',
+    'normal',
+    'broken',
+    'better',
+    'best',
+    'first',
+    'last',
+  ]);
+
+  const cleanedLower = cleaned.toLowerCase();
+  if (UI_BLACKLIST.has(cleanedLower) || NON_NAME_WORDS.has(cleanedLower)) {
+    return null;
+  }
+
+  // Reject multi-word candidates where any constituent word is in NON_NAME_WORDS (e.g. "working properly")
+  const words = cleanedLower.split(/\s+/);
+  if (words.some((w) => NON_NAME_WORDS.has(w))) {
     return null;
   }
 
   // Reject strings that are too short, too long, or pure numbers/time formats
   if (cleaned.length < 2 || cleaned.length > 50) return null;
   if (/^\d+([:.]\d+)?$/.test(cleaned)) return null;
+
+  // Title-case format the name so lowercase speech recognition (e.g. "liz", "german") becomes "Liz", "German"
+  cleaned = cleaned
+    .split(/\s+/)
+    .map((word) => {
+      if (/^(?:dr\.|prof\.|mr\.|ms\.|mrs\.)$/i.test(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
 
   return cleaned;
 }
@@ -132,16 +218,16 @@ export function detectConversationalSpeaker(
 
   // 1. Direct Self-Introductions (High Confidence)
   const selfIntroPatterns = [
-    // "Hi everyone, this is Sarah", "Hello team, it's Alex", "Good morning, my name is John Smith"
-    /(?:hi|hello|hey|good\s+(?:morning|afternoon|evening))(?:\s+(?:everyone|everybody|all|team|folks|guys))?[,\s]+(?:this\s+is|it'?s|i'?m|my\s+name\s+is)\s+([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/i,
-    // "Sarah here, just wanted to update" or "Hey team, Sarah Jenkins here" or "Dr. Watson speaking"
-    /(?:^|[,\s]+)((?:(?:Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.)\s*)?[A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)\s+(?:here|speaking)\b/i,
-    // "This is Dr. Watson speaking"
-    /(?:this\s+is|it'?s)\s+((?:Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.)?\s*[A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)\s+speaking\b/i,
-    // "I am Alex from Product"
-    /\b(?:i\s+am|i'm)\s+([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)\s+(?:from|with|on)\b/i,
+    // "guys my name is liz from ivy", "hi everyone, my name is Alex", "hello this is Sarah Jenkins"
+    /(?:(?:hi|hello|hey|good\s+(?:morning|afternoon|evening)|guys|team|all|everyone|yo|welcome)[,\s]+)*(?:this\s+is|it'?s|i'?m|i\s+am|my\s+name\s+is|call\s+me)\s+((?:(?:Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.)\s*)?[a-zA-Z'\-]+(?:\s+[a-zA-Z'\-]+)?)/i,
+    // "Sarah here, just wanted to update" or "Hey team, Sarah Jenkins here" or "Dr. Watson speaking" or "liz here"
+    /(?:^|[,\s]+)((?:(?:Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.)\s*)?[a-zA-Z'\-]+(?:\s+[a-zA-Z'\-]+)?)\s+(?:here|speaking)\b/i,
+    // Direct standalone: "my name is liz", "this is liz", "i'm liz"
+    /\b(?:my\s+name\s+is|this\s+is|it'?s|i'?m|i\s+am|call\s+me)\s+((?:(?:Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.)\s*)?[a-zA-Z'\-]+(?:\s+[a-zA-Z'\-]+)?)\b/i,
+    // "I am Alex from Product", "i'm liz from ivy"
+    /\b(?:i\s+am|i'm)\s+([a-zA-Z'\-]+(?:\s+[a-zA-Z'\-]+)?)\s+(?:from|with|on)\b/i,
     // Filipino self-intros: "Ako nga pala si Maria", "Si Arron ito"
-    /\b(?:ako\s+nga\s+pala\s+si|si)\s+([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)(?:\s+(?:ito|dito|po\s+ito|para|sa|ang|ng))?/i,
+    /\b(?:ako\s+nga\s+pala\s+si|si)\s+([a-zA-Z'\-]+(?:\s+[a-zA-Z'\-]+)?)(?:\s+(?:ito|dito|po\s+ito|para|sa|ang|ng))?/i,
   ];
 
   for (const pattern of selfIntroPatterns) {
@@ -161,12 +247,12 @@ export function detectConversationalSpeaker(
 
   // 2. Direct Address / Handoffs (Medium-High Confidence)
   const handoffPatterns = [
-    // "Over to you, Sarah", "Your turn, Alex", "Take it away, Marcus"
-    /(?:over\s+to\s+you|your\s+turn|take\s+it\s+away|handing\s+over\s+to)[,\s]+([A-Z][a-zA-Z'\-]+)\b/i,
+    // "Over to you, Sarah", "Your turn, Alex", "Take it away, Marcus", "Over to you, german"
+    /(?:over\s+to\s+you|your\s+turn|take\s+it\s+away|handing\s+over\s+to)[,\s]+([a-zA-Z'\-]+)\b/i,
     // "Sarah, what do you think about...", "Alex, can you take this one?"
-    /^([A-Z][a-zA-Z'\-]+)[,\s]+(?:what\s+do\s+you\s+think|can\s+you|could\s+you|do\s+you\s+have|would\s+you)\b/i,
+    /^([a-zA-Z'\-]+)[,\s]+(?:what\s+do\s+you\s+think|can\s+you|could\s+you|do\s+you\s+have|would\s+you)\b/i,
     // "...what are your thoughts, David?"
-    /(?:what\s+(?:are\s+your|do\s+you)\s+thoughts|any\s+thoughts)[,\s]+([A-Z][a-zA-Z'\-]+)\??$/i,
+    /(?:what\s+(?:are\s+your|do\s+you)\s+thoughts|any\s+thoughts)[,\s]+([a-zA-Z'\-]+)\??$/i,
   ];
 
   for (const pattern of handoffPatterns) {

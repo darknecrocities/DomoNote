@@ -15,7 +15,7 @@ describe('LiveSpeechTranscriber speaker tracking', () => {
 
   it('allows configuring and switching the active speaker', () => {
     const transcriber = new LiveSpeechTranscriber();
-    expect(transcriber.getActiveSpeaker()).toBe('Speaker 1');
+    expect(transcriber.getActiveSpeaker()).toBe('You / Host');
 
     transcriber.setActiveSpeaker('Arron (Host)');
     expect(transcriber.getActiveSpeaker()).toBe('Arron (Host)');

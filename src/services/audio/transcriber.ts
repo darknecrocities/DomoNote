@@ -41,7 +41,9 @@ export class LiveSpeechTranscriber {
   private restartAttempts: number = 0;
   private maxRestartAttempts: number = 50;
   private language: string = 'auto';
-  private activeSpeaker: string = 'Speaker 1';
+  private activeSpeaker: string = 'You / Host';
+  private interimTimer: any = null;
+  private lastFinalizedText: string = '';
 
   constructor() {
     const SpeechRecognition =
@@ -67,15 +69,13 @@ export class LiveSpeechTranscriber {
 
           if (result.isFinal) {
             this.restartAttempts = 0; // Reset on successful result
-            if (this.onSegmentCallback) {
-              const detectedLang = this.language === 'auto' ? detectLikelyLanguage(text) : this.language;
-              this.onSegmentCallback({
-                id: `seg-${++this.segmentCounter}-${Date.now()}`,
-                timestampSeconds: elapsed,
-                speaker: this.activeSpeaker || 'Speaker 1',
-                text,
-                sourceLanguage: detectedLang,
-              });
+            if (this.interimTimer) {
+              clearTimeout(this.interimTimer);
+              this.interimTimer = null;
+            }
+            if (text !== this.lastFinalizedText) {
+              this.lastFinalizedText = text;
+              this.emitFinalSegment(text, elapsed);
             }
           } else {
             interimAccumulator += (interimAccumulator ? ' ' : '') + text;
@@ -84,6 +84,19 @@ export class LiveSpeechTranscriber {
 
         if (this.onInterimCallback) {
           this.onInterimCallback(interimAccumulator);
+        }
+
+        // Auto-finalize after 1.5s of speech pause to avoid browser transcription delay
+        if (interimAccumulator && interimAccumulator.trim().length > 3) {
+          if (this.interimTimer) clearTimeout(this.interimTimer);
+          const pending = interimAccumulator.trim();
+          this.interimTimer = setTimeout(() => {
+            if (pending && pending !== this.lastFinalizedText && this.isListening) {
+              this.lastFinalizedText = pending;
+              this.emitFinalSegment(pending, Math.max(0, Math.floor((Date.now() - this.startTime) / 1000)));
+              if (this.onInterimCallback) this.onInterimCallback('');
+            }
+          }, 1500);
         }
       };
 
@@ -135,6 +148,18 @@ export class LiveSpeechTranscriber {
         }
       };
     }
+  }
+
+  private emitFinalSegment(text: string, elapsed: number): void {
+    if (!this.onSegmentCallback || !text.trim()) return;
+    const detectedLang = this.language === 'auto' ? detectLikelyLanguage(text) : this.language;
+    this.onSegmentCallback({
+      id: `seg-${++this.segmentCounter}-${Date.now()}`,
+      timestampSeconds: elapsed,
+      speaker: this.activeSpeaker || 'You / Host',
+      text: text.trim(),
+      sourceLanguage: detectedLang,
+    });
   }
 
   /**
