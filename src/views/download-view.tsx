@@ -83,7 +83,18 @@ export const DownloadView: React.FC = () => {
   const GITHUB_RELEASE_BASE = `${GITHUB_REPO}/releases/latest/download`;
 
   const handleDownload = async (filename: string, osName: string) => {
-    // For native binary packages (.exe installer, .zip portable, .dmg macOS, .AppImage, .deb), download verified files
+    // ─── Binary Package Downloads (.exe, .zip, .dmg, .AppImage, .deb) ────────
+    // Strategy:
+    //  1. Check the local static server (/downloads/) for the file.
+    //     This works when DomoNote is served from the desktop app bundle
+    //     or a locally built dev server with /public/downloads/ assets.
+    //  2. If the local file doesn't exist (404 or returns HTML rewrite),
+    //     redirect to the GitHub Releases page for the user to download
+    //     manually. We do NOT attempt a direct GitHub Releases asset URL
+    //     because releases may not exist yet (avoids broken download links).
+    //  3. macOS .dmg / .zip packages additionally provide the start.sh
+    //     script as an alternative since the binary release may not be
+    //     published yet. Users on macOS can always clone + run start.sh.
     if (
       filename.endsWith('.exe') ||
       filename.endsWith('.zip') ||
@@ -92,43 +103,52 @@ export const DownloadView: React.FC = () => {
       filename.endsWith('.deb')
     ) {
       const localUrl = `/downloads/${filename}`;
-      const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
 
+      // Probe local static server first (works in desktop app bundle)
       try {
-        // Probe localUrl with HEAD to ensure it is an actual binary and not an SPA route rewrite serving index.html
-        const res = await fetch(localUrl, { method: 'HEAD' });
+        const res = await fetch(localUrl, { method: 'HEAD', signal: AbortSignal.timeout(1500) });
         const ctype = res.headers.get('content-type') || '';
         if (res.ok && !ctype.includes('text/html')) {
+          // Local binary found — serve it directly
           const a = document.createElement('a');
           a.href = localUrl;
           a.download = filename;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-        } else {
-          // If local static server returns 404 or text/html rewrite, download official release from GitHub
-          const a = document.createElement('a');
-          a.href = releaseUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          addToast(`Downloading ${filename}. Launch to install DomoNote.`, 'success');
+          return;
         }
       } catch {
-        const a = document.createElement('a');
-        a.href = releaseUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Local probe failed (network error, timeout) — fall through to GitHub
       }
+
+      // macOS: binary release may not be published yet.
+      // Redirect to GitHub releases page so user can grab the latest.
+      if (filename.endsWith('.dmg')) {
+        addToast(
+          'Redirecting to GitHub Releases — download the latest macOS .dmg from there.',
+          'info'
+        );
+        window.open(`${GITHUB_REPO}/releases/latest`, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // Windows / Linux: attempt GitHub releases asset URL
+      const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
+      const a = document.createElement('a');
+      a.href = releaseUrl;
+      a.download = filename;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
       const label = filename.endsWith('.exe')
         ? 'native Windows Installer (.EXE)'
         : filename.endsWith('.zip')
         ? 'Windows Portable Package (.ZIP)'
-        : filename.endsWith('.dmg')
-        ? 'native macOS DMG bundle'
         : 'Linux package';
 
       addToast(`Downloading ${label} (${filename}). Launch to install DomoNote.`, 'success');
@@ -483,19 +503,34 @@ bash start.sh
 
           {/* Download Buttons */}
           <div className="pt-6 space-y-2 mt-auto">
+            {/* Primary: GitHub Releases page — both Silicon & Intel DMG are listed there */}
             <button
               onClick={() => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)')}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              title="Downloads from GitHub Releases page — supports Apple Silicon M1/M2/M3/M4"
+              aria-label="Download macOS Apple Silicon build from GitHub Releases"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Apple Silicon (DMG)</span>
+              <Download className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Apple Silicon (DMG) → GitHub</span>
             </button>
             <button
               onClick={() => handleDownload('DomoNote-macOS-x64.dmg', 'macOS (Intel)')}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
+              title="Downloads from GitHub Releases page — supports Intel Core i5/i7/i9"
+              aria-label="Download macOS Intel build from GitHub Releases"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Intel Mac (DMG)</span>
+              <Download className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Intel Mac (DMG) → GitHub</span>
+            </button>
+            {/* Alternative: clone + run via Terminal (always works, no binary required) */}
+            <button
+              onClick={() => handleDownload('start-macos.sh', 'macOS (Source Run)')}
+              className="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-500 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
+              title="Download a shell script that clones and runs DomoNote from source — no binary needed"
+              aria-label="Download macOS Terminal start script"
+            >
+              <Terminal className="w-3 h-3" aria-hidden="true" />
+              <span>Quick Start via Terminal (git clone + npm)</span>
             </button>
           </div>
         </div>
@@ -722,6 +757,65 @@ bash start.sh
             {copiedCmd === 'gatekeeper' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copiedCmd === 'gatekeeper' ? 'Copied' : 'Copy'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* macOS "Can't download / app is damaged" Expanded Fix Card */}
+      <div className="mb-8 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-6 space-y-4 shadow-sm dark:shadow-none">
+        <div className="flex items-center gap-2 flex-wrap">
+          <AppleIcon className="w-5 h-5 text-slate-700 dark:text-zinc-300 shrink-0" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+            macOS: Can't download or open the app?
+          </h3>
+          <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+            Intel &amp; Apple Silicon
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-2">
+            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              Issue: Browser blocks download
+            </div>
+            <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">
+              Chrome/Safari may warn <em>"may damage your computer"</em>. This is a Gatekeeper false positive for unsigned open-source apps.
+            </p>
+            <div className="font-semibold text-slate-800 dark:text-zinc-300 mt-1">Fix:</div>
+            <ol className="space-y-1 text-slate-600 dark:text-zinc-400 list-none pl-0">
+              <li className="flex gap-1.5"><span className="text-zinc-500 shrink-0">1.</span>Click the arrow next to the blocked download</li>
+              <li className="flex gap-1.5"><span className="text-zinc-500 shrink-0">2.</span>Select <strong className="text-slate-800 dark:text-zinc-200">"Keep"</strong> or <strong className="text-slate-800 dark:text-zinc-200">"Keep Anyway"</strong></li>
+              <li className="flex gap-1.5"><span className="text-zinc-500 shrink-0">3.</span>Or use the <strong>→ GitHub</strong> button to download directly from GitHub Releases</li>
+            </ol>
+          </div>
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-2">
+            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+              Issue: "App is damaged" on launch
+            </div>
+            <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">macOS quarantine flag is set. Pick one fix:</p>
+            <div className="space-y-2">
+              <div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">A — Terminal (fastest):</div>
+                <code className="block font-mono text-[10px] bg-black/10 dark:bg-white/5 px-2.5 py-1.5 rounded border border-slate-200 dark:border-zinc-800 select-all text-slate-900 dark:text-zinc-200">xattr -cr /Applications/DomoNote.app</code>
+              </div>
+              <div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">B — Right-click workaround:</div>
+                <p className="text-slate-500 dark:text-zinc-500">Right-click DomoNote.app → Open → Open</p>
+              </div>
+              <div>
+                <div className="font-semibold text-slate-700 dark:text-zinc-400 mb-0.5">C — System Settings (macOS 13+):</div>
+                <p className="text-slate-500 dark:text-zinc-500">System Settings → Privacy &amp; Security → <strong>Open Anyway</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs">
+          <div className="font-semibold text-slate-800 dark:text-zinc-300 mb-1.5 flex items-center gap-1.5">
+            <Terminal className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
+            Always-working alternative — Terminal (no binary required, Intel &amp; Silicon):
+          </div>
+          <code className="block font-mono text-[11px] bg-white dark:bg-black p-2.5 rounded border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white select-all whitespace-pre">{`git clone https://github.com/darknecrocities/DomoNote.git && cd DomoNote && ./start.sh`}</code>
+          <p className="text-slate-500 dark:text-zinc-600 mt-1.5">Requires Node.js 18+ from <a href="https://nodejs.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-black dark:hover:text-white">nodejs.org</a>.</p>
         </div>
       </div>
 
