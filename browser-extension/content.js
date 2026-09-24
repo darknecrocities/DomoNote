@@ -57,81 +57,320 @@
     return `domo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   }
 
-  // ─── Participant name scraping (Google Meet, Zoom, Teams) ──────────────────
+  // Relay messages from background script to web page
+  if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'DOMONOTE_MEETING_PARTICIPANTS' || msg.type === 'DOMONOTE_ACTIVE_SPEAKER') {
+        window.postMessage(msg, '*');
+      }
+    });
+  }
+
+  // ─── Multi-App Participant & Active Speaker Hook ───────────────────────────
+  function detectCurrentMeetingApp() {
+    const host = window.location.hostname.toLowerCase();
+    if (host.includes('meet.google.com')) return 'Google Meet';
+    if (host.includes('teams.microsoft.com') || host.includes('teams.live.com')) return 'Microsoft Teams';
+    if (host.includes('zoom.us')) return 'Zoom';
+    if (host.includes('webex.com')) return 'Cisco Webex';
+    if (host.includes('slack.com')) return 'Slack Huddle';
+    if (host.includes('discord.com')) return 'Discord';
+    if (host.includes('meet.jit.si') || host.includes('8x8.vc')) return 'Jitsi Meet';
+    if (host.includes('skype.com')) return 'Skype';
+    return null;
+  }
+
+  function cleanParticipantName(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    let name = raw
+      .replace(/\s*\((?:you|host|co-host|guest|external|presenter|organiser|organizer|presentation|joined|leaving)\)/gi, '')
+      .replace(/\s*\(\d+\)$/, '')
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/^[^a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FAF]+|[^a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FAF]+$/g, '')
+      .trim();
+
+    if (name.length < 2 || name.length > 50) return null;
+    if (/^(?:speaker|participant|user|guest)\s*\d*$/i.test(name)) return null;
+    if (/^\d+([:.]\d+)?$/.test(name)) return null;
+
+    const UI_IGNORE = new Set([
+      'mute', 'unmute', 'turn off microphone', 'turn off camera', 'raise hand', 'lower hand',
+      'leave call', 'leave meeting', 'end call', 'participants', 'people', 'chat', 'more options',
+      'show more', 'pin to screen', 'unpin', 'settings', 'share screen', 'present now',
+      'whiteboard', 'breakout rooms', 'captions', 'audio', 'video', 'search', 'close',
+      'turn on microphone', 'turn on camera'
+    ]);
+    if (UI_IGNORE.has(name.toLowerCase())) return null;
+
+    return name;
+  }
+
+  let domActiveSpeaker = null;
+  let lastActiveSpeakerTimestamp = 0;
+
+  function scrapeActiveSpeaker() {
+    const app = detectCurrentMeetingApp();
+
+    // 1. Google Meet: active speaking ring/pulse or data-is-speaking
+    if (app === 'Google Meet') {
+      const speakingTile = document.querySelector('[data-is-speaking="true"], .oJeWuf, [data-active-speaker="true"]');
+      if (speakingTile) {
+        const nameEl = speakingTile.querySelector('[data-self-name], .zWGUib, .NMhWlb, .nxzRjb, [jsname="A7TdRd"]');
+        const name = cleanParticipantName(nameEl?.textContent || '');
+        if (name) return name;
+      }
+      const captionAuthor = document.querySelector('.iTTPOb .TBMuR, div[jsname="ysnEbe"] .TBMuR');
+      if (captionAuthor) {
+        const name = cleanParticipantName(captionAuthor.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    // 2. Microsoft Teams: active speaker border / live captions
+    if (app === 'Microsoft Teams') {
+      const activeEl = document.querySelector('[data-tid="calling-active-speaker"], [aria-label*="speaking"], [aria-label*="is talking"]');
+      if (activeEl) {
+        const nameEl = activeEl.querySelector('[data-tid="participant-item-name"], [data-tid="roster-avatar-name"]') || activeEl;
+        const name = cleanParticipantName(nameEl.textContent || '');
+        if (name) return name;
+      }
+      const captionAuthor = document.querySelector('.ui-chat__item .ui-chat__message__author, [data-tid="closed-caption-text"] .author');
+      if (captionAuthor) {
+        const name = cleanParticipantName(captionAuthor.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    // 3. Zoom
+    if (app === 'Zoom') {
+      const activeTile = document.querySelector('.video-avatar__avatar-speaking, [aria-label*="is talking"], [aria-label*="speaking"]');
+      if (activeTile) {
+        const nameEl = activeTile.querySelector('.video-avatar__avatar-name, .participants-item__name, .video-box__avatar-name') || activeTile;
+        const name = cleanParticipantName(nameEl.textContent || '');
+        if (name) return name;
+      }
+      const captionEl = document.querySelector('.closed-caption-text');
+      if (captionEl) {
+        const m = captionEl.textContent.match(/^([^:]+):/);
+        if (m) {
+          const name = cleanParticipantName(m[1]);
+          if (name) return name;
+        }
+      }
+    }
+
+    // 4. Cisco Webex
+    if (app === 'Cisco Webex') {
+      const activeEl = document.querySelector('[data-testid="participant-active-speaker"], .roster-item--speaking, .speaking-indicator');
+      if (activeEl) {
+        const nameEl = activeEl.closest('[data-testid*="participant"]')?.querySelector('[data-testid="participant-display-name"]') || activeEl;
+        const name = cleanParticipantName(nameEl.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    // 5. Slack Huddles
+    if (app === 'Slack Huddle') {
+      const activeEl = document.querySelector('[data-qa="huddle_speaker"], [data-qa="speaking_indicator"], [aria-label*="speaking"]');
+      if (activeEl) {
+        const nameEl = activeEl.closest('[data-qa="huddle-participant"]')?.querySelector('[data-qa="huddle_member_name"], [data-qa="user_display_name"]') || activeEl;
+        const name = cleanParticipantName(nameEl.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    // 6. Discord
+    if (app === 'Discord') {
+      const activeEl = document.querySelector('.speaking-b2tU14, [class*="avatarSpeaking-"], [class*="speaking-"]');
+      if (activeEl) {
+        const userEl = activeEl.closest('[class*="voiceUser-"]')?.querySelector('[class*="username-"], [class*="userNick-"]');
+        const name = cleanParticipantName(userEl?.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    // 7. Jitsi Meet
+    if (app === 'Jitsi Meet') {
+      const activeEl = document.querySelector('.dominant-speaker, [id*="dominantSpeaker"]');
+      if (activeEl) {
+        const nameEl = activeEl.querySelector('.displayname, .presence-label');
+        const name = cleanParticipantName(nameEl?.textContent || '');
+        if (name) return name;
+      }
+    }
+
+    return null;
+  }
+
   function scrapeParticipantNames() {
     const names = new Set();
 
-    // Google Meet: participant tile data-participant-id or aria-label on [data-self-name]
+    // Google Meet
     document.querySelectorAll('[data-participant-id]').forEach(el => {
-      // Name chip below video tile
       const nameEl = el.querySelector('[data-self-name], .zWGUib, .NMhWlb, .nxzRjb, [jsname="A7TdRd"]');
-      if (nameEl && nameEl.textContent.trim()) names.add(nameEl.textContent.trim());
+      const n = cleanParticipantName(nameEl?.textContent || '');
+      if (n) names.add(n);
     });
-
-    // Google Meet fallback: "You" chips / participant list panel
     document.querySelectorAll('[data-self-name]').forEach(el => {
-      if (el.textContent.trim()) names.add(el.textContent.trim());
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
     });
-
-    // Meet participant sidebar list items
     document.querySelectorAll('[aria-label][data-requested-participant-id]').forEach(el => {
-      const label = el.getAttribute('aria-label');
-      if (label && label.trim() && !label.includes('•') && label.length < 50) names.add(label.trim());
+      const n = cleanParticipantName(el.getAttribute('aria-label') || '');
+      if (n) names.add(n);
     });
-
-    // Meet: chip under video tiles (class names vary per version)
     document.querySelectorAll('.KF4T6b, .xBI3Vc, .EjRRve, .NMhWlb, .cS7aqe').forEach(el => {
-      const t = el.textContent.trim();
-      if (t && t.length > 1 && t.length < 40 && !t.includes('(') && !/^\d+$/.test(t)) {
-        names.add(t);
-      }
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
     });
 
-    // Zoom: participant video tile name
-    document.querySelectorAll('.video-avatar__avatar-name, .participants-section-container__participant-name').forEach(el => {
-      if (el.textContent.trim()) names.add(el.textContent.trim());
+    // Zoom
+    document.querySelectorAll('.video-avatar__avatar-name, .participants-section-container__participant-name, .speaker-bar__title, .video-box__avatar-name, .participants-item__name').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
     });
 
-    // Teams: participant display name
-    document.querySelectorAll('[data-tid="participant-item-name"]').forEach(el => {
-      if (el.textContent.trim()) names.add(el.textContent.trim());
+    // Microsoft Teams
+    document.querySelectorAll('[data-tid="participant-item-name"], [data-tid="roster-avatar-name"], [data-tid*="participant"]').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
     });
 
-    const arr = [...names].filter(n => n.length > 1 && n.length < 50);
-    return arr.length > 0 ? arr : ['Speaker 1', 'Speaker 2'];
+    // Cisco Webex
+    document.querySelectorAll('[data-testid="participant-display-name"], .participant-name, .roster-item-text').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+
+    // Slack Huddles
+    document.querySelectorAll('[data-qa="huddle_member_name"], [data-qa="user_display_name"], .c-huddle-member__name').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+
+    // Discord
+    document.querySelectorAll('[class*="username-"], [class*="userNick-"]').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+
+    // Jitsi Meet
+    document.querySelectorAll('.displayname, .presence-label, .videocontainer__hover .displayname').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+
+    // Skype Web
+    document.querySelectorAll('[data-text-as-pseudo-element], .participant-name').forEach(el => {
+      const n = cleanParticipantName(el.textContent);
+      if (n) names.add(n);
+    });
+
+    // Generic fallback for any video conference tile or aria-label
+    document.querySelectorAll('[aria-label*="participant" i], [data-participant], [data-user-name]').forEach(el => {
+      const n = cleanParticipantName(el.getAttribute('data-user-name') || el.getAttribute('aria-label') || el.textContent);
+      if (n) names.add(n);
+    });
+
+    return [...names].filter(n => n.length > 1 && n.length < 50);
+  }
+
+  // Broadcast sync to DomoNote web app and other tabs
+  function broadcastMeetingSync() {
+    const app = detectCurrentMeetingApp();
+    const participants = scrapeParticipantNames();
+    const active = scrapeActiveSpeaker();
+    if (active) {
+      domActiveSpeaker = active;
+      lastActiveSpeakerTimestamp = Date.now();
+    }
+
+    const payload = {
+      type: 'DOMONOTE_MEETING_PARTICIPANTS',
+      app: app || 'Meeting',
+      participants,
+      activeSpeaker: active || domActiveSpeaker || undefined,
+      timestamp: Date.now(),
+    };
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('domonote_meeting_sync');
+        bc.postMessage(payload);
+        bc.close();
+      } catch {}
+    }
+
+    window.postMessage(payload, '*');
+
+    if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'DOMO_MEETING_SYNC',
+        data: payload,
+      }).catch(() => {});
+    }
+  }
+
+  if (detectCurrentMeetingApp()) {
+    setInterval(broadcastMeetingSync, 2000);
+    setTimeout(broadcastMeetingSync, 1000);
   }
 
   // ─── Smart speaker assignment ───────────────────────────────────────────────
-  // Uses a round-robin heuristic: each sentence is assigned to the next speaker
-  // in rotation (since we cannot do true audio diarization in a content script).
-  // Ollama will later refine this during documentation generation.
+  // Dynamically uses active speaker DOM hooks, conversational self-introductions,
+  // and multi-participant roster, NEVER defaulting to "Speaker 1" or "Speaker 2".
   function assignSpeaker(text) {
-    speakerPool = scrapeParticipantNames();
-    if (speakerPool.length === 0) speakerPool = ['Speaker 1', 'Speaker 2'];
+    const discovered = scrapeParticipantNames();
+    if (discovered.length > 0) {
+      speakerPool = discovered;
+    }
 
-    // Crude heuristic: if the text starts with a question word, it's likely
-    // the same speaker asking follow-up; otherwise rotate.
-    const questionStarters = /^(what|who|when|where|why|how|is|are|can|could|should|would|did|do|does)/i;
-    const questionMark = text.trim().endsWith('?');
+    // 1. Live Active Speaker Hook from DOM (highest priority)
+    const active = scrapeActiveSpeaker();
+    if (active) {
+      domActiveSpeaker = active;
+      lastActiveSpeakerTimestamp = Date.now();
+      if (!speakerPool.includes(active)) speakerPool.push(active);
+      return active;
+    }
+    if (domActiveSpeaker && (Date.now() - lastActiveSpeakerTimestamp < 4500)) {
+      return domActiveSpeaker;
+    }
 
-    // If last segment ended with '?' and this one continues (short reply), keep same speaker
+    // 2. Conversational self-introduction detection in speech
+    const selfIntroMatch =
+      text.match(/(?:hi|hello|hey|good\s+(?:morning|afternoon))(?:\s+(?:everyone|all|team))?[,\s]+(?:this\s+is|it'?s|i'?m|my\s+name\s+is)\s+([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)/i) ||
+      text.match(/^([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+)?)\s+(?:here|speaking)\b/i) ||
+      text.match(/\b(?:ako\s+nga\s+pala\s+si|si)\s+([A-Z][a-zA-Z'\-]+)\s+(?:ito|dito)\b/i);
+
+    if (selfIntroMatch && selfIntroMatch[1]) {
+      const candidate = cleanParticipantName(selfIntroMatch[1]);
+      if (candidate) {
+        domActiveSpeaker = candidate;
+        lastActiveSpeakerTimestamp = Date.now();
+        if (!speakerPool.includes(candidate)) speakerPool.push(candidate);
+        return candidate;
+      }
+    }
+
+    // 3. If no speaker pool is found yet, use "You / Host" rather than generic "Speaker 1"
+    if (speakerPool.length === 0) {
+      return 'You / Host';
+    }
+
+    // 4. Natural conversational flow among discovered real participants
     if (transcript.length > 0) {
       const last = transcript[transcript.length - 1];
       if (last.text.endsWith('?') && text.length < 60) {
-        // This is likely a reply — next speaker
-        lastSpeakerIndex = (lastSpeakerIndex + 1) % speakerPool.length;
-      } else if (questionMark && !questionStarters.test(text) && text.length > 30) {
-        // Long sentence ending in question — could be different speaker
         lastSpeakerIndex = (lastSpeakerIndex + 1) % speakerPool.length;
       } else if (text.length > 80) {
-        // Long monologue segment — rotate speaker every ~3 segments
         const lastThree = transcript.slice(-3);
         const sameCount = lastThree.filter(s => s.speaker === speakerPool[lastSpeakerIndex]).length;
         if (sameCount >= 3) lastSpeakerIndex = (lastSpeakerIndex + 1) % speakerPool.length;
       }
     }
 
-    return speakerPool[lastSpeakerIndex] || 'Speaker 1';
+    return speakerPool[lastSpeakerIndex] || speakerPool[0] || 'You / Host';
   }
 
   // ─── Speech Recognition ────────────────────────────────────────────────────

@@ -444,9 +444,17 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
  * - Assigns realistic, accurate speaker names (e.g. Speaker 1, Speaker 2, or detected participant names)
  * - Merges stuttered/split phrases into clean, professional dialogue turns
  */
+/**
+ * Uses Local AI (Ollama) to polish raw speech transcription:
+ * - Fixes grammar, punctuation, and fragmented speech chunks
+ * - Assigns realistic, accurate participant names from the meeting app roster (e.g. Arron, Sarah, Alex)
+ * - Eliminates generic "Speaker 1" / "Speaker 2" labels
+ * - Merges stuttered/split phrases into clean, professional dialogue turns
+ */
 export async function polishAndDiarizeTranscript(
   transcript: TranscriptSegment[],
-  modelName: string
+  modelName: string,
+  knownParticipants: string[] = []
 ): Promise<TranscriptSegment[]> {
   if (transcript.length === 0) return [];
 
@@ -454,8 +462,18 @@ export async function polishAndDiarizeTranscript(
     .map((s, idx) => `[${idx}] [${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`)
     .join('\n');
 
+  const cleanedParticipants = (knownParticipants || [])
+    .filter((n) => n && !/^speaker\s*\d*$/i.test(n) && n !== 'Guest');
+
+  const participantInstruction = cleanedParticipants.length > 0
+    ? `KNOWN MEETING PARTICIPANTS: ${cleanedParticipants.join(', ')}.
+CRITICAL INSTRUCTION: You MUST attribute speech lines to these actual named participants (e.g. "${cleanedParticipants[0]}", "${cleanedParticipants[1] || cleanedParticipants[0]}"). DO NOT use generic labels like "Speaker 1" or "Speaker 2". Analyze self-introductions, greetings, questions, and conversational flow to map each line to their real name.`
+    : `Assign realistic, accurate speaker names. If participants introduce themselves or are addressed by name (e.g., "Sarah", "Alex"), use their real names rather than generic "Speaker 1" or "Speaker 2".`;
+
   const prompt = `You are an expert audio transcription editor and speaker diarization specialist.
 Clean up, punctuate, and polish this raw spoken transcript. Correct speech recognition misspellings, merge stuttered phrases into clean sentences, and distinguish speakers accurately based on conversational flow.
+
+${participantInstruction}
 
 RAW TRANSCRIPT:
 ${rawLines}
@@ -464,7 +482,7 @@ Respond STRICTLY with a valid JSON array of objects formatted as:
 [
   {
     "timestampSeconds": 0,
-    "speaker": "Speaker 1",
+    "speaker": "${cleanedParticipants[0] || 'You / Host'}",
     "text": "Polished, grammatically correct speech with proper punctuation."
   }
 ]
@@ -482,21 +500,38 @@ Return only the JSON array with no extra text or markdown formatting.`;
     const parsed = JSON.parse(match[0]);
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty parsed array');
 
-    return parsed.map((item: any, idx: number) => ({
-      id: `seg-polished-${idx}-${Date.now()}`,
-      timestampSeconds:
-        typeof item.timestampSeconds === 'number'
-          ? item.timestampSeconds
-          : transcript[Math.min(idx, transcript.length - 1)]?.timestampSeconds || 0,
-      speaker: (item.speaker || 'Speaker 1').trim(),
-      text: (item.text || '').trim(),
-    }));
+    return parsed.map((item: any, idx: number) => {
+      let spk = (item.speaker || '').trim();
+      if (!spk || /^speaker\s*\d*$/i.test(spk) || spk.toLowerCase() === 'guest') {
+        spk = cleanedParticipants[idx % Math.max(1, cleanedParticipants.length)] || 'You / Host';
+      }
+      return {
+        id: `seg-polished-${idx}-${Date.now()}`,
+        timestampSeconds:
+          typeof item.timestampSeconds === 'number'
+            ? item.timestampSeconds
+            : transcript[Math.min(idx, transcript.length - 1)]?.timestampSeconds || 0,
+        speaker: spk,
+        text: (item.text || '').trim(),
+      };
+    });
   } catch (err: any) {
     console.warn('[DomoNote] AI transcript polish fallback:', err?.message);
-    // Safe deterministic fallback: capitalize and punctuate
-    return transcript.map((s) => ({
-      ...s,
-      text: s.text.charAt(0).toUpperCase() + s.text.slice(1) + (s.text.endsWith('.') ? '' : '.'),
-    }));
+    // Safe deterministic fallback: capitalize, punctuate, and replace generic "Speaker 1/2" with known names
+    return transcript.map((s, idx) => {
+      let finalSpeaker = s.speaker;
+      if (/^speaker\s*\d*$/i.test(finalSpeaker) || finalSpeaker === 'Guest') {
+        if (cleanedParticipants.length > 0) {
+          finalSpeaker = cleanedParticipants[idx % cleanedParticipants.length];
+        } else {
+          finalSpeaker = 'You / Host';
+        }
+      }
+      return {
+        ...s,
+        speaker: finalSpeaker,
+        text: s.text.charAt(0).toUpperCase() + s.text.slice(1) + (s.text.endsWith('.') ? '' : '.'),
+      };
+    });
   }
 }

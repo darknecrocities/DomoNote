@@ -110,4 +110,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+
+  // Relay live meeting roster / active speaker across tabs
+  if (request.type === 'DOMO_MEETING_SYNC') {
+    chrome.storage.local.set({ domo_live_meeting_roster: request.data });
+    // Broadcast to all tabs so DomoNote web app receives it
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id && tab.id !== sender?.tab?.id) {
+          chrome.tabs.sendMessage(tab.id, {
+            type: 'DOMONOTE_MEETING_PARTICIPANTS',
+            ...request.data,
+          }).catch(() => {});
+        }
+      });
+    });
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  // Get current live meeting roster
+  if (request.type === 'DOMO_GET_LIVE_MEETING') {
+    chrome.storage.local.get(['domo_live_meeting_roster'], (res) => {
+      sendResponse({ roster: res.domo_live_meeting_roster || null });
+    });
+    return true;
+  }
 });

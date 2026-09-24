@@ -7,6 +7,7 @@ import {
   synthesizeMeetingAI,
   polishAndDiarizeTranscript,
 } from '../../services/audio/transcriber';
+import { speakerHookManager, cleanSpeakerName } from '../../services/audio/speaker-detector';
 import {
   detectEventFromSentence,
   detectAllEventsInText,
@@ -79,8 +80,10 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [pendingSavedMeeting, setPendingSavedMeeting] = useState<Meeting | null>(null);
 
-  // Speaker attribution & AI transcription polish
+  // Speaker attribution, auto-hooking & AI transcription polish
   const [currentSpeaker, setCurrentSpeaker] = useState<string>('You / Host');
+  const [speakerRoster, setSpeakerRoster] = useState<string[]>(['You / Host']);
+  const [detectedMeetingApp, setDetectedMeetingApp] = useState<string | null>(null);
   const [isPolishingAI, setIsPolishingAI] = useState<boolean>(false);
 
   // Multilingual Speech Recognition & AI Translation
@@ -95,6 +98,29 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const transcriptBottomRef = useRef<HTMLDivElement>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Subscribe to automatic speaker hook events from meeting apps & extension
+  useEffect(() => {
+    const unsubscribe = speakerHookManager.subscribe((roster, app, activeSpeaker) => {
+      if (roster && roster.length > 0) {
+        setSpeakerRoster((prev) => {
+          const merged = [...new Set(['You / Host', ...prev, ...roster])];
+          return merged;
+        });
+      }
+      if (app) {
+        setDetectedMeetingApp(app);
+      }
+      if (activeSpeaker && activeSpeaker.trim()) {
+        setCurrentSpeaker(activeSpeaker.trim());
+        speechTranscriberRef.current?.setActiveSpeaker(activeSpeaker.trim());
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // Load user default speechLanguage setting if present
   useEffect(() => {
     db.settings.get('current').then((settings) => {
@@ -107,6 +133,20 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
   const handleIncomingSegment = (seg: TranscriptSegment) => {
     const rawText = seg.text;
+
+    // Automatic Speaker Name Hook:
+    // Attributes to real participant names from meeting apps, self-introductions, or question handoffs
+    const hookResult = speakerHookManager.processSegment(rawText, currentSpeaker, speakerRoster);
+    const resolvedSpeaker = hookResult.assignedSpeaker;
+
+    if (hookResult.isNewDetection && resolvedSpeaker !== currentSpeaker) {
+      setCurrentSpeaker(resolvedSpeaker);
+      speechTranscriberRef.current?.setActiveSpeaker(resolvedSpeaker);
+    }
+    if (hookResult.updatedRoster.length > speakerRoster.length) {
+      setSpeakerRoster(hookResult.updatedRoster);
+    }
+
     const sourceLang = spokenLanguage === 'auto'
       ? (seg.sourceLanguage && seg.sourceLanguage !== 'auto' ? seg.sourceLanguage : detectLikelyLanguage(rawText))
       : normalizeLanguageCode(spokenLanguage);
@@ -116,7 +156,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     // Ensure active speaker name and language metadata are applied
     const enrichedSeg: TranscriptSegment = {
       ...seg,
-      speaker: seg.speaker && seg.speaker !== 'Speaker' ? seg.speaker : currentSpeaker,
+      speaker: resolvedSpeaker,
       originalText: rawText,
       sourceLanguage: sourceLang,
       targetLanguage: targetLang !== 'none' ? targetLang : undefined,
@@ -184,9 +224,14 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   };
 
   const handleSpeakerChange = (speakerName: string) => {
-    setCurrentSpeaker(speakerName);
-    speechTranscriberRef.current?.setActiveSpeaker(speakerName);
-    addToast(`Active speaker set to: ${speakerName}`, 'info');
+    const cleaned = cleanSpeakerName(speakerName) || speakerName.trim();
+    if (!cleaned) return;
+    setCurrentSpeaker(cleaned);
+    speakerHookManager.setActiveSpeaker(cleaned);
+    speakerHookManager.addSpeaker(cleaned, 'manual');
+    setSpeakerRoster((prev) => [...new Set([...prev, cleaned])]);
+    speechTranscriberRef.current?.setActiveSpeaker(cleaned);
+    addToast(`Active speaker set to: ${cleaned}`, 'info');
   };
 
   const handleRenameSpeaker = (oldName: string) => {
@@ -196,6 +241,10 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     const trimmed = newName.trim();
     setTranscript((prev) =>
       prev.map((s) => (s.speaker.toLowerCase() === oldName.toLowerCase() ? { ...s, speaker: trimmed } : s))
+    );
+    speakerHookManager.addSpeaker(trimmed, 'manual');
+    setSpeakerRoster((prev) =>
+      prev.map((s) => (s.toLowerCase() === oldName.toLowerCase() ? trimmed : s))
     );
     if (currentSpeaker.toLowerCase() === oldName.toLowerCase()) {
       handleSpeakerChange(trimmed);
@@ -211,7 +260,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     setIsPolishingAI(true);
     addToast('Local AI is refining transcript grammar & speaker diarization...', 'info');
     try {
-      const polished = await polishAndDiarizeTranscript(transcript, selectedModel);
+      const polished = await polishAndDiarizeTranscript(transcript, selectedModel, speakerRoster);
       setTranscript(polished);
       addToast('Transcript polished with speaker diarization & grammar.', 'success');
     } catch (err: any) {
@@ -980,35 +1029,47 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
             </div>
           </div>
 
-          {/* Active Speaker Switcher Toolbar */}
+          {/* Active Speaker Hook & Switcher Toolbar */}
           {isRecording && (
-            <div className="mb-3 p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-2 flex-wrap text-xs">
-              <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
-                <Users className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Speaking now:</span>
+            <div className="mb-3 p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-2.5 flex-wrap text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
+                  <Users className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Speaking now:</span>
+                </div>
+                {detectedMeetingApp && (
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono flex items-center gap-1 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Hooked: {detectedMeetingApp}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {['You / Host', 'Speaker 2', 'Guest'].map((spk) => (
+                {speakerRoster.map((spk) => (
                   <button
                     key={spk}
                     onClick={() => handleSpeakerChange(spk)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
-                      currentSpeaker === spk
-                        ? 'bg-emerald-500 text-black font-bold shadow-xs'
-                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    className={`px-2.5 py-1 rounded text-[11px] font-mono transition-all flex items-center gap-1.5 ${
+                      currentSpeaker.toLowerCase() === spk.toLowerCase()
+                        ? 'bg-emerald-500 text-black font-bold shadow-sm ring-1 ring-emerald-400'
+                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white'
                     }`}
                   >
-                    {spk}
+                    {currentSpeaker.toLowerCase() === spk.toLowerCase() && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                    )}
+                    <span>{spk}</span>
                   </button>
                 ))}
                 <button
                   onClick={() => {
-                    const custom = window.prompt('Enter speaker name:', currentSpeaker);
+                    const custom = window.prompt('Enter speaker / participant name:');
                     if (custom && custom.trim()) handleSpeakerChange(custom.trim());
                   }}
-                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="px-2 py-1 rounded text-[11px] font-mono bg-zinc-800/80 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors border border-dashed border-zinc-700"
+                  title="Manually add a participant to the speaker roster"
                 >
-                  + Name
+                  + Add Speaker
                 </button>
               </div>
             </div>

@@ -36,4 +36,18 @@ describe('LiveSpeechTranscriber speaker tracking', () => {
     expect(polished[0].text).toContain('Hello so this is the website.');
     expect(polished[1].text).toContain('We understand the requirements.');
   });
+
+  it('replaces generic Speaker 1 and 2 with real participant names when known participants are provided', async () => {
+    const rawSegments: TranscriptSegment[] = [
+      { id: '1', timestampSeconds: 5, speaker: 'Speaker 1', text: 'welcome to the meeting' },
+      { id: '2', timestampSeconds: 12, speaker: 'Speaker 2', text: 'thanks for having me' },
+    ];
+
+    const polished = await polishAndDiarizeTranscript(rawSegments, 'mock-model', ['Arron Parejas', 'Sarah Connor']);
+    expect(polished.length).toBe(2);
+    expect(polished[0].speaker).toBe('Arron Parejas');
+    expect(polished[1].speaker).toBe('Sarah Connor');
+    expect(polished[0].speaker).not.toBe('Speaker 1');
+    expect(polished[1].speaker).not.toBe('Speaker 2');
+  });
 });
