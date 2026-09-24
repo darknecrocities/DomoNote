@@ -29,6 +29,7 @@ import {
   translateTranscriptSegments,
   getLanguageName,
   normalizeLanguageCode,
+  detectLikelyLanguage,
 } from '../../services/ai/translation';
 import {
   Mic,
@@ -83,8 +84,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [isPolishingAI, setIsPolishingAI] = useState<boolean>(false);
 
   // Multilingual Speech Recognition & AI Translation
-  const [spokenLanguage, setSpokenLanguage] = useState<string>('en-US');
-  const [translationTarget, setTranslationTarget] = useState<string>('en'); // 'en', 'fil', or 'none'
+  const [spokenLanguage, setSpokenLanguage] = useState<string>('auto');
+  const [translationTarget, setTranslationTarget] = useState<string>('en'); // 'en' default: translates foreign/Filipino/Asian/European speech to English
   const [transcriptViewMode, setTranscriptViewMode] = useState<'dual' | 'translated' | 'original'>('dual');
   const [isTranslatingAll, setIsTranslatingAll] = useState<boolean>(false);
 
@@ -106,7 +107,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
   const handleIncomingSegment = (seg: TranscriptSegment) => {
     const rawText = seg.text;
-    const sourceLang = normalizeLanguageCode(spokenLanguage);
+    const sourceLang = spokenLanguage === 'auto'
+      ? (seg.sourceLanguage && seg.sourceLanguage !== 'auto' ? seg.sourceLanguage : detectLikelyLanguage(rawText))
+      : normalizeLanguageCode(spokenLanguage);
     const targetLang = translationTarget;
     const shouldTranslate = targetLang !== 'none' && targetLang !== sourceLang;
 
@@ -579,8 +582,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       let timelineData;
       let allDetected: ScheduleEvent[] = [...detectedEvents];
 
-      // If translationTarget is fil, summarize in Filipino; otherwise summarize in English
-      const targetSummaryLang = translationTarget === 'fil' ? 'fil' : 'en';
+      // Target language for synthesis: defaults to English ('en'), or user selected target
+      const targetSummaryLang = translationTarget === 'none' ? 'en' : translationTarget;
 
       if (isConnected && selectedModel && (transcript.length > 0 || manualNotes.trim())) {
         const result = await synthesizeMeetingAI(

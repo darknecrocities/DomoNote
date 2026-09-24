@@ -132,13 +132,13 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
     }
   };
 
-  const handleResynthesizeSummary = async (lang: 'en' | 'fil') => {
+  const handleResynthesizeSummary = async (lang: string) => {
     if (!isConnected || !selectedModel || (currentMeeting.transcript.length === 0 && !currentMeeting.manualNotes.trim())) {
       addToast('Local AI is offline or no meeting content to summarize.', 'warning');
       return;
     }
     setIsResynthesizing(true);
-    const langLabel = lang === 'fil' ? 'Filipino' : 'English';
+    const langLabel = getLanguageName(lang);
     addToast(`Re-synthesizing meeting summary in ${langLabel}...`, 'info');
     try {
       const result = await synthesizeMeetingAI(
@@ -379,11 +379,13 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                 Summary Language:
               </span>
               <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 font-bold">
-                {currentMeeting.summary?.summaryLanguage === 'fil' ? '🇵🇭 Filipino' : '🇺🇸 English'}
+                {currentMeeting.summary?.summaryLanguage
+                  ? `${TRANSLATION_TARGETS.find((t) => t.code === currentMeeting.summary?.summaryLanguage)?.flag || '🌐'} ${getLanguageName(currentMeeting.summary?.summaryLanguage)}`
+                  : '🇺🇸 English'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant="outline"
@@ -393,7 +395,7 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                 title="Synthesize meeting overview, decisions, and action items in English"
               >
                 <RotateCw className={`w-3 h-3 mr-1 text-cyan-500 ${isResynthesizing ? 'animate-spin' : ''}`} />
-                <span>Re-summarize in English</span>
+                <span>🇺🇸 English</span>
               </Button>
               <Button
                 size="sm"
@@ -404,8 +406,26 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
                 title="Synthesize meeting overview, decisions, and action items in Filipino"
               >
                 <RotateCw className={`w-3 h-3 mr-1 text-amber-500 ${isResynthesizing ? 'animate-spin' : ''}`} />
-                <span>Re-summarize in Filipino</span>
+                <span>🇵🇭 Filipino</span>
               </Button>
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleResynthesizeSummary(e.target.value);
+                  }
+                }}
+                disabled={isResynthesizing}
+                defaultValue=""
+                className="bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded px-2.5 py-1 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-slate-400 dark:focus:border-zinc-700 font-medium cursor-pointer"
+                title="Re-synthesize summary in any language"
+              >
+                <option value="" disabled>Other Languages...</option>
+                {TRANSLATION_TARGETS.filter((t) => t.code !== 'none' && t.code !== 'en' && t.code !== 'fil').map((t) => (
+                  <option key={t.code} value={t.code}>
+                    {t.flag} {t.name.replace('Translate to ', '')}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           {/* Executive Overview */}

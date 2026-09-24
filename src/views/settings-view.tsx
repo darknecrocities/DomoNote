@@ -88,7 +88,7 @@ export const SettingsView: React.FC = () => {
 
   // App Settings for Speech Recognition & Meeting Languages
   const appSettings = useLiveQuery(() => db.settings.get('current'));
-  const currentSpeechLang = appSettings?.speechLanguage || 'en-US';
+  const currentSpeechLang = appSettings?.speechLanguage || 'auto';
 
   const handleUpdateSpeechLanguage = async (newLang: string) => {
     try {

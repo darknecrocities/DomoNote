@@ -14,6 +14,7 @@ export interface SupportedLanguage {
  * Supported spoken languages for Web Speech recognition and AI translation.
  */
 export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
+  { bcp47: 'auto', code: 'auto', name: 'Auto-Detect Language', nativeName: 'Auto Detect (AI)', flag: '🌐' },
   { bcp47: 'en-US', code: 'en', name: 'English (US)', nativeName: 'English', flag: '🇺🇸' },
   { bcp47: 'fil-PH', code: 'fil', name: 'Filipino / Tagalog', nativeName: 'Wikang Filipino', flag: '🇵🇭' },
   { bcp47: 'ja-JP', code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵' },
@@ -41,13 +42,22 @@ export interface TranslationTarget {
 
 export const TRANSLATION_TARGETS: TranslationTarget[] = [
   { code: 'none', name: 'Original Only (No Translation)', flag: '🗣️', description: 'Transcribe in spoken language without translating' },
-  { code: 'en', name: 'Translate to English', flag: '🇺🇸', description: 'Translate Filipino, Japanese, Chinese, Korean, French, etc. into English' },
+  { code: 'en', name: 'Translate to English (Default)', flag: '🇺🇸', description: 'Translate Filipino, Japanese, Chinese, Korean, French, etc. into English' },
   { code: 'fil', name: 'Translate to Filipino', flag: '🇵🇭', description: 'Translate English, Japanese, Chinese, etc. into Filipino / Tagalog' },
   { code: 'ja', name: 'Translate to Japanese', flag: '🇯🇵', description: 'Translate speech into Japanese (日本語)' },
   { code: 'zh', name: 'Translate to Chinese', flag: '🇨🇳', description: 'Translate speech into Mandarin Chinese (中文)' },
   { code: 'ko', name: 'Translate to Korean', flag: '🇰🇷', description: 'Translate speech into Korean (한국어)' },
   { code: 'fr', name: 'Translate to French', flag: '🇫🇷', description: 'Translate speech into French (Français)' },
   { code: 'es', name: 'Translate to Spanish', flag: '🇪🇸', description: 'Translate speech into Spanish (Español)' },
+  { code: 'de', name: 'Translate to German', flag: '🇩🇪', description: 'Translate speech into German (Deutsch)' },
+  { code: 'it', name: 'Translate to Italian', flag: '🇮🇹', description: 'Translate speech into Italian (Italiano)' },
+  { code: 'pt', name: 'Translate to Portuguese', flag: '🇧🇷', description: 'Translate speech into Portuguese (Português)' },
+  { code: 'ru', name: 'Translate to Russian', flag: '🇷🇺', description: 'Translate speech into Russian (Русский)' },
+  { code: 'hi', name: 'Translate to Hindi', flag: '🇮🇳', description: 'Translate speech into Hindi (हिन्दी)' },
+  { code: 'id', name: 'Translate to Indonesian', flag: '🇮🇩', description: 'Translate speech into Indonesian (Bahasa Indonesia)' },
+  { code: 'vi', name: 'Translate to Vietnamese', flag: '🇻🇳', description: 'Translate speech into Vietnamese (Tiếng Việt)' },
+  { code: 'th', name: 'Translate to Thai', flag: '🇹🇭', description: 'Translate speech into Thai (ไทย)' },
+  { code: 'ar', name: 'Translate to Arabic', flag: '🇸🇦', description: 'Translate speech into Arabic (العربية)' },
 ];
 
 // In-memory LRU cache to avoid repeated AI calls for identical phrases
@@ -180,6 +190,7 @@ const OFFLINE_PHRASE_DICTIONARY: Record<string, Record<string, string>> = {
 export function normalizeLanguageCode(lang: string): string {
   if (!lang) return 'en';
   const clean = lang.trim().toLowerCase();
+  if (clean === 'auto') return 'auto';
   if (clean.startsWith('fil') || clean.startsWith('tl')) return 'fil';
   if (clean.startsWith('en')) return 'en';
   if (clean.startsWith('ja')) return 'ja';
@@ -203,13 +214,14 @@ export function normalizeLanguageCode(lang: string): string {
  * Get human readable language name from code
  */
 export function getLanguageName(code: string): string {
+  if (code === 'auto') return 'Auto-Detected Language';
   const norm = normalizeLanguageCode(code);
   const found = SUPPORTED_LANGUAGES.find((l) => l.code === norm);
   return found ? found.name : code;
 }
 
 /**
- * Heuristically detect whether text contains Filipino/Tagalog, Japanese, Chinese, Korean, or French.
+ * Heuristically detect whether text contains Filipino/Tagalog, Japanese, Chinese, Korean, French, German, Spanish, etc.
  */
 export function detectLikelyLanguage(text: string): string {
   if (!text || !text.trim()) return 'en';
@@ -222,6 +234,18 @@ export function detectLikelyLanguage(text: string): string {
 
   // Chinese: CJK ideographs without kana
   if (/[\u4E00-\u9FFF]/.test(text)) return 'zh';
+
+  // Arabic
+  if (/[\u0600-\u06FF]/.test(text)) return 'ar';
+
+  // Russian / Cyrillic
+  if (/[\u0400-\u04FF]/.test(text)) return 'ru';
+
+  // Thai
+  if (/[\u0E00-\u0E7F]/.test(text)) return 'th';
+
+  // Hindi / Devanagari
+  if (/[\u0900-\u097F]/.test(text)) return 'hi';
 
   // Filipino / Tagalog: High-frequency markers
   const lower = text.toLowerCase();
@@ -243,6 +267,11 @@ export function detectLikelyLanguage(text: string): string {
   }
   if (filCount >= 2) return 'fil';
 
+  // German markers
+  if (/\b(guten|morgen|abend|danke|bitte|termin|besprechung|wir|nicht|eine|auf wiedersehen)\b/i.test(lower)) {
+    return 'de';
+  }
+
   // French markers
   if (/\b(bonjour|merci|s'il vous plaît|nous|vous|avec|pour|dans|cette|réunion)\b/i.test(lower)) {
     return 'fr';
@@ -251,6 +280,21 @@ export function detectLikelyLanguage(text: string): string {
   // Spanish markers
   if (/\b(hola|gracias|por favor|nosotros|reunión|mañana|hoy|bienvenidos)\b/i.test(lower)) {
     return 'es';
+  }
+
+  // Italian markers
+  if (/\b(buongiorno|grazie|per favore|riunione|domani|oggi|ciao)\b/i.test(lower)) {
+    return 'it';
+  }
+
+  // Vietnamese markers
+  if (/\b(xin chào|cảm ơn|hôm nay|ngày mai|cuộc họp)\b/i.test(lower)) {
+    return 'vi';
+  }
+
+  // Indonesian markers
+  if (/\b(selamat|pagi|siang|terima kasih|rapat|besok|hari ini)\b/i.test(lower)) {
+    return 'id';
   }
 
   return 'en';
@@ -275,7 +319,10 @@ export async function translateTextAI(
   if (!trimmed) return '';
 
   const normTarget = normalizeLanguageCode(targetLang);
-  let normSource = sourceLang === 'auto' ? detectLikelyLanguage(trimmed) : normalizeLanguageCode(sourceLang);
+  let normSource = normalizeLanguageCode(sourceLang);
+  if (normSource === 'auto') {
+    normSource = detectLikelyLanguage(trimmed);
+  }
 
   // If source and target are the same, return as-is
   if (normSource === normTarget) {
@@ -375,7 +422,10 @@ export async function translateTranscriptSegments(
     const chunk = results.slice(i, i + batchSize);
     const translatedChunk = await Promise.all(
       chunk.map(async (seg) => {
-        const sourceLang = seg.sourceLanguage || detectLikelyLanguage(seg.originalText || seg.text);
+        const rawSource = seg.sourceLanguage && seg.sourceLanguage !== 'auto'
+          ? seg.sourceLanguage
+          : detectLikelyLanguage(seg.originalText || seg.text);
+        const sourceLang = normalizeLanguageCode(rawSource);
         if (sourceLang === normTarget) {
           return {
             ...seg,

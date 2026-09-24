@@ -5,6 +5,11 @@ import {
   detectAllEventsInText,
   createScheduleEventFromMatch,
 } from '../calendar/event-detector';
+import {
+  detectLikelyLanguage,
+  getLanguageName,
+  normalizeLanguageCode,
+} from '../ai/translation';
 
 /**
  * LiveSpeechTranscriber provides real-time speech-to-text transcription
@@ -35,7 +40,7 @@ export class LiveSpeechTranscriber {
   private segmentCounter: number = 0;
   private restartAttempts: number = 0;
   private maxRestartAttempts: number = 50;
-  private language: string = 'en-US';
+  private language: string = 'auto';
   private activeSpeaker: string = 'Speaker 1';
 
   constructor() {
@@ -48,7 +53,8 @@ export class LiveSpeechTranscriber {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = true;
       this.recognition.interimResults = true;
-      this.recognition.lang = this.language;
+      const browserLang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+      this.recognition.lang = this.language === 'auto' ? browserLang : this.language;
 
       this.recognition.onresult = (event: any) => {
         let interimAccumulator = '';
@@ -62,12 +68,13 @@ export class LiveSpeechTranscriber {
           if (result.isFinal) {
             this.restartAttempts = 0; // Reset on successful result
             if (this.onSegmentCallback) {
+              const detectedLang = this.language === 'auto' ? detectLikelyLanguage(text) : this.language;
               this.onSegmentCallback({
                 id: `seg-${++this.segmentCounter}-${Date.now()}`,
                 timestampSeconds: elapsed,
                 speaker: this.activeSpeaker || 'Speaker 1',
                 text,
-                sourceLanguage: this.language,
+                sourceLanguage: detectedLang,
               });
             }
           } else {
@@ -148,7 +155,8 @@ export class LiveSpeechTranscriber {
     const changed = this.language !== lang;
     this.language = lang;
     if (this.recognition) {
-      this.recognition.lang = lang;
+      const browserLang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+      this.recognition.lang = lang === 'auto' ? browserLang : lang;
       if (changed && this.isListening) {
         try {
           this.recognition.stop();
@@ -286,12 +294,22 @@ export async function synthesizeMeetingAI(
     })
     .join('\n');
 
-  const isFilipino = targetSummaryLanguage === 'fil';
-  const languageDirective = isFilipino
-    ? `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in English, Filipino / Tagalog, Japanese, Chinese, Korean, French, or mixed (Taglish).
-You MUST translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) in natural, professional Filipino / Tagalog (o modernong Taglish na angkop sa propesyonal na kumperensya). Huwag mag-iwan ng hindi naisasalin na mga pangunahing punto.`
-    : `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in Filipino / Tagalog (or Taglish), Japanese, Chinese, Korean, French, Spanish, German, or English.
+  const normTarget = normalizeLanguageCode(targetSummaryLanguage);
+  const isFilipino = normTarget === 'fil';
+  const isEnglish = normTarget === 'en';
+  const targetName = getLanguageName(normTarget);
+
+  let languageDirective = '';
+  if (isFilipino) {
+    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in English, Filipino / Tagalog, Japanese, Chinese, Korean, French, or mixed (Taglish).
+You MUST translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) in natural, professional Filipino / Tagalog (o modernong Taglish na angkop sa propesyonal na kumperensya). Huwag mag-iwan ng hindi naisasalin na mga pangunahing punto.`;
+  } else if (isEnglish) {
+    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in Filipino / Tagalog (or Taglish), Japanese, Chinese, Korean, French, Spanish, German, or English.
 You MUST accurately translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) strictly in clear, professional English.`;
+  } else {
+    languageDirective = `LANGUAGE REQUIREMENT: The spoken meeting may have been conducted in any language (English, Filipino, Japanese, Chinese, French, Spanish, etc.).
+You MUST accurately translate and synthesize ALL fields (overview, decisions, actionItems task, topics, followUpTasks, and timeline labels) strictly into natural, professional ${targetName}.`;
+  }
 
   const prompt = `You are an expert multilingual executive AI secretary.
 Analyze this meeting transcript and participant notes.
@@ -309,7 +327,7 @@ ${manualNotes || '(No manual notes)'}
 
 Respond STRICTLY with valid JSON in this exact structure, with no extra text or commentary:
 {
-  "overview": "Brief 2-3 sentence meeting summary in ${isFilipino ? 'Filipino' : 'English'}",
+  "overview": "Brief 2-3 sentence meeting summary in ${targetName}",
   "decisions": ["Decision 1", "Decision 2"],
   "actionItems": [{"task": "Task description", "owner": "Name or empty"}],
   "topics": ["Topic 1", "Topic 2"],

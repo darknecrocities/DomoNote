@@ -24,6 +24,7 @@ describe('Multilingual Speech Recognition & AI Translation System', () => {
   describe('Language Catalog & Metadata', () => {
     it('defines supported BCP-47 speech recognition languages with flags and names', () => {
       const bcpTags = SUPPORTED_LANGUAGES.map((l) => l.bcp47);
+      expect(bcpTags).toContain('auto');
       expect(bcpTags).toContain('en-US');
       expect(bcpTags).toContain('fil-PH');
       expect(bcpTags).toContain('ja-JP');
@@ -42,6 +43,8 @@ describe('Multilingual Speech Recognition & AI Translation System', () => {
       expect(targets).toContain('zh');
       expect(targets).toContain('ko');
       expect(targets).toContain('fr');
+      expect(targets).toContain('de');
+      expect(targets).toContain('it');
       expect(targets).toContain('none');
     });
   });
@@ -407,9 +410,9 @@ describe('Multilingual Speech Recognition & AI Translation System', () => {
   });
 
   describe('LiveSpeechTranscriber Dynamic Language Switching', () => {
-    it('allows updating the speech recognition language dynamically', () => {
+    it('defaults to auto language detection and allows dynamic switching', () => {
       const transcriber = new LiveSpeechTranscriber();
-      expect(transcriber.getLanguage()).toBe('en-US');
+      expect(transcriber.getLanguage()).toBe('auto');
 
       transcriber.setLanguage('fil-PH');
       expect(transcriber.getLanguage()).toBe('fil-PH');
@@ -419,6 +422,43 @@ describe('Multilingual Speech Recognition & AI Translation System', () => {
 
       transcriber.setLanguage('zh-CN');
       expect(transcriber.getLanguage()).toBe('zh-CN');
+
+      transcriber.setLanguage('auto');
+      expect(transcriber.getLanguage()).toBe('auto');
+    });
+
+    it('auto-detects foreign language and translates into English by default', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          response: 'Good morning, let us start the weekly sprint planning.'
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const japaneseSpeech = 'おはようございます、今週のスプリント計画を始めましょう。';
+      // When source language is 'auto', it auto-detects 'ja' and translates to target 'en'
+      const translated = await translateTextAI(japaneseSpeech, 'auto', 'en', 'llama3:8b');
+
+      expect(translated).toBe('Good morning, let us start the weekly sprint planning.');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('is capable of translating into any target language chosen by the user', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          response: 'Wir werden morgen die neue Benutzeroberfläche bereitstellen.'
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const englishSpeech = 'We will deploy the new user interface tomorrow.';
+      // User specifies target language 'de' (German)
+      const translated = await translateTextAI(englishSpeech, 'en', 'de', 'llama3:8b');
+
+      expect(translated).toBe('Wir werden morgen die neue Benutzeroberfläche bereitstellen.');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 });
