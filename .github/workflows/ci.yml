@@ -1,0 +1,98 @@
+name: CI & Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Test & Build (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [20, 22]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Vitest Unit Tests
+        run: npm run test
+
+      - name: Typecheck & Build Production Assets
+        run: npm run build
+
+  windows-desktop-build:
+    name: Windows Native Desktop & Installer Build
+    runs-on: windows-latest
+    needs: [lint-and-test]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9.0 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web, Desktop App & Installer
+        run: powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1
+
+      - name: Verify Installer Artifacts Exist
+        run: |
+          if (-not (Test-Path "public\downloads\DomoNote-Setup-x64.exe")) {
+            throw "DomoNote-Setup-x64.exe was not generated"
+          }
+          if (-not (Test-Path "public\downloads\DomoNote-Windows-Portable.zip")) {
+            throw "DomoNote-Windows-Portable.zip was not generated"
+          }
+          Write-Host "All Windows binaries successfully verified." -ForegroundColor Green
+
+      - name: Test Silent Installation on Windows Runner
+        run: |
+          $proc = Start-Process -FilePath "public\downloads\DomoNote-Setup-x64.exe" -ArgumentList "/S" -Wait -PassThru -NoNewWindow
+          if ($proc.ExitCode -ne 0) {
+            throw "Silent installation failed with exit code $($proc.ExitCode)"
+          }
+          $instDir = "$env:LOCALAPPDATA\Programs\DomoNote"
+          if (-not (Test-Path "$instDir\DomoNote.exe")) {
+            throw "DomoNote.exe was not found in $instDir"
+          }
+          Write-Host "Windows installation verified successfully." -ForegroundColor Green
+
+      - name: Upload Windows Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: domonote-windows-binaries
+          path: |
+            public/downloads/DomoNote-Setup-x64.exe
+            public/downloads/DomoNote-Windows-Portable.zip
+            public/downloads/DomoNote-Setup.bat
+          retention-days: 14

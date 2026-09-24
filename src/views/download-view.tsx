@@ -79,7 +79,10 @@ export const DownloadView: React.FC = () => {
     addToast('Terminal command copied to clipboard.', 'info');
   };
 
-  const handleDownload = (filename: string, osName: string) => {
+  const GITHUB_REPO = 'https://github.com/darknecrocities/DomoNote';
+  const GITHUB_RELEASE_BASE = `${GITHUB_REPO}/releases/latest/download`;
+
+  const handleDownload = async (filename: string, osName: string) => {
     // For native binary packages (.exe installer, .zip portable, .dmg macOS, .AppImage, .deb), download verified files
     if (
       filename.endsWith('.exe') ||
@@ -88,12 +91,37 @@ export const DownloadView: React.FC = () => {
       filename.endsWith('.AppImage') ||
       filename.endsWith('.deb')
     ) {
-      const a = document.createElement('a');
-      a.href = `/downloads/${filename}`;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const localUrl = `/downloads/${filename}`;
+      const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
+
+      try {
+        // Probe localUrl with HEAD to ensure it is an actual binary and not an SPA route rewrite serving index.html
+        const res = await fetch(localUrl, { method: 'HEAD' });
+        const ctype = res.headers.get('content-type') || '';
+        if (res.ok && !ctype.includes('text/html')) {
+          const a = document.createElement('a');
+          a.href = localUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          // If local static server returns 404 or text/html rewrite, download official release from GitHub
+          const a = document.createElement('a');
+          a.href = releaseUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      } catch {
+        const a = document.createElement('a');
+        a.href = releaseUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
 
       const label = filename.endsWith('.exe')
         ? 'native Windows Installer (.EXE)'
@@ -103,7 +131,7 @@ export const DownloadView: React.FC = () => {
         ? 'native macOS DMG bundle'
         : 'Linux package';
 
-      addToast(`Downloading ${label} (${filename}). Double-click to install DomoNote.`, 'success');
+      addToast(`Downloading ${label} (${filename}). Launch to install DomoNote.`, 'success');
       return;
     }
 
@@ -564,6 +592,15 @@ bash start.sh
               <Download className="w-3.5 h-3.5" />
               <span>Download Portable (.ZIP)</span>
             </button>
+            <a
+              href="https://github.com/darknecrocities/DomoNote/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-500 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
+            >
+              <ExternalLink className="w-3 h-3" />
+              <span>Official GitHub Releases (.EXE)</span>
+            </a>
           </div>
         </div>
 

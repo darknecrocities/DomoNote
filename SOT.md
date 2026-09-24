@@ -1,50 +1,76 @@
 # DOMONOTE: SOURCE OF TRUTH (SOT)
 
-Document Version: 1.0.0
-Product: DomoNote
-Repository: https://github.com/darknecrocities/DomoNote
-Status: Canonical Architecture and Technical Specification
+Document Version: 1.1.0  
+Product: DomoNote  
+Repository: https://github.com/darknecrocities/DomoNote  
+Status: Canonical Architecture, Technical Specification, and Operating Manual  
 
 ---
 
 ## 1. Product Statement
 
 DomoNote is an open-source, local-first AI secretary and note-taking workspace.
-Tagline: "Capture it. Understand it. Keep it."
-Secondary description: "DomoNote - Your Local AI Secretary for meetings, documents, and notes."
+- **Tagline**: "Capture it. Understand it. Keep it."
+- **Secondary Description**: "DomoNote — Your Local AI Secretary for meetings, documents, and notes."
 
-DomoNote integrates four primary knowledge modalities into a unified workspace:
-1. Markdown and Structured Notes
-2. Meeting Recording, Timelines, and AI Syntheses
-3. Document / PDF Intelligence and Coordinate-Anchored Annotations
-4. Computer Operation Capture and Step-by-Step Manual Generation
+DomoNote integrates five primary knowledge and capture modalities into a unified workspace:
+1. **Markdown & Structured Notes**: Full Markdown editing with version history and folder organization.
+2. **Meeting Recording, Speaker Detection & Live Timelines**: High-fidelity microphone and tab audio recording, speaker tracking, live speech-to-text, multilingual AI translation, and automatic synthesis of action items and decisions.
+3. **Document / PDF Intelligence**: PDF.js canvas engine with coordinate-anchored annotations, text selection AI actions, and automated "Turn into Steps" conversion.
+4. **Computer Operation Capture & SOP Manual Generator**: Screen procedure recording, click coordinate annotation, and one-click export to PDF, Markdown, JSON, and HTML.
+5. **Native Desktop Shells & Browser Extensions**: Dedicated native desktop applications for macOS and Windows with system tray HUDs, and a Google Meet capture extension.
 
 ---
 
 ## 2. Core Architectural Principles
 
-1. Local-First Storage: All user notes, meetings, audio recordings, uploaded PDFs, annotations, and generated manuals are persisted client-side in IndexedDB via Dexie. No remote database or mandatory server is required for full functionality.
-2. Vercel Compatibility: The web application is built strictly as a client-side React Single Page Application (SPA) using Vite. It builds without Node.js backend requirements and is directly deployable to static hosts such as Vercel.
-3. Decoupled Local AI: Local intelligence communicates with Ollama at http://localhost:11434. If Ollama is offline or unavailable, the application provides clear visual status and diagnostic instructions rather than failing or substituting synthetic responses.
-4. Privacy and Zero Telemetry: No user data, uploaded documents, or transcripts are transmitted to third-party cloud services. Operating system and browser permissions are requested explicitly.
-5. Real Data Integrity: The application does not generate or display synthetic filler cards, fake statistics, or mock AI completions. Empty states are explicitly communicated.
-6. Grayscale Visual Discipline: The visual system is strictly black, white, and grayscale. Saturated accent colors are restricted to semantic states (recording active, connection status, alerts). Emojis are prohibited across UI icons and documentation.
+1. **Local-First Storage**: All user notes, meetings, audio recordings, uploaded PDFs, annotations, and generated manuals are persisted client-side in IndexedDB via Dexie. No remote database or mandatory server is required for full functionality.
+2. **Vercel & Static Host Compatibility**: The web application is built strictly as a client-side React Single Page Application (SPA) using Vite. It builds without Node.js backend runtime requirements and is deployable to static hosts such as Vercel.
+3. **Decoupled Local AI**: Local intelligence communicates with Ollama at `http://localhost:11434`. If Ollama is offline or unavailable, the application provides clear visual status and diagnostic instructions rather than failing or substituting synthetic responses.
+4. **Privacy and Zero Telemetry**: No user data, uploaded documents, or transcripts are transmitted to third-party cloud services. Operating system and browser permissions are requested explicitly.
+5. **Real Data Integrity**: The application does not generate or display synthetic filler cards, fake statistics, or mock AI completions. Empty states are explicitly communicated.
+6. **Grayscale Visual Discipline**: The visual system is strictly black, white, and grayscale. Saturated accent colors are restricted to semantic states (recording active, connection status, alerts). Emojis are prohibited across UI icons and documentation.
+7. **Safe Binary Delivery**: Download links for native installers (`.exe`, `.dmg`, `.zip`, `.AppImage`) must deliver genuine PE/Mach-O binaries. SPA web servers must never rewrite binary download paths to `index.html`. Automated fallbacks forward directly to official GitHub Releases.
 
 ---
 
 ## 3. Technology Stack
 
-- Frontend Framework: React 18, TypeScript 5 (Strict Mode)
-- Build Tool: Vite 6
-- Styling: Tailwind CSS 3 (configured with custom grayscale tokens)
-- Iconography: Lucide React (no emojis permitted)
-- Local Database: IndexedDB via Dexie 4
-- Document Engine: PDF.js (pdfjs-dist)
-- Markdown Engine: React Markdown, Remark GFM, DOMPurify for HTML sanitization
-- Export Engines: jsPDF (for client-side PDF rendering), native Markdown/JSON serializers
-- Local AI Service: Ollama REST API (streaming generate, chat, and tag endpoints)
-- Optional Companion: Python FastAPI (Whisper audio transcription, desktop screen capture)
-- Optional Extension: Chrome Manifest V3 (Google Meet capture integration)
+### 3.1 Web Application
+- **Frontend Framework**: React 18, TypeScript 5 (Strict Mode)
+- **Build Tool**: Vite 6
+- **Styling**: Tailwind CSS 3 (configured with custom grayscale tokens)
+- **Iconography**: Lucide React (no emojis permitted)
+- **Local Database**: IndexedDB via Dexie 4
+- **Document Engine**: PDF.js (`pdfjs-dist`)
+- **Markdown Engine**: React Markdown, Remark GFM, DOMPurify for HTML sanitization
+- **Export Engines**: jsPDF (for client-side PDF rendering), native Markdown/JSON serializers
+- **Local AI Service**: Ollama REST API (streaming generate, chat, and tag endpoints)
+
+### 3.2 Native Desktop Applications
+- **macOS Desktop App (`desktop/main.swift`)**:
+  - Native Cocoa & WebKit (`WKWebView`) shell
+  - Menu Bar HUD item with live Ollama health polling (`http://127.0.0.1:11434/api/tags`)
+  - Global shortcuts: Open DomoNote, New Note, Focus Mode, Record Meeting, Schedule, Studio, Settings
+  - Bundled local static server (port 5892)
+- **Windows Desktop App (`desktop/windows/`)**:
+  - Native C# .NET 9 WinForms shell with Microsoft Edge WebView2 control
+  - Centered dark-themed window (`DwmSetWindowAttribute(DWMWA_USE_IMMERSIVE_DARK_MODE)`)
+  - Windows System Tray (`NotifyIcon`) with mascot icon and context menu
+  - Embedded lightweight static server on `127.0.0.1:5892` with SPA fallback
+  - Single-instance mutex guard (`Global\DomoNote_Desktop_SingleInstance`)
+  - Auto-start & live Ollama health monitoring
+- **Windows Standalone Installer (`desktop/installer/`)**:
+  - Self-contained executable: `DomoNote-Setup-x64.exe`
+  - Installs to `%LOCALAPPDATA%\Programs\DomoNote` (no UAC / admin required)
+  - Creates Desktop and Start Menu shortcuts with official icon
+  - Registers in Windows Registry under `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\DomoNote`
+  - Standalone uninstaller script (`uninstall.bat`)
+  - Supports silent installation (`/S`, `/silent`, `--quiet`)
+
+### 3.3 Optional Companion & Extensions
+- **Local Companion (`local-companion/`)**: Python FastAPI (Faster-Whisper ASR, desktop screen capture)
+- **Browser Extension (`browser-extension/`)**: Chrome Manifest V3 (Google Meet audio and screen capture integration)
 
 ---
 
@@ -53,97 +79,96 @@ DomoNote integrates four primary knowledge modalities into a unified workspace:
 All entities are defined with strict TypeScript typing and indexed in IndexedDB:
 
 ### 4.1 Note
-- id: string (UUID)
-- title: string
-- content: string (Markdown)
-- folderId?: string
-- tags: string[]
-- createdAt: number (timestamp)
-- updatedAt: number (timestamp)
-- versions: NoteVersion[] (id, timestamp, content, title)
+- `id`: string (UUID)
+- `title`: string
+- `content`: string (Markdown)
+- `folderId?`: string
+- `tags`: string[]
+- `createdAt`: number (timestamp)
+- `updatedAt`: number (timestamp)
+- `versions`: NoteVersion[] (id, timestamp, content, title)
 
 ### 4.2 Meeting
-- id: string (UUID)
-- title: string
-- startTime: number
-- endTime?: number
-- durationSeconds: number
-- audioBlobId?: string (reference to Blobs table)
-- transcript: TranscriptSegment[] (id, timestampSeconds, speaker, text)
-- manualNotes: string
-- timeline: TimelineItem[] (timestampSeconds, label, type)
-- summary?: MeetingSummary (overview, decisions, actionItems, topics, followUpTasks)
+- `id`: string (UUID)
+- `title`: string
+- `startTime`: number
+- `endTime?`: number
+- `durationSeconds`: number
+- `audioBlobId?`: string (reference to Blobs table)
+- `transcript`: TranscriptSegment[] (id, timestampSeconds, speaker, text)
+- `manualNotes`: string
+- `timeline`: TimelineItem[] (timestampSeconds, label, type)
+- `summary?`: MeetingSummary (overview, decisions, actionItems, topics, followUpTasks)
 
 ### 4.3 Document
-- id: string (UUID)
-- title: string
-- fileName: string
-- fileSize: number
-- pageCount: number
-- fileBlobId: string (reference to Blobs table)
-- extractedPages: ExtractedPage[] (pageNumber, text)
-- createdAt: number
+- `id`: string (UUID)
+- `title`: string
+- `fileName`: string
+- `fileSize`: number
+- `pageCount`: number
+- `fileBlobId`: string (reference to Blobs table)
+- `extractedPages`: ExtractedPage[] (pageNumber, text)
+- `createdAt`: number
 
 ### 4.4 Annotation
-- id: string (UUID)
-- documentId: string
-- pageNumber: number
-- type: 'highlight' | 'underline' | 'rectangle' | 'arrow' | 'marker' | 'note'
-- coords: { x: number, y: number, width: number, height: number }
-- color: string
-- text?: string
-- label?: string
-- createdAt: number
+- `id`: string (UUID)
+- `documentId`: string
+- `pageNumber`: number
+- `type`: `'highlight' | 'underline' | 'rectangle' | 'arrow' | 'marker' | 'note'`
+- `coords`: `{ x: number, y: number, width: number, height: number }`
+- `color`: string
+- `text?`: string
+- `label?`: string
+- `createdAt`: number
 
-### 4.5 OperationSession
-- id: string (UUID)
-- title: string
-- recordedAt: number
-- durationSeconds: number
-- steps: OperationStep[] (id, stepNumber, timestamp, screenshotBlobId, actionDescription, clickCoords, annotations)
+### 4.5 OperationSession & Manual
+- `OperationSession`: recordedAt, steps (screenshotBlobId, actionDescription, clickCoords, annotations)
+- `Manual`: title, purpose, requirements, steps, warnings, expectedResult, troubleshooting
 
-### 4.6 Manual
-- id: string (UUID)
-- title: string
-- purpose: string
-- requirements: string[]
-- steps: ManualStep[] (stepNumber, title, description, screenshotBlobId, warnings)
-- warnings: string[]
-- expectedResult: string
-- troubleshooting: string[]
-- createdAt: number
-- updatedAt: number
-
-### 4.7 Template
-- id: string
-- title: string
-- category: 'meeting' | 'document' | 'operation' | 'general'
-- description: string
-- defaultContent: string
-- isBuiltin: boolean
-
-### 4.8 Settings
-- ollamaBaseUrl: string (default: "http://localhost:11434")
-- selectedModel: string
-- autoSaveIntervalSeconds: number
-- companionUrl: string (default: "http://localhost:8765")
-- speechRecognitionLanguage: string (default: "en-US")
+### 4.6 Settings
+- `ollamaBaseUrl`: string (default: `"http://localhost:11434"`)
+- `selectedModel`: string (default: `"llama3.2"`)
+- `autoSaveIntervalSeconds`: number
+- `companionUrl`: string (default: `"http://localhost:8765"`)
+- `speechRecognitionLanguage`: string (default: `"en-US"`)
 
 ---
 
-## 5. Security and Privacy Boundaries
+## 5. Security & Privacy Boundaries
 
-1. XSS Prevention: Raw markdown text is rendered through React Markdown with dangerous HTML execution disabled and sanitized with DOMPurify.
-2. Path Traversal & File Uploads: PDF uploads are validated for valid PDF headers (%PDF-) and constrained by client-side size thresholds.
-3. Network Boundaries: All network requests originating from the web application target localhost (Ollama or optional Companion) or are completely client-side.
-4. Browser Permissions: Microphone and Screen Capture APIs are invoked only in response to direct user initiation. Visual indicators (such as pulse animations and timers) remain active while capturing.
+1. **XSS Prevention**: Raw markdown is rendered through React Markdown with dangerous HTML execution disabled and sanitized with DOMPurify.
+2. **File Upload Verification**: PDF uploads are validated for valid PDF headers (`%PDF-`) and size-constrained client-side.
+3. **Network Isolation**: All outbound network requests from the web application target either localhost (Ollama port 11434, companion port 8765) or are completely client-side.
+4. **Permissions Principle**: Microphone and Screen Sharing APIs are invoked only upon direct user action. Visual indicators remain conspicuous during active recording.
 
 ---
 
-## 6. Git Branching and Release Protocol
+## 6. Multi-Platform Distribution & Download Protocol
 
-- Default Production Branch: main
-- Feature Branch Naming: feature/<feature-name>
-- Bugfix Branch Naming: fix/<issue-name>
-- Contribution Flow: All modifications are committed to a feature branch, submitted via Pull Request to main, reviewed, and merged.
-- Commit Message Convention: Clear imperative descriptions strictly avoiding emojis.
+To guarantee reliable binary distribution:
+1. **GitHub Releases as Canonical Distribution**:
+   - Official release binaries are compiled via CI/CD and hosted on GitHub Releases (`https://github.com/darknecrocities/DomoNote/releases`).
+2. **SPA Rewrite Protection**:
+   - Static hosting configuration (`vercel.json`) must exclude `/downloads/` from SPA root rewrites.
+3. **Smart Client-side Probe**:
+   - When users click download, the web client performs a HEAD probe on the local route. If the route returns a route-rewritten HTML file rather than a genuine binary, it automatically redirects to the canonical GitHub Release URL.
+4. **Desktop Installer Verification**:
+   - Installers must be verified directly on physical hardware and runner environments (silent install, shortcut resolution, clean uninstallation).
+
+---
+
+## 7. CI/CD & Quality Assurance
+
+- **Continuous Integration (`.github/workflows/ci.yml`)**:
+  - Runs on all pushes and pull requests to `main`.
+  - Matrix testing across Node.js 20 & 22 on Linux runners.
+  - Full TypeScript compilation (`tsc -b`), Vitest test suite execution, and production build verification.
+  - Native Windows desktop app and installer compilation on `windows-latest` with verification of artifact existence and silent install test.
+- **Automated Releases (`.github/workflows/release.yml`)**:
+  - Triggers on tag pushes (`v*`) or manual dispatch.
+  - Compiles `DomoNote-Setup-x64.exe`, `DomoNote-Windows-Portable.zip`, and `DomoNote-Setup.bat`.
+  - Generates `SHA256SUMS.txt` cryptographic checksums.
+  - Creates a GitHub Release with assets attached.
+- **Git Commit Standards**:
+  - Conventional Commits: `feat(...)`, `fix(...)`, `docs(...)`, `chore(...)`, `refactor(...)`, `test(...)`.
+  - Strictly no emojis in commit messages, code comments, or documentation.

@@ -42,7 +42,6 @@ browser-extension/*.zip
 # Desktop & Native builds
 *.app
 *.dmg
-public/downloads/
 desktop/DomoNote
 AppIcon.iconset/
 *.pdf
@@ -50,3 +49,10 @@ AppIcon.iconset/
 **/obj/
 *.user
 **/bundle.zip
+desktop/bundle/
+public/downloads/*.exe
+public/downloads/*.zip
+public/downloads/*.dmg
+public/downloads/*.AppImage
+public/downloads/*.deb
+dist/downloads/

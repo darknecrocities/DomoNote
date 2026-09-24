@@ -33,8 +33,8 @@ New-Item -ItemType Directory -Force -Path "$BundleDir\web" | Out-Null
 
 # Copy desktop binaries
 Copy-Item "$DesktopPublishDir\*" -Destination $BundleDir -Recurse -Force
-# Copy compiled web assets to web/
-Copy-Item "dist\*" -Destination "$BundleDir\web" -Recurse -Force
+# Copy compiled web assets to web/ (excluding downloads to prevent recursive bundling)
+Get-ChildItem "dist" | Where-Object { $_.Name -ne "downloads" } | Copy-Item -Destination "$BundleDir\web" -Recurse -Force
 # Copy icon
 Copy-Item "public\favicon.ico" -Destination "$BundleDir\favicon.ico" -Force
 
