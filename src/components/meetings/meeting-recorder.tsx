@@ -140,9 +140,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     };
   }, []);
 
-  // Poll /api/meeting-sync during active recording to receive live participants from meeting apps
+  // Poll /api/meeting-sync ALWAYS (pre-recording + during recording) to discover participants early.
+  // Runs at 800ms for fast detection. Handles participants AND activeSpeaker independently.
   useEffect(() => {
-    if (!isRecording) return;
     const syncInterval = setInterval(() => {
       fetch('/api/meeting-sync')
         .then((res) => {
@@ -150,22 +150,31 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           return res.json();
         })
         .then((data) => {
-          if (data && Array.isArray(data.participants) && data.participants.length > 0) {
+          if (!data) return;
+          // Always pass participants if we have them (pre-recording roster build)
+          if (Array.isArray(data.participants) && data.participants.length > 0) {
             speakerHookManager.handleIncomingPayload({
               type: 'DOMONOTE_MEETING_PARTICIPANTS',
               app: data.app || detectedMeetingApp || 'Google Meet',
               participants: data.participants,
+              activeSpeaker: data.activeSpeaker ?? undefined,
+            });
+          } else if (data.activeSpeaker) {
+            // Even without participants list, update active speaker immediately
+            speakerHookManager.handleIncomingPayload({
+              type: 'DOMONOTE_ACTIVE_SPEAKER',
+              app: data.app || detectedMeetingApp || 'Google Meet',
               activeSpeaker: data.activeSpeaker,
             });
           }
         })
         .catch(() => {});
-    }, 1200);
+    }, 800);
 
     return () => {
       clearInterval(syncInterval);
     };
-  }, [isRecording, detectedMeetingApp]);
+  }, [detectedMeetingApp]);
 
   // Load user default speechLanguage setting if present
   useEffect(() => {
@@ -180,9 +189,13 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const handleIncomingInterim = (interim: string) => {
     setLiveInterimText(interim);
     if (activeAudioChannelRef.current === 'remote') {
-      const nonHost = speakerRoster.find((s) => s.toLowerCase() !== 'you / host');
-      if (nonHost && currentSpeaker === 'You / Host') {
-        setCurrentSpeaker(nonHost);
+      // Prefer DOM-detected active speaker, then any non-host roster member
+      const domActive = speakerHookManager.getActiveSpeaker();
+      const nonHost = speakerRoster.find((s) => s.toLowerCase() !== 'you / host' && s !== 'Participant 2');
+      const bestGuess = domActive && domActive !== 'You / Host' ? domActive : nonHost;
+      if (bestGuess && currentSpeaker !== bestGuess) {
+        setCurrentSpeaker(bestGuess);
+        speechTranscriberRef.current?.setActiveSpeaker(bestGuess);
       }
     } else if (activeAudioChannelRef.current === 'host') {
       if (currentSpeaker !== 'You / Host') {

@@ -143,15 +143,29 @@
 
     // 1. Google Meet: active speaking ring/pulse or data-is-speaking
     if (app === 'Google Meet') {
-      const speakingTile = document.querySelector('[data-is-speaking="true"], .oJeWuf, [data-active-speaker="true"]');
+      // Check data-is-speaking tiles first
+      const speakingTile = document.querySelector('[data-is-speaking="true"], [data-active-speaker="true"], .oJeWuf');
       if (speakingTile) {
-        const nameEl = speakingTile.querySelector('[data-self-name], .zWGUib, .NMhWlb, .nxzRjb, [jsname="A7TdRd"]');
-        const name = cleanParticipantName(nameEl?.textContent || '');
+        const nameEl = speakingTile.querySelector('[data-self-name], .zWGUib, .NMhWlb, .nxzRjb, [jsname="A7TdRd"], [dir="auto"]');
+        const name = cleanParticipantName(nameEl?.textContent || speakingTile.getAttribute('aria-label') || '');
         if (name) return name;
       }
-      const captionAuthor = document.querySelector('.iTTPOb .TBMuR, div[jsname="ysnEbe"] .TBMuR');
+      // Live caption author — the person speaking is usually shown next to captions
+      const captionAuthor = document.querySelector('.iTTPOb .TBMuR, div[jsname="ysnEbe"] .TBMuR, [jsname="tgaKEf"] .TBMuR, .a4cQT .TBMuR');
       if (captionAuthor) {
         const name = cleanParticipantName(captionAuthor.textContent || '');
+        if (name) return name;
+      }
+      // Large tile / dominant speaker label (the big tile at center screen)
+      const dominantTile = document.querySelector('[data-call-layout-mode] [data-allocation-index="0"] [dir="auto"], [jsname="Vd3tJb"] [dir="auto"]');
+      if (dominantTile) {
+        const name = cleanParticipantName(dominantTile.textContent || '');
+        if (name) return name;
+      }
+      // Video tile name label at the bottom-left of the main video
+      const videoLabel = document.querySelector('.KF4T6b, .GvcuGe .notranslate, [jsname="EydYod"] .notranslate');
+      if (videoLabel) {
+        const name = cleanParticipantName(videoLabel.textContent || '');
         if (name) return name;
       }
     }
@@ -235,13 +249,13 @@
   function scrapeParticipantNames() {
     const names = new Set();
 
-    // Google Meet
-    // 1. All .notranslate elements (universally used by Google Meet for participant names on video tiles, subtitles & panels)
+    // Google Meet — comprehensive multi-selector approach
+    // 1. All .notranslate elements (video tiles, subtitles, panels)
     document.querySelectorAll('.notranslate, [data-self-name], [data-name], span[jsname], [data-requested-participant-id]').forEach(el => {
       const n = cleanParticipantName(el.textContent);
       if (n) names.add(n);
     });
-    // 2. Video tile containers and aria-labels (e.g. "german", "german's video")
+    // 2. Video tile aria-labels (e.g. "german's video", "Arron Parejas's video")
     document.querySelectorAll('[data-allocation-index], [data-tile-id], [data-participant-id], div[role="region"], div[data-is-speaking]').forEach(el => {
       const label = el.getAttribute('aria-label') || '';
       if (label) {
@@ -249,15 +263,51 @@
         if (n) names.add(n);
       }
     });
-    document.querySelectorAll('[data-participant-id] [dir="auto"], [jsname="A7TdRd"], .zWGUib, .NMhWlb, .nxzRjb, .Y5sE8d').forEach(el => {
+    // 3. Name labels on video tiles
+    document.querySelectorAll('[data-participant-id] [dir="auto"], [jsname="A7TdRd"], .zWGUib, .NMhWlb, .nxzRjb, .Y5sE8d, .KF4T6b, .GvcuGe .notranslate, [jsname="EydYod"] .notranslate').forEach(el => {
       const n = cleanParticipantName(el.textContent);
       if (n) names.add(n);
     });
-    // 3. Google Meet People Sidebar items
-    document.querySelectorAll('div[aria-label*="people" i] [role="listitem"], div[aria-label*="participant" i] [role="listitem"]').forEach(el => {
-      const nameEl = el.querySelector('.notranslate, span[jsname], .zWGUib') || el;
-      const n = cleanParticipantName(nameEl.textContent);
-      if (n) names.add(n);
+    // 4. Google Meet People Sidebar / "Contributors" panel — the key list visible when People panel is open
+    // Try multiple selector patterns for the sidebar list items
+    const sidebarSelectors = [
+      'div[aria-label*="people" i] [role="listitem"]',
+      'div[aria-label*="participant" i] [role="listitem"]',
+      'div[aria-label*="contributors" i] [role="listitem"]',
+      '[jsname="jC1zNd"] [jsname]',   // participants panel internal
+      '.VfPpkd-rymPhb-ibnC6b',        // material list items in people panel
+      '[data-participant-id]',
+    ];
+    sidebarSelectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        // Try to find the name within the item
+        const nameEl = el.querySelector('.notranslate, span[jsname], .zWGUib, [dir="auto"]') || el;
+        const n = cleanParticipantName(nameEl.textContent);
+        if (n) names.add(n);
+        // Also check aria-label of the item itself
+        const labelAttr = el.getAttribute('aria-label') || '';
+        if (labelAttr) {
+          const n2 = cleanParticipantName(labelAttr.replace(/\s*(?:meeting\s+host|host|muted|\(you\)).*$/i, ''));
+          if (n2) names.add(n2);
+        }
+      });
+    });
+    // 5. Scan ALL elements with aria-label that look like participant names in the meeting list
+    // Google Meet renders the people list with items like "Arron Parejas (You) Meeting host"
+    document.querySelectorAll('[role="listitem"], [role="option"], [data-participant-id]').forEach(el => {
+      const label = (el.getAttribute('aria-label') || '').replace(/\s*(?:meeting\s+host|is\s+muted|\(you\)|\(host\)|\(co-host\)).*$/i, '').trim();
+      if (label && label.length >= 2 && label.length <= 50) {
+        const n = cleanParticipantName(label);
+        if (n) names.add(n);
+      }
+      // Also scan direct text content of small name sub-elements
+      el.querySelectorAll('[dir="auto"], .notranslate, span').forEach(child => {
+        const childText = child.textContent?.trim() || '';
+        if (childText.length >= 2 && childText.length <= 40 && !childText.includes('\n')) {
+          const n = cleanParticipantName(childText);
+          if (n) names.add(n);
+        }
+      });
     });
 
     // Zoom
@@ -364,9 +414,21 @@
     });
   }
 
+  // Always run sync — even if we don't recognise the app, the extension could be on any page
+  // with an open meeting app in another tab. The HTTP bridge posts to DomoNote regardless.
+  setInterval(broadcastMeetingSync, 1500);
+  setTimeout(broadcastMeetingSync, 300);
+
+  // ─── MutationObserver: detect participant panel changes instantly ────────────
+  // When someone joins/leaves Google Meet, the DOM changes; fire immediately.
   if (detectCurrentMeetingApp()) {
-    setInterval(broadcastMeetingSync, 1500);
-    setTimeout(broadcastMeetingSync, 500);
+    const observerTarget = document.body || document.documentElement;
+    const participantObserver = new MutationObserver(() => {
+      // Debounce: don't fire more than once per 600ms
+      clearTimeout(participantObserver._timer);
+      participantObserver._timer = setTimeout(broadcastMeetingSync, 600);
+    });
+    participantObserver.observe(observerTarget, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-is-speaking', 'aria-label', 'data-participant-id'] });
   }
 
   // ─── Smart speaker assignment ───────────────────────────────────────────────
