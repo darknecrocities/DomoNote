@@ -3,6 +3,7 @@
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[DomoNote] Extension v2.0 installed and ready.');
+  enableSidePanelOnAction();
 
   if (chrome.contextMenus) {
     chrome.contextMenus.create({
@@ -47,9 +48,24 @@ if (chrome.contextMenus) {
   });
 }
 
-// Side panel behavior
-if (chrome.sidePanel?.setPanelBehavior) {
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
+// Side panel behavior: Open side panel docked on the right when the extension action icon is clicked
+function enableSidePanelOnAction() {
+  if (chrome.sidePanel?.setPanelBehavior) {
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+  }
+}
+enableSidePanelOnAction();
+
+if (chrome.action?.onClicked) {
+  chrome.action.onClicked.addListener(async (tab) => {
+    try {
+      if (chrome.sidePanel?.open && tab?.windowId) {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+      }
+    } catch (e) {
+      console.warn('[DomoNote] Side panel open triggered:', e);
+    }
+  });
 }
 
 // Message routing

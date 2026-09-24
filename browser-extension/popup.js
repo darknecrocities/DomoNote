@@ -333,7 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
       isRecording = true;
       recordStartTime = Date.now();
       if (recordBtn) {
-        recordBtn.textContent = '■ Stop Recording';
+        recordBtn.innerHTML = `
+          <svg style="width:11px;height:11px;" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+          <span>Stop Recording</span>
+        `;
         recordBtn.className = 'btn btn-secondary';
       }
 
@@ -355,7 +358,10 @@ document.addEventListener('DOMContentLoaded', () => {
     isRecording = false;
     clearInterval(recordTimerInterval);
     if (recordBtn) {
-      recordBtn.textContent = '● Start Recording';
+      recordBtn.innerHTML = `
+        <svg style="width:11px;height:11px;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="7"/></svg>
+        <span>Start Recording</span>
+      `;
       recordBtn.className = 'btn btn-danger';
     }
 
@@ -742,12 +748,12 @@ ${text}`,
     savedMeetings.forEach(meeting => {
       const item = document.createElement('div');
       item.style.cssText = `
-        background: #18181b; border: 1px solid #27272a; border-radius: 9px; padding: 10px 12px;
-        cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: space-between;
-        gap: 8px;
+        background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 12px;
+        cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; justify-content: space-between;
+        gap: 8px; backdrop-filter: blur(12px);
       `;
-      item.onmouseover = () => { item.style.background = '#1f1f23'; item.style.borderColor = '#3f3f46'; };
-      item.onmouseout = () => { item.style.background = '#18181b'; item.style.borderColor = '#27272a'; };
+      item.onmouseover = () => { item.style.background = 'rgba(255, 255, 255, 0.08)'; item.style.borderColor = 'rgba(255, 255, 255, 0.16)'; };
+      item.onmouseout = () => { item.style.background = 'rgba(255, 255, 255, 0.04)'; item.style.borderColor = 'rgba(255, 255, 255, 0.08)'; };
 
       const participants = (meeting.participants || []).slice(0, 3).join(', ') || 'Unknown speakers';
       const date = new Date(meeting.date || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -756,15 +762,29 @@ ${text}`,
 
       item.innerHTML = `
         <div style="flex:1; overflow:hidden;">
-          <div style="font-size:11px; font-weight:700; color:#e4e4e7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${meeting.title || 'Meeting'}</div>
-          <div style="font-size:9px; color:#71717a; margin-top:2px; display:flex; gap:8px; flex-wrap:wrap;">
-            <span>&#x1F4C5; ${date}</span>
-            <span>&#x23F1; ${duration}</span>
-            <span>&#x1F4AC; ${segCount} segments</span>
+          <div style="font-size:11.5px; font-weight:600; color:#f4f4f5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.01em;">${meeting.title || 'Meeting'}</div>
+          <div style="font-size:9.5px; color:#a1a1aa; margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <svg style="width:10px;height:10px;opacity:0.75;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${date}
+            </span>
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <svg style="width:10px;height:10px;opacity:0.75;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${duration}
+            </span>
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <svg style="width:10px;height:10px;opacity:0.75;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              ${segCount} segs
+            </span>
           </div>
-          <div style="font-size:9px; color:#52525b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">&#x1F464; ${participants}</div>
+          <div style="font-size:9.5px; color:#71717a; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">
+            <svg style="width:10px;height:10px;opacity:0.75;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            ${participants}
+          </div>
         </div>
-        <div style="font-size:16px; color:#71717a; flex-shrink:0;">&#x276F;</div>
+        <div style="color:#71717a; flex-shrink:0; display:flex; align-items:center;">
+          <svg style="width:13px;height:13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       `;
 
       item.addEventListener('click', () => viewMeeting(meeting));

@@ -173,7 +173,7 @@
 
     rec.onerror = (e) => {
       if (e.error === 'not-allowed') {
-        showHUDToast('⚠ Microphone permission denied', true);
+        showHUDToast('Microphone permission denied', true);
       }
     };
 
@@ -308,7 +308,7 @@ Generate a FULL meeting document in clean Markdown with these EXACT sections:
 **Duration:** ${fmt(Math.floor((Date.now() - startTime) / 1000))}
 **Participants:** ${participants.join(', ')}
 
-> ⚠ Local Ollama AI unavailable. Showing raw transcript — start Ollama for full AI documentation.
+> Local Ollama AI unavailable. Showing raw transcript — start Ollama for full AI documentation.
 
 ---
 
@@ -618,7 +618,7 @@ ${notesText || '(None)'}
     // Update UI
     setRecordingUI(true);
     animateWaves();
-    showHUDToast('🔴 Recording started — speaking names detected from meeting tiles');
+    showHUDToast('Recording started — speaker names detected from meeting tiles');
 
     // Re-scan participants every 10s
     setInterval(() => { speakerPool = scrapeParticipantNames(); }, 10000);
@@ -702,7 +702,7 @@ ${notesText || '(None)'}
       });
     } catch {}
 
-    showHUDToast('✅ Meeting document generated and saved!');
+    showHUDToast('Meeting document generated and saved');
   }
 
   // ─── UI helpers ─────────────────────────────────────────────────────────────
@@ -773,7 +773,7 @@ ${notesText || '(None)'}
           if (!input?.value.trim()) return;
           quickNotes.push({ timestampSeconds: Math.floor((Date.now() - startTime) / 1000), text: input.value.trim() });
           input.value = '';
-          showHUDToast('📝 Note saved');
+          showHUDToast('Note saved');
         });
       }
       area.querySelector('#domo-copy-transcript')?.addEventListener('click', () => {
@@ -787,7 +787,7 @@ ${notesText || '(None)'}
         btn.addEventListener('click', () => {
           const btype = btn.dataset.type;
           bookmarks.push({ timestampSeconds: Math.floor((Date.now() - startTime) / 1000), type: btype, note: '' });
-          showHUDToast(`📌 ${btype.charAt(0).toUpperCase() + btype.slice(1)} bookmarked at ${fmt(Math.floor((Date.now() - startTime) / 1000))}`);
+          showHUDToast(`${btype.charAt(0).toUpperCase() + btype.slice(1)} bookmarked at ${fmt(Math.floor((Date.now() - startTime) / 1000))}`);
           closeDrawer();
         });
       });
@@ -867,17 +867,23 @@ ${notesText || '(None)'}
         </div>
         <div class="domo-bookmark-row">
           <button class="domo-bm-btn" data-type="decision">
-            <div style="font-size:16px;margin-bottom:3px">⚡</div>
+            <div style="display:flex;justify-content:center;margin-bottom:4px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
             <div>Decision</div>
             <div style="font-size:9px;color:#71717a;margin-top:2px">Agreed point</div>
           </button>
           <button class="domo-bm-btn" data-type="action">
-            <div style="font-size:16px;margin-bottom:3px">✅</div>
+            <div style="display:flex;justify-content:center;margin-bottom:4px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
             <div>Action Item</div>
             <div style="font-size:9px;color:#71717a;margin-top:2px">Todo / task</div>
           </button>
           <button class="domo-bm-btn" data-type="highlight">
-            <div style="font-size:16px;margin-bottom:3px">💡</div>
+            <div style="display:flex;justify-content:center;margin-bottom:4px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+            </div>
             <div>Highlight</div>
             <div style="font-size:9px;color:#71717a;margin-top:2px">Key insight</div>
           </button>
@@ -903,7 +909,7 @@ ${notesText || '(None)'}
           <span>Generating full meeting document with local Ollama AI…</span>
         </div>
         <div class="domo-report-area" id="domo-report-area"></div>
-        <div style="margin-top:8px;font-size:10px;color:#52525b">🔒 100% local — no data sent anywhere. Powered by Ollama on your device.</div>
+        <div style="margin-top:8px;font-size:10px;color:#52525b">100% local — no data sent anywhere. Powered by Ollama on your device.</div>
       </div>`;
   }
 

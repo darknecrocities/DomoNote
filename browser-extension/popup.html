@@ -5,79 +5,127 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DomoNote - Personal AI Secretary</title>
   <style>
+    :root {
+      --bg-base: #121318;
+      --bg-panel: rgba(22, 24, 30, 0.88);
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --bg-glass-hover: rgba(255, 255, 255, 0.08);
+      --bg-glass-active: rgba(255, 255, 255, 0.12);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(255, 255, 255, 0.16);
+      --text-main: #f4f4f6;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.35);
+      --danger: #ef4444;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-full: 9999px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
-    body {
-      width: 620px;
-      height: 560px;
-      min-width: 360px;
-      background-color: #09090b;
-      color: #f4f4f5;
+    html, body {
+      width: 100%;
+      height: 100vh;
+      min-width: 340px;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(130% 90% at 50% 0%, rgba(34, 38, 48, 0.95) 0%, rgba(16, 17, 22, 0.98) 100%);
+      color: var(--text-main);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       user-select: none;
+      border-left: 1px solid var(--border-subtle);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
     }
 
-    /* Header */
+    /* Custom Glass Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Top Navigation Bar */
     .topbar {
-      height: 48px;
+      height: 52px;
       padding: 0 14px;
-      background: #09090b;
-      border-bottom: 1px solid #27272a;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
     }
 
-    .brand img {
-      width: 22px;
-      height: 22px;
-      border-radius: 5px;
+    .brand-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .brand-name {
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
       color: #ffffff;
     }
 
     .status-pill {
       font-size: 10px;
       font-family: ui-monospace, SFMono-Regular, monospace;
-      padding: 3px 7px;
-      border-radius: 9999px;
-      background: #18181b;
-      border: 1px solid #27272a;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
-      gap: 5px;
-      color: #a1a1aa;
+      gap: 6px;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
     }
 
     .status-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #71717a;
+      background: var(--text-dim);
+      transition: all 0.3s ease;
     }
 
     .status-dot.online {
-      background: #10b981;
-      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald-glow);
     }
 
     .top-actions {
@@ -86,58 +134,109 @@
       gap: 6px;
     }
 
+    .glass-select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      font-size: 10.5px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .glass-select:focus {
+      border-color: var(--border-glow);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .glass-select option {
+      background: #181920;
+      color: #f4f4f6;
+    }
+
     .icon-btn {
-      background: #18181b;
-      border: 1px solid #27272a;
-      color: #d4d4d8;
-      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
       padding: 4px 8px;
       font-size: 11px;
+      font-weight: 500;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      transition: all 0.15s;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
     }
-
     .icon-btn:hover {
-      background: #27272a;
+      background: rgba(255, 255, 255, 0.1);
       color: #ffffff;
-      border-color: #3f3f46;
+      border-color: var(--border-glow);
+      transform: translateY(-1px);
     }
-
-    /* Nav Tabs */
-    .tab-bar {
-      display: flex;
-      background: #09090b;
-      border-bottom: 1px solid #27272a;
-      padding: 0 10px;
-      gap: 4px;
+    .icon-btn:active {
+      transform: translateY(0);
+    }
+    .icon-btn svg {
+      width: 13px;
+      height: 13px;
       flex-shrink: 0;
     }
 
+    /* Tab Navigation */
+    .tab-bar {
+      display: flex;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      gap: 3px;
+      flex-shrink: 0;
+      overflow-x: auto;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .tab-bar::-webkit-scrollbar {
+      display: none;
+    }
+
     .tab-btn {
-      padding: 8px 12px;
+      flex: 1;
+      padding: 6px 8px;
       background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: #a1a1aa;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
-      transition: all 0.15s;
+      transition: all 0.16s ease;
+      white-space: nowrap;
     }
-
     .tab-btn:hover {
       color: #ffffff;
+      background: var(--bg-glass-hover);
     }
-
     .tab-btn.active {
       color: #ffffff;
-      border-bottom-color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .tab-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+    .tab-btn.active svg {
+      opacity: 1;
+      stroke-width: 2.2;
     }
 
     /* Content Area */
@@ -148,111 +247,151 @@
       display: none;
       flex-direction: column;
       gap: 12px;
+      position: relative;
     }
-
     .tab-content.active {
       display: flex;
+    }
+
+    /* Glass Cards */
+    .card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-banner {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
 
     /* Form Controls */
     input[type="text"], textarea, select {
       width: 100%;
-      background: #121215;
-      border: 1px solid #27272a;
-      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
       padding: 8px 10px;
-      font-size: 12px;
+      font-size: 11.5px;
       color: #fafafa;
       outline: none;
-      transition: border-color 0.15s;
+      transition: all 0.15s ease;
     }
-
     input[type="text"]:focus, textarea:focus, select:focus {
-      border-color: #52525b;
+      border-color: var(--border-glow);
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+    }
+    input[type="text"]::placeholder, textarea::placeholder {
+      color: var(--text-dim);
     }
 
     textarea {
-      resize: vertical;
-      line-height: 1.45;
+      resize: none;
+      line-height: 1.5;
     }
 
+    /* Buttons */
     .btn {
-      padding: 6px 12px;
-      background: #ffffff;
-      color: #000000;
-      border: none;
-      border-radius: 6px;
+      padding: 7px 13px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #0c0d10;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius-sm);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      transition: all 0.15s;
+      gap: 6px;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.12);
+      white-space: nowrap;
     }
-
     .btn:hover {
-      background: #e4e4e7;
+      background: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn svg {
+      width: 13px;
+      height: 13px;
     }
 
     .btn-secondary {
-      background: #18181b;
-      color: #fafafa;
-      border: 1px solid #27272a;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      box-shadow: none;
     }
-
     .btn-secondary:hover {
-      background: #27272a;
-      border-color: #3f3f46;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--border-glow);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     .btn-danger {
-      background: #ef4444;
-      color: #ffffff;
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      box-shadow: none;
     }
-
     .btn-danger:hover {
-      background: #dc2626;
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #fee2e2;
     }
 
-    /* Cards */
-    .card {
-      background: #121215;
-      border: 1px solid #27272a;
-      border-radius: 8px;
-      padding: 12px;
-    }
-
-    /* Note List & Item */
+    /* Notes Sidebar & Layout */
     .notes-layout {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       height: 100%;
     }
 
-    .notes-sidebar {
-      border-right: 1px solid #27272a;
-      padding-right: 10px;
+    .notes-sidebar-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
+      gap: 7px;
+      max-height: 140px;
+      flex-shrink: 0;
     }
 
     .note-item {
-      padding: 8px;
-      border-radius: 6px;
-      background: #18181b;
-      border: 1px solid #27272a;
+      padding: 7px 9px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
-
-    .note-item:hover, .note-item.active {
-      border-color: #52525b;
-      background: #222226;
+    .note-item:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-subtle);
+    }
+    .note-item.active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.16);
     }
 
     .note-title {
@@ -261,21 +400,56 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: #f4f4f5;
     }
-
     .note-meta {
       font-size: 9px;
-      color: #71717a;
-      margin-top: 3px;
+      color: var(--text-dim);
     }
 
-    /* Waveform visualizer */
-    #audio-canvas {
-      width: 100%;
-      height: 48px;
-      background: #000000;
-      border-radius: 6px;
-      border: 1px solid #27272a;
+    .note-editor-card {
+      flex: 1;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 220px;
+    }
+
+    /* Chips */
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .quick-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px 10px;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .quick-chip:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: #ffffff;
+      border-color: var(--border-glow);
+      transform: translateY(-1px);
+    }
+    .quick-chip svg {
+      width: 11px;
+      height: 11px;
+      opacity: 0.8;
     }
 
     /* Chat Messages */
@@ -283,87 +457,106 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 9px;
       overflow-y: auto;
-      min-height: 240px;
-      max-height: 290px;
-      background: #09090b;
-      border: 1px solid #27272a;
-      border-radius: 8px;
-      padding: 10px;
+      min-height: 220px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
     }
 
     .chat-msg {
-      max-width: 85%;
-      padding: 8px 11px;
-      border-radius: 8px;
+      max-width: 88%;
+      padding: 8px 12px;
+      border-radius: 12px;
       font-size: 11.5px;
-      line-height: 1.45;
+      line-height: 1.48;
+      backdrop-filter: blur(10px);
     }
-
     .chat-msg.user {
       align-self: flex-end;
-      background: #ffffff;
-      color: #000000;
+      background: rgba(255, 255, 255, 0.92);
+      color: #0c0d10;
       font-weight: 500;
+      border-bottom-right-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
-
     .chat-msg.assistant {
       align-self: flex-start;
-      background: #18181b;
-      border: 1px solid #27272a;
-      color: #fafafa;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-bottom-left-radius: 2px;
       white-space: pre-wrap;
     }
 
-    /* Pill list */
-    .pill-list {
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .feature-tile {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 8px;
+      text-align: center;
       display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
     }
-
-    .quick-chip {
-      background: #18181b;
-      border: 1px solid #27272a;
-      border-radius: 9999px;
-      padding: 3px 8px;
-      font-size: 10px;
-      color: #d4d4d8;
-      cursor: pointer;
-      transition: all 0.15s;
+    .feature-tile:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-glow);
     }
-
-    .quick-chip:hover {
-      background: #27272a;
+    .feature-icon-wrapper {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #ffffff;
-      border-color: #52525b;
+      margin-bottom: 2px;
+    }
+    .feature-icon-wrapper svg {
+      width: 14px;
+      height: 14px;
     }
 
     /* Toast */
     #toast {
       position: fixed;
-      bottom: 12px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: #27272a;
+      background: rgba(28, 30, 38, 0.95);
       color: #ffffff;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
       font-size: 11px;
       font-weight: 500;
       display: none;
-      z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      border: 1px solid #3f3f46;
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
-  <!-- Top App Bar -->
+
+  <!-- Top Glass Bar -->
   <header class="topbar">
     <div class="brand">
-      <img src="icon.png" alt="DomoNote">
+      <img src="icon.png" alt="DomoNote" class="brand-logo">
       <span class="brand-name">DomoNote</span>
       <div id="ai-status-pill" class="status-pill" title="Local Ollama AI Status (http://localhost:11434)">
         <span id="ai-status-dot" class="status-dot"></span>
@@ -371,50 +564,117 @@
       </div>
     </div>
     <div class="top-actions">
-      <select id="model-select" style="width: auto; padding: 3px 6px; font-size: 10px;">
+      <select id="model-select" class="glass-select" title="Active Ollama AI Model">
         <option value="llama3.2">llama3.2</option>
         <option value="mistral">mistral</option>
         <option value="gemma">gemma</option>
       </select>
       <button id="open-full-app-btn" class="icon-btn" title="Open DomoNote in Full Desktop / Web Tab">
-        Launch App ↗
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        <span>Web App</span>
       </button>
     </div>
   </header>
 
-  <!-- Navigation Tabs -->
+  <!-- Glass Segmented Tab Bar (Strictly Vector Icons, No Emojis) -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="notes">📝 Notes</button>
-    <button class="tab-btn" data-tab="meetings">🎙️ Meetings</button>
-    <button class="tab-btn" data-tab="ai">🤖 Local AI</button>
-    <button class="tab-btn" data-tab="capture">📸 Screen</button>
-    <button class="tab-btn" data-tab="docs">📄 Docs</button>
-    <button class="tab-btn" data-tab="sync">⚙️ Sync</button>
+    <button class="tab-btn active" data-tab="notes" title="Notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+      <span>Notes</span>
+    </button>
+    <button class="tab-btn" data-tab="meetings" title="Meetings & HUD">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        <line x1="12" y1="19" x2="12" y2="23"></line>
+        <line x1="8" y1="23" x2="16" y2="23"></line>
+      </svg>
+      <span>Meetings</span>
+    </button>
+    <button class="tab-btn" data-tab="ai" title="Local AI Assistant">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+      </svg>
+      <span>Assistant</span>
+    </button>
+    <button class="tab-btn" data-tab="capture" title="Screen Studio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+      <span>Screen</span>
+    </button>
+    <button class="tab-btn" data-tab="docs" title="Document Intelligence">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+      </svg>
+      <span>Docs</span>
+    </button>
+    <button class="tab-btn" data-tab="sync" title="Sync & Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+        <path d="M3 3v5h5"></path>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+        <path d="M16 16h5v5"></path>
+      </svg>
+      <span>Sync</span>
+    </button>
   </nav>
 
   <!-- 1. NOTES TAB -->
-  <div id="tab-notes" class="tab-content active" style="padding: 10px;">
+  <div id="tab-notes" class="tab-content active">
     <div class="notes-layout">
-      <!-- Left sidebar: note list -->
-      <div class="notes-sidebar">
-        <div style="display: flex; gap: 4px;">
-          <input type="text" id="note-search" placeholder="Search notes..." style="padding: 4px 6px; font-size: 10px;">
-          <button id="btn-new-note" class="btn" style="padding: 4px 8px; font-size: 10px;" title="New Note">+</button>
+      <!-- Search & Quick Note Creation -->
+      <div class="notes-sidebar-card">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="note-search" placeholder="Search notes..." style="padding: 5px 8px; font-size: 11px;">
+          <button id="btn-new-note" class="btn" style="padding: 5px 9px;" title="Create New Note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 12px; height: 12px;">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New</span>
+          </button>
         </div>
-        <div id="notes-list" style="display: flex; flex-direction: column; gap: 5px; flex: 1; overflow-y: auto;">
+        <div id="notes-list" style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto; padding-right: 2px;">
           <!-- Populated by popup.js -->
         </div>
       </div>
 
-      <!-- Right pane: note editor -->
-      <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+      <!-- Note Editor -->
+      <div class="note-editor-card">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-          <input type="text" id="note-title" placeholder="Note title..." style="font-weight: 700; font-size: 13px;">
-          <button id="btn-copy-note" class="icon-btn" title="Copy markdown to clipboard">Copy</button>
-          <button id="btn-delete-note" class="icon-btn" style="color: #ef4444;" title="Delete current note">Del</button>
+          <input type="text" id="note-title" placeholder="Note title..." style="font-weight: 600; font-size: 12.5px; padding: 6px 8px;">
+          <div style="display: flex; gap: 5px; flex-shrink: 0;">
+            <button id="btn-copy-note" class="icon-btn" title="Copy markdown to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+            <button id="btn-delete-note" class="icon-btn" style="color: #fca5a5;" title="Delete current note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Delete</span>
+            </button>
+          </div>
         </div>
-        <textarea id="note-content" placeholder="Start typing private markdown notes..." style="flex: 1; height: 320px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px;"></textarea>
-        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #71717a;">
+        <textarea id="note-content" placeholder="Type your private notes in markdown..." style="flex: 1; height: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px;"></textarea>
+        <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); padding: 0 2px;">
           <span id="note-word-count">0 words</span>
           <span>Saved to local storage</span>
         </div>
@@ -422,141 +682,231 @@
     </div>
   </div>
 
-  <!-- 2. MEETINGS & VOICE DICTATION TAB — Enhanced with In-Page HUD -->
-  <div id="tab-meetings" class="tab-content" style="gap:10px">
-
-    <!-- Launch In-Page HUD Banner -->
-    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,78,59,0.08) 100%); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: #ecfdf5; display:flex; align-items:center; gap:6px;">
-          <span style="font-size:16px">&#x1F3A4;</span> In-Page Meeting HUD
+  <!-- 2. MEETINGS & IN-PAGE HUD TAB -->
+  <div id="tab-meetings" class="tab-content">
+    
+    <!-- Launch In-Page Meeting HUD Banner -->
+    <div class="card-banner" style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <div style="width: 32px; height: 32px; border-radius: 9px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #10b981; flex-shrink: 0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 12.5px; font-weight: 700; color: #f4f4f6;">In-Page Meeting HUD</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; line-height: 1.4;">
+              Injects floating live secretary into Meet, Zoom, Teams. Per-speaker transcription &amp; local AI minutes.
+            </div>
+          </div>
         </div>
-        <div style="font-size: 10px; color: #6ee7b7; margin-top: 3px; line-height: 1.4;">
-          Injects a floating panel into your tab (Google Meet, Zoom, Teams, Jitsi).<br>
-          Per-speaker transcription &amp; full AI meeting docs &mdash; 100% local, no APIs.
-        </div>
-      </div>
-      <button id="btn-launch-meeting-hud" style="flex-shrink:0; background: #10b981; border: none; color: #022c22; font-size: 11px; font-weight: 800; padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.15s;">
-        &#9654; Launch HUD
-      </button>
-    </div>
-
-    <!-- Feature grid -->
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px;">
-      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
-        <div style="font-size:18px;margin-bottom:3px;">&#x1F464;</div>
-        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">Speaker Names</div>
-        <div style="font-size:9px; color:#71717a; margin-top:2px;">Reads participant tiles from the meeting UI</div>
-      </div>
-      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
-        <div style="font-size:18px;margin-bottom:3px;">&#x1F4DD;</div>
-        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">Live Transcript</div>
-        <div style="font-size:9px; color:#71717a; margin-top:2px;">Web Speech API &mdash; no cloud, no API key</div>
-      </div>
-      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
-        <div style="font-size:18px;margin-bottom:3px;">&#x1F916;</div>
-        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">AI Documentation</div>
-        <div style="font-size:9px; color:#71717a; margin-top:2px;">Full report via local Ollama on your machine</div>
+        <button id="btn-launch-meeting-hud" class="btn" style="background: #10b981; color: #022c22; border-color: #10b981; font-weight: 700; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width: 11px; height: 11px;">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Launch HUD</span>
+        </button>
       </div>
     </div>
 
-    <!-- Saved meeting documents -->
-    <div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-        <span style="font-size:11px; font-weight:600; color:#a1a1aa;">Saved Meeting Documents</span>
-        <button id="btn-refresh-meetings" class="icon-btn" style="font-size:10px; padding:3px 8px;">&#8635; Refresh</button>
+    <!-- Feature Grid with Vector Icons -->
+    <div class="feature-grid">
+      <div class="feature-tile">
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div style="font-size: 10.5px; font-weight: 600; color: var(--text-main);">Speakers</div>
+        <div style="font-size: 8.5px; color: var(--text-dim); line-height: 1.25;">Tile recognition</div>
       </div>
-      <div id="domo-meetings-list" style="display:flex; flex-direction:column; gap:5px; max-height:160px; overflow-y:auto;">
-        <div id="domo-meetings-empty" style="font-size:10px; color:#52525b; text-align:center; padding:16px 0;">
-          No saved meetings yet &mdash; launch the HUD above to start recording.
+      <div class="feature-tile">
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+        </div>
+        <div style="font-size: 10.5px; font-weight: 600; color: var(--text-main);">Transcript</div>
+        <div style="font-size: 8.5px; color: var(--text-dim); line-height: 1.25;">Web Speech API</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+          </svg>
+        </div>
+        <div style="font-size: 10.5px; font-weight: 600; color: var(--text-main);">Ollama AI</div>
+        <div style="font-size: 8.5px; color: var(--text-dim); line-height: 1.25;">Auto documents</div>
+      </div>
+    </div>
+
+    <!-- Saved Meetings Section -->
+    <div class="card" style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Saved Meeting Records</span>
+        <button id="btn-refresh-meetings" class="icon-btn" style="padding: 3px 7px; font-size: 10px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+      <div id="domo-meetings-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
+        <div id="domo-meetings-empty" style="font-size: 10px; color: var(--text-dim); text-align: center; padding: 14px 0;">
+          No saved meetings yet. Click Launch HUD above to record.
         </div>
       </div>
     </div>
 
-    <!-- Meeting doc viewer -->
-    <div id="domo-meeting-doc-viewer" style="display:none; flex-direction:column; gap:6px;">
-      <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span id="domo-meeting-doc-title" style="font-size:11px; font-weight:700; color:#e4e4e7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px;"></span>
-        <div style="display:flex;gap:5px; flex-shrink:0;">
-          <button id="btn-copy-meeting-doc" class="icon-btn" style="font-size:10px;">Copy</button>
-          <button id="btn-close-meeting-doc" class="icon-btn" style="font-size:10px;">&#x2715;</button>
+    <!-- Meeting Doc Viewer -->
+    <div id="domo-meeting-doc-viewer" class="card" style="display: none; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span id="domo-meeting-doc-title" style="font-size: 11.5px; font-weight: 600; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px;"></span>
+        <div style="display: flex; gap: 5px; flex-shrink: 0;">
+          <button id="btn-copy-meeting-doc" class="icon-btn" style="padding: 3px 7px; font-size: 10px;">Copy</button>
+          <button id="btn-close-meeting-doc" class="icon-btn" style="padding: 3px 6px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 11px; height: 11px;">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
       </div>
-      <div id="domo-meeting-doc-content" style="background:#111113; border:1px solid #27272a; border-radius:9px; padding:12px; font-family:ui-monospace,monospace; font-size:10px; color:#d4d4d8; line-height:1.6; white-space:pre-wrap; word-break:break-word; max-height:200px; overflow-y:auto;"></div>
+      <div id="domo-meeting-doc-content" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #d4d4d8; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto;"></div>
     </div>
 
-    <!-- Legacy quick recorder -->
-    <details style="border:1px solid #27272a; border-radius:9px; padding:8px 12px;">
-      <summary style="font-size:11px; font-weight:600; color:#71717a; cursor:pointer; user-select:none;">&#x1F3A4; Quick mic-only recorder (legacy)</summary>
-      <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
-        <div style="display:flex; align-items:center; justify-content:space-between;">
-          <span id="record-timer" style="font-family:ui-monospace,monospace; font-size:12px; font-weight:700; color:#ef4444;">00:00</span>
-          <button id="btn-record-toggle" class="btn btn-danger" style="font-size:10px;">&#11044; Start Recording</button>
+    <!-- Quick Standalone Mic Recorder (Legacy Fallback) -->
+    <details class="card" style="padding: 8px 12px;">
+      <summary style="font-size: 11px; font-weight: 600; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width: 12px; height: 12px;">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        </svg>
+        <span>Standalone Mic Recorder</span>
+      </summary>
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span id="record-timer" style="font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: #ef4444;">00:00</span>
+          <button id="btn-record-toggle" class="btn btn-danger" style="font-size: 10px; padding: 5px 10px;">
+            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 10px; height: 10px;">
+              <circle cx="12" cy="12" r="7"></circle>
+            </svg>
+            <span>Start Recording</span>
+          </button>
         </div>
-        <canvas id="audio-canvas" style="height:40px;"></canvas>
-        <textarea id="meeting-transcript" placeholder="Transcript will appear here..." style="height:100px; font-size:11px;"></textarea>
-        <div style="display:flex; gap:6px;">
-          <button id="btn-summarize-meeting" class="btn" style="font-size:10px; flex:1;">&#x2728; AI Summary</button>
-          <button id="btn-save-as-note" class="icon-btn" style="font-size:10px;">Save as Note</button>
+        <canvas id="audio-canvas" style="width: 100%; height: 38px; background: rgba(0, 0, 0, 0.4); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);"></canvas>
+        <textarea id="meeting-transcript" placeholder="Live transcript will appear here..." style="height: 80px; font-size: 10.5px;"></textarea>
+        <div style="display: flex; gap: 6px;">
+          <button id="btn-summarize-meeting" class="btn btn-secondary" style="font-size: 10px; flex: 1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+            </svg>
+            <span>AI Summary</span>
+          </button>
+          <button id="btn-save-as-note" class="icon-btn" style="font-size: 10px;">Save Note</button>
         </div>
-        <div id="meeting-summary-box" style="display:none; background:#18181b; border:1px solid #27272a; border-radius:8px; padding:10px; font-size:11px;">
-          <div style="font-weight:700; margin-bottom:4px; color:#10b981;">AI Summary:</div>
-          <div id="meeting-summary-text" style="white-space:pre-wrap; line-height:1.4;"></div>
+        <div id="meeting-summary-box" style="display: none; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 8px; font-size: 10.5px;">
+          <div style="font-weight: 600; margin-bottom: 4px; color: var(--emerald);">Summary:</div>
+          <div id="meeting-summary-text" style="white-space: pre-wrap; line-height: 1.4;"></div>
         </div>
       </div>
     </details>
 
   </div>
 
-  <!-- 3. LOCAL OLLAMA AI SECRETARY TAB -->
+  <!-- 3. LOCAL OLLAMA AI ASSISTANT TAB -->
   <div id="tab-ai" class="tab-content">
     <!-- Quick Action Chips -->
     <div class="pill-list">
-      <span class="quick-chip" id="chip-summarize-page">⚡ Summarize This Page</span>
-      <span class="quick-chip" id="chip-action-items">📋 Extract Action Items</span>
-      <span class="quick-chip" id="chip-polish-text">✍️ Polish Writing</span>
-      <span class="quick-chip" id="chip-clear-chat">🧹 Clear Chat</span>
+      <span class="quick-chip" id="chip-summarize-page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Summarize Page</span>
+      </span>
+      <span class="quick-chip" id="chip-action-items">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 11 12 14 22 4"></polyline>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        <span>Action Items</span>
+      </span>
+      <span class="quick-chip" id="chip-polish-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+        </svg>
+        <span>Polish Text</span>
+      </span>
+      <span class="quick-chip" id="chip-clear-chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span>Clear</span>
+      </span>
     </div>
 
-    <!-- Interactive Chat Window -->
+    <!-- Chat Messages Window -->
     <div id="chat-window" class="chat-container">
-      <div class="chat-msg assistant">Hello! I'm your DomoNote AI Secretary running locally via Ollama. Ask me anything, or click "Summarize This Page" to extract key takeaways from your current browser tab.</div>
+      <div class="chat-msg assistant">Hello! I am your DomoNote AI Secretary running 100% locally via Ollama. Ask me anything or tap "Summarize Page" to extract takeaways from your current tab.</div>
     </div>
 
-    <!-- Prompt Input -->
-    <div style="display: flex; gap: 6px;">
-      <input type="text" id="chat-input" placeholder="Ask your local AI secretary or enter a prompt...">
-      <button id="btn-chat-send" class="btn" style="padding: 6px 14px;">Send</button>
+    <!-- Chat Input Form -->
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <input type="text" id="chat-input" placeholder="Ask your local AI assistant..." style="flex: 1;">
+      <button id="btn-chat-send" class="btn" style="padding: 8px 14px;" title="Send Message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- 4. SCREEN STUDIO & CAPTURE TAB -->
+  <!-- 4. SCREEN STUDIO TAB -->
   <div id="tab-capture" class="tab-content">
-    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
       <div>
-        <div style="font-size: 12px; font-weight: 700;">Screen Capture & Coordinate Studio</div>
-        <div style="font-size: 10px; color: #71717a; margin-top: 2px;">
-          Capture the active tab, click elements to detect coordinates, and draft illustrated SOP manuals.
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Screen &amp; Step Studio</div>
+        <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+          Snap tab, click UI targets to frame coordinates, and document SOP steps.
         </div>
       </div>
-      <button id="btn-capture-tab" class="btn">📸 Snap Current Tab</button>
+      <button id="btn-capture-tab" class="btn" style="padding: 6px 11px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+        <span>Snap Tab</span>
+      </button>
     </div>
 
-    <!-- Capture Canvas Container -->
-    <div id="capture-container" style="position: relative; width: 100%; height: 260px; background: #000; border: 1px solid #27272a; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+    <!-- Canvas Preview Box -->
+    <div id="capture-container" style="position: relative; width: 100%; height: 240px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center;">
       <canvas id="screenshot-canvas" style="max-width: 100%; max-height: 100%; cursor: crosshair;"></canvas>
-      <div id="capture-placeholder" style="color: #71717a; font-size: 11px;">
-        Click "Snap Current Tab" above to capture and annotate
+      <div id="capture-placeholder" style="color: var(--text-dim); font-size: 10.5px; text-align: center; padding: 0 16px;">
+        Click "Snap Tab" to capture your current window and mark coordinates.
       </div>
     </div>
 
     <!-- Coordinate and Step Manual Generator -->
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-      <div id="coord-display" style="font-family: monospace; font-size: 11px; color: #a1a1aa;">
-        Click image to anchor coordinates: [x: --, y: --]
+      <div id="coord-display" style="font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--text-muted);">
+        Anchor coordinate: [x: --, y: --]
       </div>
-      <button id="btn-export-manual" class="btn btn-secondary" style="font-size: 10px;">
-        Save Manual Step to Notes
+      <button id="btn-export-manual" class="btn btn-secondary" style="font-size: 10px; padding: 5px 9px;">
+        Save Step to Notes
       </button>
     </div>
   </div>
@@ -564,60 +914,75 @@
   <!-- 5. DOCUMENT INTELLIGENCE TAB -->
   <div id="tab-docs" class="tab-content">
     <div class="card">
-      <div style="font-size: 12px; font-weight: 700;">Document & Text Intelligence</div>
-      <div style="font-size: 10px; color: #71717a; margin-top: 2px;">
-        Paste text, report snippets, or upload files to extract answers with local AI.
+      <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Document &amp; Text Intelligence</div>
+      <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+        Paste technical specs, reports, or contracts to analyze with local Ollama AI.
       </div>
     </div>
 
-    <textarea id="doc-input" placeholder="Paste document content, research paper excerpt, or technical spec here..." style="height: 160px;"></textarea>
+    <textarea id="doc-input" placeholder="Paste report text, research excerpt, or contract clauses here..." style="height: 140px; font-size: 11px;"></textarea>
 
     <div style="display: flex; gap: 6px;">
-      <input type="text" id="doc-question" placeholder="Ask a question about this document...">
-      <button id="btn-ask-doc" class="btn">Analyze</button>
+      <input type="text" id="doc-question" placeholder="Ask a specific question about this document...">
+      <button id="btn-ask-doc" class="btn" style="padding: 7px 14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>Analyze</span>
+      </button>
     </div>
 
     <div id="doc-answer-box" class="card" style="display: none; font-size: 11px; flex: 1; overflow-y: auto;">
-      <div style="font-weight: 700; margin-bottom: 4px; color: #38bdf8;">AI Document Analysis:</div>
-      <div id="doc-answer-text" style="white-space: pre-wrap; line-height: 1.45;"></div>
+      <div style="font-weight: 600; margin-bottom: 4px; color: #38bdf8;">Analysis Result:</div>
+      <div id="doc-answer-text" style="white-space: pre-wrap; line-height: 1.5; color: #e4e4e7;"></div>
     </div>
   </div>
 
   <!-- 6. SYNC & SETTINGS TAB -->
   <div id="tab-sync" class="tab-content">
-    <div class="card space-y-2">
-      <div style="font-size: 12px; font-weight: 700;">Offline Storage & DomoNote Bridge</div>
-      <div style="font-size: 10px; color: #71717a; margin-top: 2px;">
-        All extension data is stored strictly in your browser storage (chrome.storage.local).
+    <div class="card">
+      <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Offline Storage &amp; Bridge</div>
+      <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+        All data is persisted strictly in chrome.storage.local. 100% private and offline.
       </div>
     </div>
 
     <div class="card" style="display: flex; flex-direction: column; gap: 8px; font-size: 11px;">
-      <div style="display: flex; justify-content: space-between;">
-        <span style="color: #a1a1aa;">Stored Notes:</span>
-        <span id="stat-notes-count" style="font-weight: 700;">0</span>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--text-muted);">Stored Notes:</span>
+        <span id="stat-notes-count" style="font-weight: 700; color: #ffffff;">0</span>
       </div>
-      <div style="display: flex; justify-content: space-between;">
-        <span style="color: #a1a1aa;">Ollama Daemon Base URL:</span>
-        <span style="font-family: monospace;">http://localhost:11434</span>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--text-muted);">Ollama Daemon:</span>
+        <span style="font-family: ui-monospace, monospace; color: var(--emerald);">localhost:11434</span>
       </div>
-      <div style="display: flex; justify-content: space-between;">
-        <span style="color: #a1a1aa;">Desktop Web Workspace:</span>
-        <span style="font-family: monospace;">http://localhost:5173</span>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--text-muted);">Web App Workspace:</span>
+        <span style="font-family: ui-monospace, monospace; color: var(--text-main);">localhost:5173</span>
       </div>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
       <button id="btn-export-backup" class="btn btn-secondary">
-        ⬇ Export All Extension Data (JSON)
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export All Data (JSON)</span>
       </button>
-      <button id="btn-clear-all" class="btn" style="background: #27272a; color: #ef4444;">
-        ⚠️ Clear All Extension Storage
+      <button id="btn-clear-all" class="btn btn-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span>Clear Extension Storage</span>
       </button>
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- Glass Floating Toast -->
   <div id="toast"></div>
 
   <script src="popup.js"></script>
