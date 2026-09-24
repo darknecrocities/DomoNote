@@ -417,16 +417,62 @@ export class MeetingSpeakerHook {
     let isNewDetection = false;
     const currentList = [...new Set([...roster, ...Array.from(this.discoveredSpeakers.keys())])];
 
+    // Identify high-confidence DOM-sourced speakers (Google Meet / Zoom / Teams scraping)
+    const domSpeakers = Array.from(this.discoveredSpeakers.values())
+      .filter(s => s.source !== 'conversational' && s.source !== 'manual' && s.confidence >= 0.85);
+    const hasDomRoster = domSpeakers.length > 0;
+
+    /**
+     * Fuzzy-match a candidate name against known roster.
+     * Returns matched roster name or null.
+     * Handles: "German" → "German", "Arron" → "Arron Parejas", "aaron" → "Arron Parejas"
+     */
+    const matchToRoster = (candidate: string): string | null => {
+      if (!candidate) return null;
+      const c = candidate.toLowerCase().trim();
+      for (const known of currentList) {
+        if (known.toLowerCase() === 'you / host') continue;
+        const knownParts = known.toLowerCase().split(/\s+/);
+        // Exact full name match
+        if (known.toLowerCase() === c) return known;
+        // First name match
+        if (knownParts[0] === c) return known;
+        // Candidate first name matches known first name
+        const candidateParts = c.split(/\s+/);
+        if (candidateParts[0] === knownParts[0]) return known;
+        // Near-match (1 char diff, same first 3 chars — handles "aaron" vs "arron")
+        if (
+          Math.abs(knownParts[0].length - candidateParts[0].length) <= 1 &&
+          knownParts[0].length >= 3 &&
+          knownParts[0].substring(0, 3) === candidateParts[0].substring(0, 3)
+        ) {
+          return known;
+        }
+      }
+      return null;
+    };
+
     // 0. Handle two-part self-introductions (e.g. segment 1: "hi guys my name is", segment 2: "german")
     if (this.pendingIntroPrefix) {
       this.pendingIntroPrefix = false;
       const candidateWords = text.trim().split(/\s+/).slice(0, 2).join(' ');
       const candidate = cleanSpeakerName(candidateWords);
       if (candidate) {
-        assigned = candidate;
-        this.addSpeaker(candidate, 'conversational', 0.95);
-        this.activeSpeaker = candidate;
-        isNewDetection = true;
+        const rosterMatch = matchToRoster(candidate);
+        if (rosterMatch) {
+          // Confirmed — this name matches a known DOM participant
+          assigned = rosterMatch;
+          this.addSpeaker(rosterMatch, 'conversational', 0.95);
+          this.activeSpeaker = rosterMatch;
+          isNewDetection = true;
+        } else if (!hasDomRoster) {
+          // No DOM roster yet — accept any valid name from speech
+          assigned = candidate;
+          this.addSpeaker(candidate, 'conversational', 0.95);
+          this.activeSpeaker = candidate;
+          isNewDetection = true;
+        }
+        // If hasDomRoster but no match: ignore the unknown name, don't pollute roster
       }
     }
 
@@ -437,14 +483,24 @@ export class MeetingSpeakerHook {
 
     // 1. If audio channel hint is provided (Hardware/Audio Analyser level diarization)
     if (channelHint === 'remote') {
-      const nonHostSpeakers = currentList.filter(
-        (s) => s.toLowerCase() !== 'you / host' && !/^speaker\s*\d*$/i.test(s)
-      );
-      if (nonHostSpeakers.length > 0) {
-        assigned = nonHostSpeakers[0];
+      // Priority: DOM active speaker > most recent DOM-sourced participant > first non-host
+      if (this.activeSpeaker && this.activeSpeaker !== 'You / Host') {
+        assigned = this.activeSpeaker;
       } else {
-        assigned = 'Participant 2';
-        this.addSpeaker('Participant 2', 'manual', 0.85);
+        const nonHostDomSpeakers = domSpeakers
+          .filter(s => s.name.toLowerCase() !== 'you / host')
+          .sort((a, b) => b.lastActive - a.lastActive);
+        const nonHostSpeakers = currentList.filter(
+          (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s)
+        );
+        if (nonHostDomSpeakers.length > 0) {
+          assigned = nonHostDomSpeakers[0].name;
+        } else if (nonHostSpeakers.length > 0) {
+          assigned = nonHostSpeakers[0];
+        } else {
+          assigned = 'Participant 2';
+          this.addSpeaker('Participant 2', 'manual', 0.85);
+        }
       }
       this.activeSpeaker = assigned;
       isNewDetection = assigned !== currentSpeaker;
@@ -465,14 +521,28 @@ export class MeetingSpeakerHook {
       const conversational = detectConversationalSpeaker(text, currentList);
       if (conversational) {
         if (conversational.isSelfIntro) {
-          assigned = conversational.name;
-          this.addSpeaker(conversational.name, 'conversational', 0.95);
-          this.activeSpeaker = conversational.name;
-          isNewDetection = true;
+          // When DOM roster exists, the self-intro name MUST match a known participant
+          const rosterMatch = matchToRoster(conversational.name);
+          if (rosterMatch) {
+            assigned = rosterMatch;
+            this.addSpeaker(rosterMatch, 'conversational', 0.95);
+            this.activeSpeaker = rosterMatch;
+            isNewDetection = true;
+          } else if (!hasDomRoster) {
+            // No DOM roster — accept speech-derived name
+            assigned = conversational.name;
+            this.addSpeaker(conversational.name, 'conversational', 0.95);
+            this.activeSpeaker = conversational.name;
+            isNewDetection = true;
+          }
+          // hasDomRoster but no match: reject unknown name silently
         } else if (conversational.isHandoff) {
-          // Prepare pending handoff for the next segment
-          this.pendingHandoff = conversational.name;
-          this.addSpeaker(conversational.name, 'conversational', 0.85);
+          const rosterMatch = matchToRoster(conversational.name);
+          const resolvedName = rosterMatch || (!hasDomRoster ? conversational.name : null);
+          if (resolvedName) {
+            this.pendingHandoff = resolvedName;
+            this.addSpeaker(resolvedName, 'conversational', 0.85);
+          }
         }
       } else if (this.activeSpeaker && this.activeSpeaker !== currentSpeaker && !channelHint) {
         // If a meeting app DOM hook signaled an active speaker
@@ -480,13 +550,12 @@ export class MeetingSpeakerHook {
       }
     }
 
-    // 3. Eradicate generic "Speaker 1" / "Speaker 2" if we have known participants
-    if (/^speaker\s*\d*$/i.test(assigned) || assigned.toLowerCase() === 'guest') {
+    // 3. Eradicate generic "Speaker N" / "Participant N" if we have known real participants
+    if (/^(?:speaker|participant)\s*\d*$/i.test(assigned) || assigned.toLowerCase() === 'guest') {
       const nonHostSpeakers = currentList.filter(
-        (s) => s.toLowerCase() !== 'you / host' && !/^speaker\s*\d*$/i.test(s)
+        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s)
       );
       if (nonHostSpeakers.length > 0) {
-        // Assign to the first discovered external participant
         assigned = nonHostSpeakers[0];
       } else {
         assigned = 'You / Host';
@@ -495,8 +564,10 @@ export class MeetingSpeakerHook {
 
     const updatedRoster = [...new Set([
       'You / Host',
-      ...currentList.filter((s) => s.toLowerCase() !== 'you / host'),
-      assigned,
+      ...currentList.filter(
+        (s) => s.toLowerCase() !== 'you / host' && !/^(?:speaker|participant)\s*\d*$/i.test(s)
+      ),
+      ...(!/^(?:speaker|participant)\s*\d*$/i.test(assigned) ? [assigned] : []),
     ])];
 
     return {

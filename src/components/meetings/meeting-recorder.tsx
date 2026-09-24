@@ -571,9 +571,6 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       speechTranscriberRef.current?.setLanguage(spokenLanguage);
       speechTranscriberRef.current?.start(handleIncomingSegment, handleIncomingInterim);
 
-      // Automatically launch Always-on-Top floating controller over Google Meet and Windows
-      setShouldAutoOpenPiP(true);
-
       addToast(`${appName} / Tab audio capture started with multi-speaker detection.`, 'info');
     } catch (err: any) {
       console.warn('[DomoNote] Tab capture cancelled:', err?.message);

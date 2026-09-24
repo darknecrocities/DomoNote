@@ -471,6 +471,9 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
     }
   }, [autoOpenPiP]);
 
+  // When PiP is active, the floating bar lives inside the PiP window — hide the in-page bar
+  if (isPiPActive) return null;
+
   return (
     <aside
       aria-label="Floating meeting controls"
