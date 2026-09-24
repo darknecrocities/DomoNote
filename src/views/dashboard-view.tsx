@@ -18,6 +18,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { WorkspaceAnalyticsCard } from '../components/dashboard/workspace-analytics-card';
+import { ChromeIcon } from '../components/ui/chrome-icon';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -72,7 +73,7 @@ export const DashboardView: React.FC = () => {
             className="hidden sm:flex items-center gap-1.5 bg-white dark:bg-black border border-slate-300 dark:border-zinc-850 text-slate-800 dark:text-zinc-200 hover:text-black dark:hover:text-white"
             title="Automated 1-Click Chrome Extension Integration"
           >
-            <Layers className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300" />
+            <ChromeIcon className="w-3.5 h-3.5 shrink-0" />
             <span>Chrome Extension</span>
           </Button>
           <Button size="sm" variant="primary" onClick={handleCreateNewNote}>

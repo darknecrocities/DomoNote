@@ -23,6 +23,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';
+import { ChromeIcon } from '../ui/chrome-icon';
 import { useWorkspace, type ViewType } from '../../context/workspace-context';
 import { useLanguage } from '../../context/language-context';
 import { useAI } from '../../context/ai-context';
@@ -189,7 +190,7 @@ export const Sidebar: React.FC = () => {
             collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
           } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent`}
         >
-          <Layers className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110 text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-white" />
+          <ChromeIcon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
           {!collapsed && (
             <div className="ml-3 flex-1 flex items-center justify-between min-w-0">
               <span className="truncate tracking-tight text-[13px] font-semibold">
@@ -289,21 +290,24 @@ export const Sidebar: React.FC = () => {
         {/* macOS Titlebar & Traffic Light Clearance Area */}
         <div className="h-8 w-full shrink-0 flex items-center px-4 select-none [app-region:drag] [-webkit-app-region:drag]" />
 
-        {/* Brand Header */}
-        <div className="px-3.5 pb-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setActiveView('landing')}
-            className="flex items-center gap-2.5 text-left cursor-pointer hover:opacity-85 transition-opacity min-w-0 group"
-            title="DomoNote — Return to Landing Page"
-            aria-label="Return to Landing Page"
-          >
-            <img
-              src={logoImg}
-              alt="DomoNote"
-              className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md border border-slate-200 dark:border-white/10 group-hover:scale-105 transition-transform"
-            />
-            {!isCollapsed && (
+        {/* Brand Header — logo hidden when collapsed, only toggle button shown */}
+        <div className={`pb-3 border-b border-slate-200 dark:border-white/10 flex items-center ${
+          isCollapsed ? 'justify-center px-2' : 'px-3.5 justify-between'
+        }`}>
+          {/* Logo + name: only visible when expanded */}
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={() => setActiveView('landing')}
+              className="flex items-center gap-2.5 text-left cursor-pointer hover:opacity-85 transition-opacity min-w-0 group"
+              title="DomoNote — Return to Landing Page"
+              aria-label="Return to Landing Page"
+            >
+              <img
+                src={logoImg}
+                alt="DomoNote"
+                className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md border border-slate-200 dark:border-white/10 group-hover:scale-105 transition-transform"
+              />
               <div className="truncate">
                 <div className="font-bold text-sm text-slate-950 dark:text-white tracking-tight leading-none truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   DomoNote
@@ -313,13 +317,14 @@ export const Sidebar: React.FC = () => {
                   <span>Personal Secretary</span>
                 </div>
               </div>
-            )}
-          </button>
+            </button>
+          )}
 
+          {/* Collapse / Expand toggle — always visible */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
-            title={isCollapsed ? 'Expand sidebar (Cmd+B)' : 'Collapse sidebar (Cmd+B)'}
+            title={isCollapsed ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -377,4 +382,3 @@ export const Sidebar: React.FC = () => {
     </>
   );
 };
-

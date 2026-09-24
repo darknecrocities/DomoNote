@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
+import { ChromeIcon } from '../components/ui/chrome-icon';
 import { ChromeExtensionModal } from '../components/modals/chrome-extension-modal';
 
 export type SupportedOS = 'macos' | 'windows' | 'linux';
@@ -217,7 +218,7 @@ bash start.sh
             onClick={() => setIsExtensionModalOpen(true)}
             className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 text-xs font-semibold text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/40 transition-colors shadow-sm"
           >
-            <Layers className="w-3.5 h-3.5" />
+            <ChromeIcon className="w-3.5 h-3.5" />
             <span>Chrome Extension</span>
           </button>
 

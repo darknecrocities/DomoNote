@@ -25,6 +25,7 @@ import {
   Star,
 } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
+import { ChromeIcon } from '../components/ui/chrome-icon';
 import { NoiseTexture } from '../components/ui/noise-texture';
 import { HeroLiveWorkspace } from '../components/landing/hero-live-workspace';
 import { StickyStorySection } from '../components/landing/sticky-story-section';
@@ -75,7 +76,7 @@ const TYPEWRITER_PHRASES: Record<string, string[]> = {
 };
 
 export const LandingPage: React.FC = () => {
-  const { setActiveView, isCloudHost, setIsCloudModalOpen } = useWorkspace();
+  const { setActiveView, isCloudHost, setIsCloudModalOpen, setIsExtensionModalOpen } = useWorkspace();
   const { playPop, playThock } = useSound();
   const { t, language } = useLanguage();
   const { theme } = useTheme();
@@ -309,6 +310,16 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5 h-full">
+            {/* 1-Click Chrome Extension Button */}
+            <button
+              onClick={() => setIsExtensionModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors group"
+              title="DomoNote Chrome Extension (1-Click Automated Setup)"
+            >
+              <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
+              <span className="hidden sm:inline font-medium">Chrome Extension</span>
+            </button>
+
             <button
               onClick={() => setActiveView('download')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-colors"
@@ -408,6 +419,20 @@ export const LandingPage: React.FC = () => {
                 <Button variant="primary" size="lg" onClick={handleOpenWorkspace}>
                   <span>{isCloudHost ? t('landing.hero.downloadApp', 'Download Desktop App') : t('landing.hero.openWorkspace', 'Open Workspace')}</span>
                   {isCloudHost ? <Download className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
+                  onClick={() => setIsExtensionModalOpen(true)}
+                  title="1-Click Chrome Extension Setup"
+                >
+                  <ChromeIcon className="w-4 h-4 shrink-0" />
+                  <span>Chrome Extension</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-300 dark:border-emerald-800">
+                    1-Click
+                  </span>
                 </Button>
 
                 <Button

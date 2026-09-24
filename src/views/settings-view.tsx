@@ -49,6 +49,7 @@ import {
   Key,
   ExternalLink,
 } from 'lucide-react';
+import { ChromeIcon } from '../components/ui/chrome-icon';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -63,7 +64,7 @@ export const SettingsView: React.FC = () => {
     startOllamaService,
     pullModel,
   } = useAI();
-  const { addToast } = useWorkspace();
+  const { addToast, setIsExtensionModalOpen } = useWorkspace();
 
   const [inputUrl, setInputUrl] = useState(baseUrl);
   const [companionStatus, setCompanionStatus] = useState<string>('checking');
@@ -300,7 +301,7 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-4xl mx-auto w-full select-none transition-colors duration-500 font-sans">
       {/* Sticky Settings Header & Quick Jump Navigation */}
-      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-4 pt-1 -mt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 transition-colors duration-500">
+      <div className="sticky top-0 z-20 bg-slate-50/90 dark:bg-black/90 backdrop-blur-md pb-4 pt-2 mb-8 border-b border-slate-200 dark:border-zinc-850 transition-colors duration-500">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
             <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">Settings</h2>
@@ -336,9 +337,10 @@ export const SettingsView: React.FC = () => {
           <button
             type="button"
             onClick={() => document.getElementById('section-companion')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
-            Chrome Extension
+            <ChromeIcon className="w-3.5 h-3.5" />
+            <span>Chrome Extension</span>
           </button>
           <button
             type="button"
@@ -1027,7 +1029,7 @@ export const SettingsView: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 text-slate-900 dark:text-white">
-                <Puzzle className="w-5 h-5 text-slate-900 dark:text-white" />
+                <ChromeIcon className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Chrome Browser Extension</h3>
@@ -1051,6 +1053,52 @@ export const SettingsView: React.FC = () => {
                 The Chrome extension connects Google Meet sessions directly to your local DomoNote workspace.
                 All audio is captured via Chrome's native <code>tabCapture</code> API with zero external servers.
               </p>
+            </div>
+          </div>
+
+          {/* ── 1-Click Install Action Bar ── */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-zinc-900 dark:to-black border border-slate-700 dark:border-zinc-800 shadow-sm">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-white mb-0.5">Quick Install</div>
+              <div className="text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
+                Download the ZIP, then load it unpacked in Chrome — takes 30 seconds.
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
+              {/* 1-Click Automated Setup Modal */}
+              <button
+                type="button"
+                onClick={() => setIsExtensionModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-sm whitespace-nowrap"
+              >
+                <ChromeIcon className="w-3.5 h-3.5 shrink-0" colored={false} />
+                <span>1-Click Setup</span>
+              </button>
+              {/* Download ZIP */}
+              <a
+                href="/api/chrome-extension/download-zip"
+                download="DomoNote-Chrome-Extension.zip"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-zinc-100 text-slate-900 text-xs font-bold hover:bg-slate-100 transition-colors shadow-sm whitespace-nowrap"
+              >
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                Download ZIP
+              </a>
+              {/* Open chrome://extensions */}
+              <button
+                onClick={async () => {
+                  try {
+                    await fetch('/api/chrome-extension/open-extensions-page', { method: 'POST' });
+                    addToast('Opened chrome://extensions in Google Chrome!', 'success');
+                  } catch {
+                    copyToClipboard('chrome://extensions', 'url');
+                    addToast('chrome://extensions copied — paste it in your Chrome address bar', 'info');
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-700 dark:bg-zinc-800 text-white text-xs font-bold hover:bg-slate-600 dark:hover:bg-zinc-700 transition-colors border border-slate-600 dark:border-zinc-700 whitespace-nowrap"
+              >
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                Open Extensions
+              </button>
             </div>
           </div>
 

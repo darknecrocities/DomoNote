@@ -31,6 +31,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
 }) => {
   const [activeStage, setActiveStage] = useState<DemoStage>('calls');
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -121,9 +122,9 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
 
   const currentStageIndex = stages.findIndex((s) => s.id === activeStage);
 
-  // Auto-play loop carousel timer
+  // Auto-play loop carousel timer (pauses when user hovers or interacts)
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isHovered) return;
 
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -141,7 +142,7 @@ export const InteractiveFeatureDemo: React.FC<InteractiveFeatureDemoProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isHovered]);
 
   const playSpeakerAudio = (speakerIdx: number) => {
     const speaker = speakersData[speakerIdx];
@@ -324,7 +325,11 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
   ];
 
   return (
-    <div className="w-full rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-xl font-sans text-left relative z-10">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="w-full rounded-2xl border border-zinc-850 bg-zinc-950 overflow-hidden shadow-xl font-sans text-left relative z-10"
+    >
       {/* Top Minimal Bar */}
       <div className="px-4 py-3 border-b border-zinc-850 bg-zinc-900/50 flex items-center justify-between gap-3 text-xs">
         {/* Left: Window Dots & Title */}
@@ -429,8 +434,8 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
         </div>
       </div>
 
-      {/* Main Slide Content */}
-      <div key={activeStage} className="p-5 sm:p-6 min-h-[440px] flex flex-col justify-between bg-[#080808] animate-slide-in-right overflow-hidden">
+      {/* Main Slide Content - Fixed stable height across all tabs to prevent layout shift */}
+      <div key={activeStage} className="p-4 sm:p-6 h-[560px] sm:h-[500px] flex flex-col justify-between bg-[#080808] animate-slide-in-right overflow-y-auto lg:overflow-hidden">
         {/* ================= STAGE 1: CALL RECORDING ================= */}
         {activeStage === 'calls' && (
           <div className="space-y-5">
@@ -493,7 +498,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
             {/* Visualizer & Dialogue Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Speakers Column (Left 4 cols) */}
-              <div className="lg:col-span-4 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2.5 text-xs">
+              <div className="lg:col-span-4 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2.5 text-xs lg:h-[390px] overflow-y-auto">
                 <div className="text-[11px] font-medium text-zinc-400 flex items-center justify-between">
                   <span>Speakers</span>
                 </div>
@@ -559,7 +564,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               </div>
 
               {/* Audio Wave & Live Transcribing Stream (Right 8 cols) */}
-              <div className="lg:col-span-8 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3 flex flex-col justify-between">
+              <div className="lg:col-span-8 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3 flex flex-col justify-between lg:h-[390px] overflow-y-auto">
                 {/* Audio Wave Visualizer reacting to active speaker */}
                 <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-850 flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 px-1">
@@ -641,8 +646,8 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
                           </div>
                         </div>
 
-                        {/* Live Streaming Speech Text */}
-                        <p className="text-zinc-200 text-xs sm:text-[13px] leading-relaxed pl-1">
+                        {/* Live Streaming Speech Text - min-h prevents typewriter height shifts */}
+                        <p className="text-zinc-200 text-xs sm:text-[13px] leading-relaxed pl-1 min-h-[38px]">
                           {isCurrent ? (
                             <>
                               "{speaker.text.slice(0, charIndex)}"
@@ -691,7 +696,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
             {/* Clean 2-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs">
               {/* Left: Input snippets */}
-              <div className="lg:col-span-5 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2">
+              <div className="lg:col-span-5 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-2 lg:h-[390px] overflow-y-auto">
                 <div className="text-[11px] font-medium text-zinc-400">What We Said</div>
                 <div className="space-y-2 p-3 rounded bg-zinc-950 border border-zinc-850 text-zinc-400 text-[11px] leading-relaxed">
                   <p>• Keep all notes safe on this computer</p>
@@ -702,7 +707,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               </div>
 
               {/* Right: Structured Notes */}
-              <div className="lg:col-span-7 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3">
+              <div className="lg:col-span-7 p-3.5 rounded-lg border border-zinc-850 bg-zinc-900/30 space-y-3 lg:h-[390px] overflow-y-auto">
                 <div className="text-[11px] font-medium text-zinc-300">Short Summary</div>
 
                 <div className="p-3 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 leading-relaxed text-xs">
@@ -785,13 +790,9 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               {/* Left 8 Cols: Authentic A4 Paper Sheet (Meeting Transcribe) */}
               <div className="lg:col-span-8 flex justify-center w-full">
                 <div
-                  className={`w-full max-w-[620px] bg-white text-zinc-900 rounded-sm shadow-2xl p-6 sm:p-9 border border-zinc-300/80 transition-all duration-300 relative text-xs leading-relaxed font-sans flex flex-col justify-between ${
-                    isZoomMode ? 'scale-[1.03] shadow-2xl' : 'scale-100'
+                  className={`w-full max-w-[620px] bg-white text-zinc-900 rounded-xl shadow-xl p-5 sm:p-6 border border-zinc-300 transition-all duration-300 relative text-xs leading-relaxed font-sans flex flex-col justify-between h-[390px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 scrollbar-track-zinc-100 ${
+                    isZoomMode ? 'scale-[1.02]' : 'scale-100'
                   }`}
-                  style={{
-                    minHeight: '740px',
-                    aspectRatio: '1 / 1.414',
-                  }}
                 >
                   {/* Top Paper Header: Meeting Transcribe Letterhead */}
                   <div>
@@ -924,7 +925,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
               </div>
 
               {/* Right 4 Cols: Inspector */}
-              <div className="lg:col-span-4 p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 text-xs space-y-4">
+              <div className="lg:col-span-4 p-4 rounded-xl border border-zinc-850 bg-zinc-900/40 text-xs space-y-3 lg:h-[390px] overflow-y-auto flex flex-col justify-between">
                 <div className="pb-3 border-b border-zinc-850">
                   <div className="font-semibold text-white mb-1">Transcript Annotation</div>
                   <div className="text-[11px] text-zinc-400">
@@ -1032,7 +1033,7 @@ We talked about keeping all notes safe at home on this computer. Nobody on the i
             </div>
 
             {/* Clean Note Content */}
-            <div className="p-4 sm:p-5 rounded-lg border border-zinc-850 bg-zinc-900/20 text-xs space-y-4">
+            <div className="p-4 sm:p-5 rounded-lg border border-zinc-850 bg-zinc-900/20 text-xs space-y-4 lg:h-[390px] overflow-y-auto">
               <div className="flex items-center gap-2 text-zinc-400 text-[11px] pb-3 border-b border-zinc-850">
                 <Clock className="w-3.5 h-3.5 text-zinc-500" />
                 <span>Duration: 15 mins</span>

@@ -1,10 +1,122 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { exec } from 'child_process';
+import fs from 'fs';
+
+function chromeExtensionInstallerPlugin() {
+  return {
+    name: 'domonote-chrome-extension-installer',
+    configureServer(server: any) {
+      console.log('[Extension Installer] configureServer initialized');
+      server.middlewares.use(async (req: any, res: any, next: any) => {
+        const url = req.url || '';
+        console.log('[Extension Installer] Request URL:', url);
+
+        if (url.startsWith('/api/chrome-extension/auto-install')) {
+          const extensionDir = path.resolve(__dirname, 'browser-extension');
+          const userDownloads = path.join(process.env.HOME || '', 'Downloads', 'DomoNote-Chrome-Extension');
+          const userDesktop = path.join(process.env.HOME || '', 'Desktop', 'DomoNote-Chrome-Extension');
+
+          // 1. Copy unpacked extension directly into user's ~/Downloads and ~/Desktop folders so it appears immediately
+          exec(`rm -rf "${userDownloads}" "${userDesktop}" && cp -r "${extensionDir}" "${userDownloads}" && cp -r "${extensionDir}" "${userDesktop}"`, () => {
+            // 2. Reveal in Finder
+            exec(`open -R "${path.join(userDownloads, 'manifest.json')}"`, () => {});
+          });
+
+          // 3. Open chrome://extensions in Google Chrome via AppleScript
+          exec(`osascript -e 'tell application "Google Chrome" to open location "chrome://extensions"'`, () => {});
+
+          // 4. Copy Downloads extension path to macOS clipboard
+          exec(`printf "%s" "${userDownloads}" | pbcopy`, () => {});
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              success: true,
+              message: 'Extension folder created in Downloads and revealed in Finder!',
+              path: userDownloads,
+            })
+          );
+          return;
+        }
+
+        if (url.startsWith('/api/chrome-extension/launch-browser')) {
+          const extensionDir = path.resolve(__dirname, 'browser-extension');
+
+          exec(
+            `open -na "Google Chrome" --args --load-extension="${extensionDir}" "http://127.0.0.1:5173/?view=settings"`,
+            (err: any) => {
+              if (err) {
+                exec(`open -a "Google Chrome" --args --load-extension="${extensionDir}" "http://127.0.0.1:5173/?view=settings"`);
+              }
+            }
+          );
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              success: true,
+              message: 'Chrome launched with DomoNote extension preloaded!',
+              path: extensionDir,
+            })
+          );
+          return;
+        }
+
+        if (url.startsWith('/api/chrome-extension/open-extensions-page')) {
+          exec(`osascript -e 'tell application "Google Chrome" to open location "chrome://extensions"'`, () => {});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true }));
+          return;
+        }
+
+        if (url.startsWith('/api/chrome-extension/reveal-folder')) {
+          const extensionDir = path.resolve(__dirname, 'browser-extension');
+          exec(`open -R "${path.join(extensionDir, 'manifest.json')}"`, () => {});
+          exec(`printf "%s" "${extensionDir}" | pbcopy`, () => {});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, path: extensionDir }));
+          return;
+        }
+
+        if (url.startsWith('/api/chrome-extension/download-zip')) {
+          const zipPath = path.resolve(__dirname, 'public/downloads/DomoNote-Chrome-Extension.zip');
+          if (fs.existsSync(zipPath)) {
+            const stat = fs.statSync(zipPath);
+            res.writeHead(200, {
+              'Content-Type': 'application/zip',
+              'Content-Length': stat.size,
+              'Content-Disposition': 'attachment; filename="DomoNote-Chrome-Extension.zip"',
+            });
+            fs.createReadStream(zipPath).pipe(res);
+            return;
+          }
+        }
+
+        if (url.startsWith('/api/chrome-extension/download-script')) {
+          const scriptPath = path.resolve(__dirname, 'browser-extension/setup-extension.command');
+          if (fs.existsSync(scriptPath)) {
+            const stat = fs.statSync(scriptPath);
+            res.writeHead(200, {
+              'Content-Type': 'application/x-sh',
+              'Content-Length': stat.size,
+              'Content-Disposition': 'attachment; filename="Setup-DomoNote-Extension.command"',
+            });
+            fs.createReadStream(scriptPath).pipe(res);
+            return;
+          }
+        }
+
+        next();
+      });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), chromeExtensionInstallerPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

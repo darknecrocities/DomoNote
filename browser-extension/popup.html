@@ -422,45 +422,90 @@
     </div>
   </div>
 
-  <!-- 2. MEETINGS & VOICE DICTATION TAB -->
-  <div id="tab-meetings" class="tab-content">
-    <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+  <!-- 2. MEETINGS & VOICE DICTATION TAB — Enhanced with In-Page HUD -->
+  <div id="tab-meetings" class="tab-content" style="gap:10px">
+
+    <!-- Launch In-Page HUD Banner -->
+    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,78,59,0.08) 100%); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
       <div>
-        <div style="font-size: 12px; font-weight: 700;">Live Meeting & Voice Note Recorder</div>
-        <div style="font-size: 10px; color: #71717a; margin-top: 2px;">
-          Records microphone or tab audio with real-time speech transcription.
+        <div style="font-size: 12px; font-weight: 700; color: #ecfdf5; display:flex; align-items:center; gap:6px;">
+          <span style="font-size:16px">&#x1F3A4;</span> In-Page Meeting HUD
+        </div>
+        <div style="font-size: 10px; color: #6ee7b7; margin-top: 3px; line-height: 1.4;">
+          Injects a floating panel into your tab (Google Meet, Zoom, Teams, Jitsi).<br>
+          Per-speaker transcription &amp; full AI meeting docs &mdash; 100% local, no APIs.
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="record-timer" style="font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: #ef4444;">00:00</span>
-        <button id="btn-record-toggle" class="btn btn-danger">● Start Recording</button>
+      <button id="btn-launch-meeting-hud" style="flex-shrink:0; background: #10b981; border: none; color: #022c22; font-size: 11px; font-weight: 800; padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.15s;">
+        &#9654; Launch HUD
+      </button>
+    </div>
+
+    <!-- Feature grid -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px;">
+      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
+        <div style="font-size:18px;margin-bottom:3px;">&#x1F464;</div>
+        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">Speaker Names</div>
+        <div style="font-size:9px; color:#71717a; margin-top:2px;">Reads participant tiles from the meeting UI</div>
+      </div>
+      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
+        <div style="font-size:18px;margin-bottom:3px;">&#x1F4DD;</div>
+        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">Live Transcript</div>
+        <div style="font-size:9px; color:#71717a; margin-top:2px;">Web Speech API &mdash; no cloud, no API key</div>
+      </div>
+      <div style="background:#18181b; border:1px solid #27272a; border-radius:9px; padding:10px; text-align:center;">
+        <div style="font-size:18px;margin-bottom:3px;">&#x1F916;</div>
+        <div style="font-size:10px; font-weight:700; color:#d4d4d8;">AI Documentation</div>
+        <div style="font-size:9px; color:#71717a; margin-top:2px;">Full report via local Ollama on your machine</div>
       </div>
     </div>
 
-    <!-- Audio Visualizer Canvas -->
-    <canvas id="audio-canvas"></canvas>
-
-    <!-- Transcript Box -->
-    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; font-weight: 600; color: #a1a1aa;">Real-Time Transcript & Dictation:</span>
-        <div style="display: flex; gap: 6px;">
-          <button id="btn-summarize-meeting" class="btn" style="font-size: 10px; padding: 3px 8px;">
-            ✨ Generate AI Summary
-          </button>
-          <button id="btn-save-as-note" class="icon-btn" style="font-size: 10px;">
-            Save to Notes
-          </button>
+    <!-- Saved meeting documents -->
+    <div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <span style="font-size:11px; font-weight:600; color:#a1a1aa;">Saved Meeting Documents</span>
+        <button id="btn-refresh-meetings" class="icon-btn" style="font-size:10px; padding:3px 8px;">&#8635; Refresh</button>
+      </div>
+      <div id="domo-meetings-list" style="display:flex; flex-direction:column; gap:5px; max-height:160px; overflow-y:auto;">
+        <div id="domo-meetings-empty" style="font-size:10px; color:#52525b; text-align:center; padding:16px 0;">
+          No saved meetings yet &mdash; launch the HUD above to start recording.
         </div>
       </div>
-      <textarea id="meeting-transcript" placeholder="Speak into microphone or start recording tab audio. Transcribed text will appear here automatically..." style="flex: 1; height: 180px; font-size: 11px;"></textarea>
     </div>
 
-    <!-- AI Meeting Summary Output -->
-    <div id="meeting-summary-box" class="card" style="display: none; font-size: 11px; max-height: 130px; overflow-y: auto;">
-      <div style="font-weight: 700; margin-bottom: 4px; color: #10b981;">AI Synthesized Summary:</div>
-      <div id="meeting-summary-text" style="white-space: pre-wrap; line-height: 1.4;"></div>
+    <!-- Meeting doc viewer -->
+    <div id="domo-meeting-doc-viewer" style="display:none; flex-direction:column; gap:6px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span id="domo-meeting-doc-title" style="font-size:11px; font-weight:700; color:#e4e4e7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px;"></span>
+        <div style="display:flex;gap:5px; flex-shrink:0;">
+          <button id="btn-copy-meeting-doc" class="icon-btn" style="font-size:10px;">Copy</button>
+          <button id="btn-close-meeting-doc" class="icon-btn" style="font-size:10px;">&#x2715;</button>
+        </div>
+      </div>
+      <div id="domo-meeting-doc-content" style="background:#111113; border:1px solid #27272a; border-radius:9px; padding:12px; font-family:ui-monospace,monospace; font-size:10px; color:#d4d4d8; line-height:1.6; white-space:pre-wrap; word-break:break-word; max-height:200px; overflow-y:auto;"></div>
     </div>
+
+    <!-- Legacy quick recorder -->
+    <details style="border:1px solid #27272a; border-radius:9px; padding:8px 12px;">
+      <summary style="font-size:11px; font-weight:600; color:#71717a; cursor:pointer; user-select:none;">&#x1F3A4; Quick mic-only recorder (legacy)</summary>
+      <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span id="record-timer" style="font-family:ui-monospace,monospace; font-size:12px; font-weight:700; color:#ef4444;">00:00</span>
+          <button id="btn-record-toggle" class="btn btn-danger" style="font-size:10px;">&#11044; Start Recording</button>
+        </div>
+        <canvas id="audio-canvas" style="height:40px;"></canvas>
+        <textarea id="meeting-transcript" placeholder="Transcript will appear here..." style="height:100px; font-size:11px;"></textarea>
+        <div style="display:flex; gap:6px;">
+          <button id="btn-summarize-meeting" class="btn" style="font-size:10px; flex:1;">&#x2728; AI Summary</button>
+          <button id="btn-save-as-note" class="icon-btn" style="font-size:10px;">Save as Note</button>
+        </div>
+        <div id="meeting-summary-box" style="display:none; background:#18181b; border:1px solid #27272a; border-radius:8px; padding:10px; font-size:11px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#10b981;">AI Summary:</div>
+          <div id="meeting-summary-text" style="white-space:pre-wrap; line-height:1.4;"></div>
+        </div>
+      </div>
+    </details>
+
   </div>
 
   <!-- 3. LOCAL OLLAMA AI SECRETARY TAB -->

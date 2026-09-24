@@ -691,4 +691,142 @@ ${text}`,
       });
     }
   });
+
+  // ─── MEETINGS HUD: Launch on current tab ────────────────────────────────────
+  function launchMeetingHUD() {
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab?.id) return;
+        chrome.tabs.sendMessage(tab.id, { type: 'DOMO_OPEN_MEETING_HUD' }, (resp) => {
+          if (chrome.runtime.lastError) {
+            // Content script may not be injected yet — inject it first
+            chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js'],
+            }).then(() => {
+              setTimeout(() => {
+                chrome.tabs.sendMessage(tab.id, { type: 'DOMO_OPEN_MEETING_HUD' });
+              }, 600);
+            }).catch(() => {
+              showToast('Could not inject HUD. Try refreshing the tab.');
+            });
+          }
+        });
+        window.close(); // Close popup so HUD is visible
+      });
+    }
+  }
+
+  document.getElementById('btn-launch-meeting-hud')?.addEventListener('click', launchMeetingHUD);
+
+  // ─── MEETINGS: Load saved meeting documents ──────────────────────────────────
+  let savedMeetings = [];
+  let viewingMeetingId = null;
+
+  function renderMeetingsList() {
+    const listEl = document.getElementById('domo-meetings-list');
+    const emptyEl = document.getElementById('domo-meetings-empty');
+    if (!listEl) return;
+
+    // Clear existing items (keep empty div)
+    listEl.innerHTML = '';
+
+    if (savedMeetings.length === 0) {
+      listEl.innerHTML = `<div id="domo-meetings-empty" style="font-size:10px; color:#52525b; text-align:center; padding:16px 0;">
+        No saved meetings yet &mdash; launch the HUD above to start recording.
+      </div>`;
+      return;
+    }
+
+    savedMeetings.forEach(meeting => {
+      const item = document.createElement('div');
+      item.style.cssText = `
+        background: #18181b; border: 1px solid #27272a; border-radius: 9px; padding: 10px 12px;
+        cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: space-between;
+        gap: 8px;
+      `;
+      item.onmouseover = () => { item.style.background = '#1f1f23'; item.style.borderColor = '#3f3f46'; };
+      item.onmouseout = () => { item.style.background = '#18181b'; item.style.borderColor = '#27272a'; };
+
+      const participants = (meeting.participants || []).slice(0, 3).join(', ') || 'Unknown speakers';
+      const date = new Date(meeting.date || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const duration = meeting.durationSeconds ? Math.floor(meeting.durationSeconds / 60) + 'm' : '?';
+      const segCount = (meeting.transcript || []).length;
+
+      item.innerHTML = `
+        <div style="flex:1; overflow:hidden;">
+          <div style="font-size:11px; font-weight:700; color:#e4e4e7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${meeting.title || 'Meeting'}</div>
+          <div style="font-size:9px; color:#71717a; margin-top:2px; display:flex; gap:8px; flex-wrap:wrap;">
+            <span>&#x1F4C5; ${date}</span>
+            <span>&#x23F1; ${duration}</span>
+            <span>&#x1F4AC; ${segCount} segments</span>
+          </div>
+          <div style="font-size:9px; color:#52525b; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">&#x1F464; ${participants}</div>
+        </div>
+        <div style="font-size:16px; color:#71717a; flex-shrink:0;">&#x276F;</div>
+      `;
+
+      item.addEventListener('click', () => viewMeeting(meeting));
+      listEl.appendChild(item);
+    });
+  }
+
+  function viewMeeting(meeting) {
+    viewingMeetingId = meeting.id;
+    const viewer = document.getElementById('domo-meeting-doc-viewer');
+    const titleEl = document.getElementById('domo-meeting-doc-title');
+    const contentEl = document.getElementById('domo-meeting-doc-content');
+    if (!viewer || !titleEl || !contentEl) return;
+
+    titleEl.textContent = meeting.title || 'Meeting Document';
+    contentEl.textContent = meeting.document || buildFallbackText(meeting);
+    viewer.style.display = 'flex';
+  }
+
+  function buildFallbackText(meeting) {
+    const participants = (meeting.participants || []).join(', ') || 'Unknown';
+    const transcript = (meeting.transcript || [])
+      .map(s => `[${s.speaker}] ${s.text}`)
+      .join('\n');
+    return `MEETING DOCUMENT\nParticipants: ${participants}\n\nTRANSCRIPT:\n${transcript || '(none)'}`;
+  }
+
+  function loadSavedMeetings() {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get(['domo_meetings'], (res) => {
+        savedMeetings = res.domo_meetings || [];
+        renderMeetingsList();
+      });
+    } else {
+      renderMeetingsList();
+    }
+  }
+
+  // Copy meeting doc
+  document.getElementById('btn-copy-meeting-doc')?.addEventListener('click', () => {
+    const content = document.getElementById('domo-meeting-doc-content')?.textContent || '';
+    navigator.clipboard.writeText(content).then(() => showToast('Meeting document copied!'));
+  });
+
+  // Close viewer
+  document.getElementById('btn-close-meeting-doc')?.addEventListener('click', () => {
+    const viewer = document.getElementById('domo-meeting-doc-viewer');
+    if (viewer) viewer.style.display = 'none';
+  });
+
+  // Refresh button
+  document.getElementById('btn-refresh-meetings')?.addEventListener('click', loadSavedMeetings);
+
+  // Load meetings when tab is shown
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.getAttribute('data-tab') === 'meetings') {
+      btn.addEventListener('click', loadSavedMeetings);
+    }
+  });
+
+  // Initial load if meetings tab is active
+  if (document.querySelector('.tab-btn.active')?.getAttribute('data-tab') === 'meetings') {
+    loadSavedMeetings();
+  }
 });

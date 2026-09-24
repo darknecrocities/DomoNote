@@ -9,6 +9,7 @@ import { ThemeToggle } from '../ui/theme-toggle';
 import { LanguageSwitcher } from '../ui/language-switcher';
 import { GlobalMicRecorder } from './global-mic-recorder';
 import { ScreenHudLauncher } from '../hud/screen-hud-launcher';
+import { ChromeIcon } from '../ui/chrome-icon';
 import logoImg from '../../assets/official_domonote.png';
 
 export const Topbar: React.FC = () => {
@@ -110,11 +111,11 @@ export const Topbar: React.FC = () => {
         <button
           onClick={() => setIsExtensionModalOpen(true)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-zinc-700 transition-all text-xs font-semibold shadow-xs group"
-          title="DomoNote Chrome Extension (1-Click Integration & Side Panel)"
+          title="DomoNote Chrome Extension (1-Click Automated Setup)"
           aria-label="Open Chrome Extension setup"
         >
-          <Layers className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300 group-hover:scale-110 transition-transform shrink-0" />
-          <span className="hidden sm:inline">Extension</span>
+          <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
+          <span className="hidden sm:inline">Chrome Extension</span>
         </button>
 
         {/* Search / Command Palette Trigger */}

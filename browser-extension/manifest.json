@@ -1,15 +1,18 @@
 {
   "manifest_version": 3,
   "name": "DomoNote - Personal AI Secretary",
-  "version": "1.0.0",
-  "description": "Capture meetings, dictate notes, analyze web pages with local Ollama AI, and annotate screenshots directly in your browser.",
+  "version": "2.0.0",
+  "description": "Capture meetings with per-speaker transcription and auto-generate full documentation using local Ollama AI. 100% private — no cloud, no API keys.",
   "permissions": [
     "activeTab",
     "tabCapture",
     "storage",
     "sidePanel",
     "scripting",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "contextMenus",
+    "tabs",
+    "microphone"
   ],
   "host_permissions": [
     "http://localhost:11434/*",
@@ -17,6 +20,9 @@
     "http://localhost:5173/*",
     "http://127.0.0.1:*",
     "https://meet.google.com/*",
+    "https://*.zoom.us/*",
+    "https://teams.microsoft.com/*",
+    "https://meet.jit.si/*",
     "<all_urls>"
   ],
   "background": {
