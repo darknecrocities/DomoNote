@@ -286,20 +286,20 @@ export const MeetingSummaryView: React.FC<MeetingSummaryViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleConvertToNote}>
-            <FileText className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+          <Button size="sm" variant="outline" onClick={handleConvertToNote} className="whitespace-nowrap shrink-0">
+            <FileText className="w-3.5 h-3.5 shrink-0" />
             <span>Save as Note</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={handleExportMarkdown}>
-            <Download className="w-3.5 h-3.5" />
+          <Button size="sm" variant="outline" onClick={handleExportMarkdown} className="whitespace-nowrap shrink-0">
+            <Download className="w-3.5 h-3.5 shrink-0" />
             <span>Export MD</span>
           </Button>
-          <Button size="sm" variant="primary" onClick={handleExportPdf}>
-            <Download className="w-3.5 h-3.5" />
+          <Button size="sm" variant="primary" onClick={handleExportPdf} className="whitespace-nowrap shrink-0">
+            <Download className="w-3.5 h-3.5 shrink-0" />
             <span>Export PDF</span>
           </Button>
-          <Button size="icon" variant="ghost" onClick={handleDelete} title="Delete Meeting">
+          <Button size="icon" variant="ghost" onClick={handleDelete} title="Delete Meeting" className="shrink-0">
             <Trash2 className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400" />
           </Button>
         </div>

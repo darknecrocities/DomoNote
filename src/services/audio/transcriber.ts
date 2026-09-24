@@ -283,7 +283,7 @@ export async function synthesizeMeetingAI(
   const detectedEvents: ScheduleEvent[] = nlpMatches.map((m) =>
     createScheduleEventFromMatch(m, {
       source: 'meeting',
-      sourceTitle: meetingTitle || 'Recorded Meeting',
+      sourceTitle: meetingTitle || 'Meeting Title',
     })
   );
 
@@ -389,7 +389,7 @@ Respond STRICTLY with valid JSON in this exact structure, with no extra text or 
               notes: `Identified by Local AI from meeting discussion.`,
               detectedFrom: {
                 source: 'meeting',
-                sourceTitle: meetingTitle || 'Recorded Meeting',
+                sourceTitle: meetingTitle || 'Meeting Title',
               },
               addedToComputerCalendar: false,
               syncedToGoogle: false,

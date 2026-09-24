@@ -20,7 +20,7 @@ export function exportMeetingToMarkdown(meeting: Meeting): string {
   const dateStr = new Date(meeting.startTime).toLocaleString();
   const duration = formatSecondsToTime(meeting.durationSeconds);
 
-  let md = `# Meeting: ${meeting.title}\n\n`;
+  let md = `# Meeting: ${meeting.title || 'Meeting Title'}\n\n`;
   md += `**Date:** ${dateStr}  \n`;
   md += `**Duration:** ${duration}  \n\n`;
 

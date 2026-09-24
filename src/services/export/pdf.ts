@@ -70,7 +70,7 @@ export function exportMeetingToPdf(meeting: Meeting): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(24);
   doc.setTextColor(15, 15, 15);
-  const titleLines = doc.splitTextToSize(meeting.title || 'Untitled Meeting', contentWidth);
+  const titleLines = doc.splitTextToSize(meeting.title || 'Meeting Title', contentWidth);
   doc.text(titleLines, margin, y);
   y += titleLines.length * 10 + 2;
 

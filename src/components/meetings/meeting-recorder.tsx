@@ -64,7 +64,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   const [audioLevel, setAudioLevel] = useState(0);
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [manualNotes, setManualNotes] = useState('');
-  const [meetingTitle, setMeetingTitle] = useState('Product & Engineering Sync');
+  const [meetingTitle, setMeetingTitle] = useState('Meeting Title');
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [isMeetModalOpen, setIsMeetModalOpen] = useState(false);
   const [screenshots, setScreenshots] = useState<MeetingScreenshot[]>([]);
@@ -130,7 +130,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
     if (match) {
       const ev = createScheduleEventFromMatch(match, {
         source: 'transcript',
-        sourceTitle: meetingTitle.trim() || 'Recorded Meeting',
+        sourceTitle: meetingTitle.trim() || 'Meeting Title',
       });
       setDetectedEvents((prev) => {
         const exists = prev.some((e) => e.date === ev.date && e.time === ev.time);
@@ -163,7 +163,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           if (translatedMatch) {
             const ev = createScheduleEventFromMatch(translatedMatch, {
               source: 'transcript',
-              sourceTitle: meetingTitle.trim() || 'Recorded Meeting',
+              sourceTitle: meetingTitle.trim() || 'Meeting Title',
             });
             setDetectedEvents((prev) => {
               const exists = prev.some((e) => e.date === ev.date && e.time === ev.time);
@@ -590,7 +590,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
           transcript,
           manualNotes,
           selectedModel,
-          meetingTitle.trim() || 'Untitled Meeting',
+          meetingTitle.trim() || 'Meeting Title',
           targetSummaryLang
         );
         summaryData = result.summary;
@@ -608,7 +608,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
         for (const m of nlp) {
           const ev = createScheduleEventFromMatch(m, {
             source: 'meeting',
-            sourceTitle: meetingTitle.trim() || 'Untitled Meeting',
+            sourceTitle: meetingTitle.trim() || 'Meeting Title',
           });
           if (!allDetected.some((e) => e.date === ev.date && e.time === ev.time)) {
             allDetected.push(ev);
@@ -645,7 +645,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
 
       const newMeeting: Meeting = {
         id: meetingId,
-        title: meetingTitle.trim() || 'Untitled Meeting',
+        title: meetingTitle.trim() || 'Meeting Title',
         startTime: now - elapsedSeconds * 1000,
         endTime: now,
         durationSeconds: elapsedSeconds,
@@ -688,8 +688,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               value={meetingTitle}
               onChange={(e) => setMeetingTitle(e.target.value)}
               disabled={isRecording}
-              className="bg-transparent text-xl font-bold text-white tracking-tight focus:outline-none placeholder-zinc-600 w-full"
-              placeholder="Meeting Session Title..."
+              className="bg-transparent text-xl font-bold text-white tracking-tight focus:outline-none placeholder-zinc-500 w-full"
+              placeholder="Meeting Title"
             />
             <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
               <span className="flex items-center gap-1.5 font-mono">
