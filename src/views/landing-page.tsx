@@ -5,6 +5,7 @@ import { useLanguage } from '../context/language-context';
 import { useTheme } from '../context/theme-context';
 import { LanguageSwitcher } from '../components/ui/language-switcher';
 import { ThemeToggle } from '../components/ui/theme-toggle';
+import { PhysicsRopeToggle } from '../components/ui/physics-rope-toggle';
 import { Button } from '../components/ui/button';
 import {
   Mic,
@@ -341,8 +342,15 @@ export const LandingPage: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
 
-            {/* Theme Toggle (Light / Dark) */}
-            <ThemeToggle />
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
+
+            {/* Physics Lampcord Toggle Hanging Seamlessly Under Action Bar */}
+            <div className="relative flex items-center justify-center w-8 h-full self-stretch">
+              <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+                <PhysicsRopeToggle />
+              </div>
+            </div>
           </div>
 
           {/* Mobile Right Bar: Theme Toggle + Hamburger Button */}
@@ -475,9 +483,6 @@ export const LandingPage: React.FC = () => {
         >
           {/* Animated Cloud Sky in Light Mode (continuous right-to-left loop with smooth fadein/fadeout) */}
           <HeroCloudBackground isLight={theme === 'light'} />
-
-          {/* Starfield Sky in Dark Mode */}
-          <StarfieldBackground isDark={theme === 'dark'} />
 
           {/* Neural Clusters Constellation Background in Dark Mode */}
           <SectionConstellation variant="neural-clusters" mascotExclusionRef={mascotRef} opacity={theme === 'dark' ? 0.7 : 0} className="z-0" />

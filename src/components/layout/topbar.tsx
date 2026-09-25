@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { ModeSwitcher } from './mode-switcher';
 import { SoundToggle } from '../ui/sound-toggle';
 import { ThemeToggle } from '../ui/theme-toggle';
+import { PhysicsRopeToggle } from '../ui/physics-rope-toggle';
 import { LanguageSwitcher } from '../ui/language-switcher';
 import { GlobalMicRecorder } from './global-mic-recorder';
 import { ScreenHudLauncher } from '../hud/screen-hud-launcher';
@@ -104,8 +105,10 @@ export const Topbar: React.FC = () => {
         {/* Floating Desktop Screen HUD Toggle */}
         <ScreenHudLauncher />
 
-        {/* Tactile Theme Toggle (Light / Dark) */}
-        <ThemeToggle />
+        {/* Tactile Theme Toggle (Light / Dark) for compact mobile */}
+        <div className="sm:hidden">
+          <ThemeToggle />
+        </div>
 
         {/* Chrome Extension 1-Click Integration */}
         <button
@@ -170,6 +173,16 @@ export const Topbar: React.FC = () => {
             <span className="hidden sm:inline">Upload</span>
           </Button>
         )}
+
+        {/* Subtle Divider */}
+        <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-0.5 hidden sm:block" />
+
+        {/* Physics Lampcord Toggle Hanging Seamlessly Under Topbar */}
+        <div className="hidden sm:flex relative items-center justify-center w-8 h-full self-stretch">
+          <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+            <PhysicsRopeToggle />
+          </div>
+        </div>
       </div>
     </header>
   );

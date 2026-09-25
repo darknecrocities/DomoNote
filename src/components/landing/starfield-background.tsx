@@ -39,6 +39,15 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   useEffect(() => {
+    // If not dark mode, skip running 60fps canvas completely
+    if (!isDark) {
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+        animFrameIdRef.current = 0;
+      }
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -68,7 +77,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
       mouseRef.current.targetX = x * 25;
       mouseRef.current.targetY = y * 25;
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     // Generate stars with crisp monochrome white & silver tones
     const starColors = [
@@ -79,7 +88,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
       'rgba(225, 225, 225,',
     ];
 
-    const starCount = Math.min(180, Math.floor((width * height) / 4500));
+    const starCount = Math.min(160, Math.floor((width * height) / 5000));
     const stars: Star[] = [];
 
     for (let i = 0; i < starCount; i++) {
@@ -92,7 +101,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
         y: Math.random() * height,
         size,
         baseAlpha: depth === 1 ? 0.35 + Math.random() * 0.35 : 0.6 + Math.random() * 0.4,
-        twinkleSpeed: 0.015 + Math.random() * 0.035,
+        twinkleSpeed: (0.015 + Math.random() * 0.035) * speedMultiplier,
         phase: Math.random() * Math.PI * 2,
         color,
         hasSparkle: depth === 3 && Math.random() > 0.4,
@@ -106,7 +115,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
 
     const spawnMeteor = () => {
       const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.35; // ~45 deg downward slope
-      const speed = 7 + Math.random() * 6;
+      const speed = (7 + Math.random() * 6) * speedMultiplier;
       meteors.push({
         x: Math.random() * (width * 1.1) - (width * 0.1),
         y: Math.random() * (height * 0.5),
@@ -119,8 +128,10 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
       });
     };
 
+    let isRunning = true;
+
     const render = () => {
-      if (!ctx || !canvas) return;
+      if (!isRunning || !ctx || !canvas) return;
 
       // Smooth mouse parallax
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
@@ -172,7 +183,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
 
       // Spawn Meteors periodically (every 5-9 seconds in dark mode)
       const now = Date.now();
-      if (isDark && now - lastMeteorTime > 5000 && Math.random() < 0.035) {
+      if (now - lastMeteorTime > 5000 && Math.random() < 0.035) {
         spawnMeteor();
         lastMeteorTime = now;
       }
@@ -212,23 +223,44 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
         ctx.fill();
       }
 
-      animFrameIdRef.current = requestAnimationFrame(render);
+      if (isRunning) {
+        animFrameIdRef.current = requestAnimationFrame(render);
+      }
     };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        isRunning = false;
+        if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+      } else {
+        if (!isRunning) {
+          isRunning = true;
+          animFrameIdRef.current = requestAnimationFrame(render);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     animFrameIdRef.current = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(animFrameIdRef.current);
+      isRunning = false;
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+      }
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [isDark, speedMultiplier]);
 
+  if (!isDark) {
+    return null;
+  }
+
   return (
     <div
-      className={`absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none transition-opacity duration-700 ease-in-out ${
-        isDark ? 'opacity-100' : 'opacity-0'
-      } ${className}`}
+      className={`absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none transition-opacity duration-700 ease-in-out opacity-100 ${className}`}
       aria-hidden="true"
     >
       <canvas

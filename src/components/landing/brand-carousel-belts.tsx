@@ -239,23 +239,48 @@ const SUPPORTED_FILES = [
 ];
 
 export const BrandCarouselBelts: React.FC = () => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [inView, setInView] = React.useState(true);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { rootMargin: '100px 0px 100px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Duplicate array into 2 identical halves so translate3d(-50%, 0, 0) loops 100% seamlessly without any jump
   const videoTrack = [...VIDEO_PLATFORMS, ...VIDEO_PLATFORMS];
   const filesTrack = [...SUPPORTED_FILES, ...SUPPORTED_FILES];
 
+  const trackStyle: React.CSSProperties = {
+    animationPlayState: inView ? 'running' : 'paused',
+    willChange: 'transform',
+    transform: 'translate3d(0, 0, 0)',
+  };
+
   return (
-    <div className="w-full py-6 my-2 relative overflow-hidden flex flex-col gap-3.5 select-none">
+    <div ref={containerRef} className="w-full py-6 my-2 relative overflow-hidden flex flex-col gap-3.5 select-none">
       {/* Left and Right edge gradient fade overlays for seamless luxury aesthetic */}
       <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 sm:w-44 z-20 bg-gradient-to-r from-[var(--bg-page)] to-transparent" />
       <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 sm:w-44 z-20 bg-gradient-to-l from-[var(--bg-page)] to-transparent" />
 
       {/* BELT 1: Video Platforms (Non-stop looping to the Left) */}
       <div className="flex w-full overflow-hidden">
-        <div className="flex flex-nowrap w-max items-center gap-4 shrink-0 animate-marquee-left py-1">
+        <div
+          className="flex flex-nowrap w-max items-center gap-4 shrink-0 animate-marquee-left py-1"
+          style={trackStyle}
+        >
           {videoTrack.map((item, idx) => (
             <div
               key={`video-${item.id}-${idx}`}
-              className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-slate-200/90 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/70 backdrop-blur-md transition-all duration-300 hover:border-slate-400 dark:hover:border-zinc-700 shadow-sm shrink-0"
+              className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-slate-200/90 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-900/90 transition-all duration-300 hover:border-slate-400 dark:hover:border-zinc-700 shadow-sm shrink-0"
             >
               <div className="shrink-0 flex items-center justify-center">
                 {item.icon}
@@ -270,11 +295,14 @@ export const BrandCarouselBelts: React.FC = () => {
 
       {/* BELT 2: Supporting Files (Non-stop looping in OPPOSITE direction to the Right) */}
       <div className="flex w-full overflow-hidden">
-        <div className="flex flex-nowrap w-max items-center gap-4 shrink-0 animate-marquee-right py-1">
+        <div
+          className="flex flex-nowrap w-max items-center gap-4 shrink-0 animate-marquee-right py-1"
+          style={trackStyle}
+        >
           {filesTrack.map((item, idx) => (
             <div
               key={`file-${item.id}-${idx}`}
-              className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-slate-200/90 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/70 backdrop-blur-md transition-all duration-300 hover:border-slate-400 dark:hover:border-zinc-700 shadow-sm shrink-0"
+              className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-slate-200/90 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-900/90 transition-all duration-300 hover:border-slate-400 dark:hover:border-zinc-700 shadow-sm shrink-0"
             >
               <div className="shrink-0 flex items-center justify-center">
                 {item.icon}

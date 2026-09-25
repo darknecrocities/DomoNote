@@ -65,9 +65,19 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     toggleTheme(origin);
   }, [toggleTheme, playPop]);
 
+  const isSimulatingRef = useRef(false);
+  const animIdRef = useRef<number>(0);
+  const simulateRef = useRef<() => void>(() => {});
+
+  const startSimulation = useCallback(() => {
+    if (!isSimulatingRef.current) {
+      isSimulatingRef.current = true;
+      animIdRef.current = requestAnimationFrame(simulateRef.current);
+    }
+  }, []);
+
   // Physics simulation – direct DOM updates for lag-free 120 FPS
   useEffect(() => {
-    let animId: number;
     const K_SPRING_Y = 0.28;
     const DAMPING_Y = 0.82;
     const K_PENDULUM_X = 0.10;
@@ -181,11 +191,26 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
         );
       }
 
-      animId = requestAnimationFrame(simulate);
+      // Sleep simulation when idle to free CPU/GPU cycles
+      if (phaseRef.current === 'idle') {
+        isSimulatingRef.current = false;
+        animIdRef.current = 0;
+        return;
+      }
+
+      animIdRef.current = requestAnimationFrame(simulate);
     };
 
-    animId = requestAnimationFrame(simulate);
-    return () => cancelAnimationFrame(animId);
+    simulateRef.current = simulate;
+    isSimulatingRef.current = true;
+    animIdRef.current = requestAnimationFrame(simulate);
+
+    return () => {
+      isSimulatingRef.current = false;
+      if (animIdRef.current) {
+        cancelAnimationFrame(animIdRef.current);
+      }
+    };
   }, [fireThemeSwitch]);
 
   // Pointer interaction
@@ -198,6 +223,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     isDraggingRef.current = true;
     setIsDragging(true);
     phaseRef.current = 'dragging';
+    startSimulation();
 
     try {
       playThock(1.1);
@@ -257,6 +283,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       handle.vy = -16;
       handle.vx = (handle.x - ANCHOR_X) * 0.3;
     }
+    startSimulation();
   };
 
   const handleMouseEnter = () => {
@@ -265,6 +292,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       const handle = pointsRef.current[NUM_POINTS - 1];
       handle.vx += (Math.random() > 0.5 ? 1 : -1) * 2.5;
       phaseRef.current = 'recoiling';
+      startSimulation();
     }
   };
 

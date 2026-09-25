@@ -67,20 +67,29 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
     );
     observer.observe(el);
 
-    // Scroll listener for exit fade-out
+    let ticking = false;
+    let animId = 0;
+
+    // Scroll listener for exit fade-out, throttled to 1 call per animation frame
     const onScroll = () => {
-      if (!fadeOut) return;
-      updateState();
+      if (!fadeOut || ticking) return;
+      ticking = true;
+      animId = requestAnimationFrame(() => {
+        updateState();
+        ticking = false;
+      });
     };
 
-    const scrollParent = document.documentElement;
-    scrollParent.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
+    if (fadeOut) {
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
 
     return () => {
       observer.unobserve(el);
-      scrollParent.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scroll', onScroll);
+      if (animId) cancelAnimationFrame(animId);
+      if (fadeOut) {
+        window.removeEventListener('scroll', onScroll);
+      }
     };
   }, [threshold, fadeOut, updateState]);
 

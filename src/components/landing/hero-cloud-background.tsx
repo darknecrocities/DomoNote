@@ -1,28 +1,53 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface HeroCloudBackgroundProps {
   isLight: boolean;
 }
 
 export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLight }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { rootMargin: '120px 0px 120px 0px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // When dark mode is active, completely hide to stop GPU compositor & SVG filter overhead
+  if (!isLight) {
+    return <div ref={containerRef} className="absolute inset-0 pointer-events-none" style={{ display: 'none' }} aria-hidden="true" />;
+  }
+
+  const playState = inView ? 'running' : 'paused';
+
   return (
     <div
-      className={`absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none z-0 transition-opacity duration-700 ease-in-out ${
-        isLight ? 'opacity-100' : 'opacity-0'
-      }`}
+      ref={containerRef}
+      className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none z-0 transition-opacity duration-700 ease-in-out opacity-100"
       aria-hidden="true"
     >
       {/* 
         SOLID GRAY ATMOSPHERIC BASE — gives that "overcast sky" gray feel.
         Layered: bottom=mist-white, top=cool-slate-gray, center=soft cloud blue
       */}
-      <div className="absolute inset-0"
+      <div
+        className="absolute inset-0"
         style={{
           background: 'linear-gradient(170deg, #d1d9e6 0%, #dfe6f0 25%, #e8edf5 55%, #edf1f8 80%, #f2f5fa 100%)',
         }}
       />
 
-      {/* Subtle warm sun glow upper-right to break pure gray monotony */}
+      {/* Subtle warm sun glow upper-right */}
       <div
         className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full opacity-50 blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(220,230,245,0.9) 0%, rgba(200,215,235,0.4) 60%, transparent 100%)' }}
@@ -31,7 +56,15 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
       {/* 
         LAYER 1: DISTANT HIGH-ALTITUDE HAZY MISTS — very slow, top portion
       */}
-      <div className="absolute inset-x-0 top-0 h-full w-[200%] flex" style={{ animation: 'cloudDriftSlow 55s linear infinite' }}>
+      <div
+        className="absolute inset-x-0 top-0 h-full w-[200%] flex"
+        style={{
+          animation: 'cloudDriftSlow 55s linear infinite',
+          animationPlayState: playState,
+          willChange: 'transform',
+          transform: 'translate3d(0, 0, 0)',
+        }}
+      >
         {/* Tile 1 */}
         <div className="w-1/2 h-full relative shrink-0">
           <svg className="w-full h-full" viewBox="0 0 1200 600" fill="none" preserveAspectRatio="none">
@@ -71,9 +104,18 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
 
       {/* 
         LAYER 2: FLUFFY CUMULUS CLOUDS — medium speed, main hero area
-        More opaque so they're clearly visible against the gray base
+        Hardware-accelerated CSS blur for maximum 60FPS fluidness
       */}
-      <div className="absolute inset-x-0 top-8 h-full w-[200%] flex" style={{ animation: 'cloudDriftMedium 35s linear infinite' }}>
+      <div
+        className="absolute inset-x-0 top-8 h-full w-[200%] flex"
+        style={{
+          animation: 'cloudDriftMedium 35s linear infinite',
+          animationPlayState: playState,
+          willChange: 'transform',
+          transform: 'translate3d(0, 0, 0)',
+          filter: 'blur(4px)',
+        }}
+      >
         {/* Tile 1 */}
         <div className="w-1/2 h-full relative shrink-0">
           <svg className="w-full h-full" viewBox="0 0 1200 500" fill="none" preserveAspectRatio="none">
@@ -83,11 +125,8 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
                 <stop offset="40%"  stopColor="#f0f5ff" stopOpacity="0.9" />
                 <stop offset="100%" stopColor="#dde8f5" stopOpacity="0" />
               </linearGradient>
-              <filter id="cgBlur2" x="-15%" y="-15%" width="130%" height="130%">
-                <feGaussianBlur stdDeviation="5" />
-              </filter>
             </defs>
-            <g filter="url(#cgBlur2)">
+            <g>
               {/* Cluster A — left */}
               <circle cx="155"  cy="170" r="52"  fill="url(#cgFluff2)" />
               <circle cx="205"  cy="148" r="68"  fill="url(#cgFluff2)" />
@@ -111,7 +150,7 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
         {/* Tile 2 (seamless) */}
         <div className="w-1/2 h-full relative shrink-0">
           <svg className="w-full h-full" viewBox="0 0 1200 500" fill="none" preserveAspectRatio="none">
-            <g filter="url(#cgBlur2)">
+            <g>
               <circle cx="155"  cy="170" r="52"  fill="url(#cgFluff2)" />
               <circle cx="205"  cy="148" r="68"  fill="url(#cgFluff2)" />
               <circle cx="268"  cy="168" r="58"  fill="url(#cgFluff2)" />
@@ -132,7 +171,15 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
       {/* 
         LAYER 3: FOREGROUND WISPY STREAKS — fastest, lower portion
       */}
-      <div className="absolute inset-x-0 bottom-0 h-52 w-[200%] flex opacity-80" style={{ animation: 'cloudDriftFast 20s linear infinite' }}>
+      <div
+        className="absolute inset-x-0 bottom-0 h-52 w-[200%] flex opacity-80"
+        style={{
+          animation: 'cloudDriftFast 20s linear infinite',
+          animationPlayState: playState,
+          willChange: 'transform',
+          transform: 'translate3d(0, 0, 0)',
+        }}
+      >
         {/* Tile 1 */}
         <div className="w-1/2 h-full relative shrink-0">
           <svg className="w-full h-full" viewBox="0 0 1200 210" fill="none" preserveAspectRatio="none">

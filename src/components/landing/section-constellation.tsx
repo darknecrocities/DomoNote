@@ -243,19 +243,51 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
       return { cx, cy, radius };
     };
 
-    let isVisible = true;
+    let isVisible = !document.hidden;
+    let isIntersecting = false;
+    let isRunning = false;
+
+    const startLoop = () => {
+      if (isRunning || !isVisible || !isIntersecting || opacity <= 0) return;
+      isRunning = true;
+      animIdRef.current = requestAnimationFrame(render);
+    };
+
+    const stopLoop = () => {
+      isRunning = false;
+      if (animIdRef.current) {
+        cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = 0;
+      }
+    };
+
     const handleVis = () => {
       isVisible = !document.hidden;
+      if (isVisible && isIntersecting && opacity > 0) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
     };
     document.addEventListener('visibilitychange', handleVis);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting && isVisible && opacity > 0) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { rootMargin: '80px 0px 80px 0px' }
+    );
+    observer.observe(canvas);
 
     let time = 0;
 
     const render = () => {
-      if (!isVisible) {
-        animIdRef.current = requestAnimationFrame(render);
-        return;
-      }
+      if (!isRunning) return;
 
       time += 0.016;
       ctx.clearRect(0, 0, width, height);
@@ -301,18 +333,22 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
 
       // Collect connected pairs for lines and pulses
       const activePairs: Array<{ p1: Particle; p2: Particle; idx1: number; idx2: number; factor: number }> = [];
+      let linesDrawn = 0;
+      const MAX_LINES = 48;
 
-      for (let i = 0; i < particles.length; i++) {
+      for (let i = 0; i < particles.length && linesDrawn < MAX_LINES; i++) {
         const p1 = particles[i];
-        for (let j = i + 1; j < particles.length; j++) {
+        for (let j = i + 1; j < particles.length && linesDrawn < MAX_LINES; j++) {
           const p2 = particles[j];
           const dx = p1.x - p2.x;
+          if (Math.abs(dx) >= connectionDist) continue;
           const dy = p1.y - p2.y;
+          if (Math.abs(dy) >= connectionDist) continue;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < connectionDist) {
             const factor = 1 - dist / connectionDist;
-            let lineAlpha = factor * 0.45; // Crisp luminous white lines
+            let lineAlpha = factor * 0.42;
 
             // Protect mascot face
             if (mascotEx) {
@@ -331,9 +367,10 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
               ctx.strokeStyle = `rgba(255, 255, 255, ${lineAlpha})`;
-              ctx.lineWidth = Math.max(0.7, factor * 1.5);
+              ctx.lineWidth = Math.max(0.7, factor * 1.4);
               ctx.stroke();
 
+              linesDrawn++;
               activePairs.push({ p1, p2, idx1: i, idx2: j, factor });
             }
           }
@@ -341,7 +378,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
       }
 
       // Occasional traveling bright white photon pulses
-      if (Math.random() < 0.07 && activePairs.length > 0 && pulses.length < 10) {
+      if (Math.random() < 0.06 && activePairs.length > 0 && pulses.length < 8) {
         const pair = activePairs[Math.floor(Math.random() * activePairs.length)];
         pulses.push({
           fromIdx: pair.idx1,
@@ -351,7 +388,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
         });
       }
 
-      // Draw white signal pulses
+      // Draw white signal pulses with fast multi-arc glow instead of slow shadowBlur
       for (let i = pulses.length - 1; i >= 0; i--) {
         const pulse = pulses[i];
         pulse.progress += pulse.speed;
@@ -370,16 +407,20 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
         const px = pA.x + (pB.x - pA.x) * pulse.progress;
         const py = pA.y + (pB.y - pA.y) * pulse.progress;
 
+        // Outer soft glow
         ctx.beginPath();
-        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-        ctx.shadowBlur = 8;
+        ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
         ctx.fill();
-        ctx.shadowBlur = 0;
+
+        // Inner bright point
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
       }
 
-      // Draw all white constellation stars & nodes (refined, slightly smaller, radiant)
+      // Draw all white constellation stars & nodes
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const pulseFactor = 0.88 + Math.sin(time * 2.2 + p.phase) * 0.12;
@@ -398,31 +439,37 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
 
         // 1. Soft Pure White Outer Halo
         ctx.beginPath();
-        ctx.arc(p.x, p.y, curRadius * 2.6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, curRadius * 2.4, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.22})`;
         ctx.fill();
 
         // 2. Pure White Star Core (Bright, Sharp, Crisp)
         ctx.beginPath();
         ctx.arc(p.x, p.y, curRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 8;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, alpha * 1.2)})`;
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
 
-      animIdRef.current = requestAnimationFrame(render);
+      if (isRunning) {
+        animIdRef.current = requestAnimationFrame(render);
+      }
     };
 
-    animIdRef.current = requestAnimationFrame(render);
+    if (opacity > 0) {
+      startLoop();
+    }
 
     return () => {
-      cancelAnimationFrame(animIdRef.current);
+      stopLoop();
+      observer.disconnect();
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', handleVis);
     };
-  }, [variant, mascotExclusionRef]);
+  }, [variant, mascotExclusionRef, opacity]);
+
+  if (opacity <= 0) {
+    return null;
+  }
 
   return (
     <canvas
