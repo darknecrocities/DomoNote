@@ -9,7 +9,7 @@
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <AssemblyName>DomoNote</AssemblyName>
     <RootNamespace>DomoNote</RootNamespace>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>darknecrocities</Authors>
     <Company>DomoNote</Company>
     <Product>DomoNote — Your Personal AI Secretary</Product>

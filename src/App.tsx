@@ -43,7 +43,7 @@ import {
 } from './services/updates/update-checker';
 
 /** App version — kept in sync with package.json via import */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.2';
 
 export const App: React.FC = () => {
   const {
