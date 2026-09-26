@@ -43,6 +43,8 @@ jobs:
         run: powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1
 
       - name: Build Linux Packages (Debian, AppImage, Portable)
+        env:
+          PYTHONIOENCODING: "utf-8"
         run: python scripts/build-linux.py
 
       - name: Generate Checksums

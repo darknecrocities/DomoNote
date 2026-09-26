@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DomoNote — Linux Packaging & Binary Generator
+DomoNote -- Linux Packaging & Binary Generator
 Creates:
   1. domonote_1.0.2_amd64.deb (Standard Debian / Ubuntu package)
   2. DomoNote-Linux-x86_64.AppImage (Self-extracting universal Linux binary)
@@ -18,6 +18,18 @@ import hashlib
 import subprocess
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr on Windows runners (avoids cp1252 charmap encoding errors)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 DOWNLOADS = ROOT / "public" / "downloads"
@@ -31,14 +43,14 @@ def main():
         print("[Error] dist/index.html not found. Run npm run build first.")
         sys.exit(1)
 
-    # ── 1. Create DomoNote-Setup.sh ───────────────────────────────────────────
+    # -- 1. Create DomoNote-Setup.sh -------------------------------------------
     setup_sh_src = ROOT / "scripts" / "setup-linux.sh"
     setup_sh_dest = DOWNLOADS / "DomoNote-Setup.sh"
     shutil.copy(setup_sh_src, setup_sh_dest)
     setup_sh_dest.chmod(0o755)
-    print(f"  [✓] Created {setup_sh_dest.name}")
+    print(f"  [OK] Created {setup_sh_dest.name}")
 
-    # ── 2. Create Portable Linux Archive (tar.gz) ─────────────────────────────
+    # -- 2. Create Portable Linux Archive (tar.gz) -----------------------------
     stage_dir = ROOT / "build_linux_stage"
     if stage_dir.exists():
         shutil.rmtree(stage_dir)
@@ -111,9 +123,9 @@ StartupNotify=true
     tar_path = DOWNLOADS / "DomoNote-Linux-x64.tar.gz"
     with tarfile.open(tar_path, "w:gz") as tar:
         tar.add(app_root, arcname="domonote")
-    print(f"  [✓] Created {tar_path.name}")
+    print(f"  [OK] Created {tar_path.name}")
 
-    # ── 3. Create domonote_1.0.2_amd64.deb ────────────────────────────────────
+    # -- 3. Create domonote_1.0.2_amd64.deb ------------------------------------
     deb_stage = stage_dir / "deb"
     deb_stage.mkdir(parents=True)
     debian_dir = deb_stage / "DEBIAN"
@@ -237,9 +249,9 @@ StartupNotify=true
             f.write(data)
             if len(data) % 2 != 0:
                 f.write(b"\n")
-    print(f"  [✓] Created {deb_output.name} ({deb_output.stat().st_size / (1024*1024):.1f} MB)")
+    print(f"  [OK] Created {deb_output.name} ({deb_output.stat().st_size / (1024*1024):.1f} MB)")
 
-    # ── 4. Create DomoNote-Linux-x86_64.AppImage ──────────────────────────────
+    # -- 4. Create DomoNote-Linux-x86_64.AppImage ------------------------------
     # A standalone self-executing AppImage wrapper
     appimage_output = DOWNLOADS / "DomoNote-Linux-x86_64.AppImage"
     
@@ -295,12 +307,12 @@ exit 0
         with open(appimage_tar, "rb") as in_tar:
             shutil.copyfileobj(in_tar, out_f)
     appimage_output.chmod(0o755)
-    print(f"  [✓] Created {appimage_output.name}")
+    print(f"  [OK] Created {appimage_output.name}")
 
     # Cleanup stage
     shutil.rmtree(stage_dir, ignore_errors=True)
 
-    # ── 5. Generate SHA256SUMS.txt ────────────────────────────────────────────
+    # -- 5. Generate SHA256SUMS.txt --------------------------------------------
     print("[DomoNote] Generating SHA256 checksums...")
     checksum_lines = []
     for item in sorted(DOWNLOADS.iterdir()):
@@ -313,14 +325,14 @@ exit 0
 
     sums_file = DOWNLOADS / "SHA256SUMS.txt"
     sums_file.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
-    print(f"  [✓] Written {sums_file.name}")
+    print(f"  [OK] Written {sums_file.name}")
 
     # Sync to dist/downloads as well
     dist_downloads = DIST / "downloads"
     if dist_downloads.exists():
         shutil.rmtree(dist_downloads)
     shutil.copytree(DOWNLOADS, dist_downloads)
-    print("  [✓] Synchronized downloads to dist/downloads")
+    print("  [OK] Synchronized downloads to dist/downloads")
 
 if __name__ == "__main__":
     main()
