@@ -953,11 +953,11 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black p-8 max-w-5xl mx-auto w-full">
+    <div className="flex-1 flex flex-col h-full bg-black p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full overflow-y-auto">
       {/* Top Controls Card */}
-      <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-6 mb-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex-1 min-w-0">
+      <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-4 sm:p-5 lg:p-6 mb-5 shrink-0">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-5">
+          <div className="flex-1 min-w-0 w-full lg:w-auto">
             <input
               type="text"
               value={meetingTitle}
@@ -966,9 +966,9 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               className="bg-transparent text-xl font-bold text-white tracking-tight focus:outline-none placeholder-zinc-500 w-full"
               placeholder="Meeting Title"
             />
-            <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 mt-1.5">
               <span className="flex items-center gap-1.5 font-mono">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="w-3.5 h-3.5 text-zinc-400" />
                 {formatSecondsToTime(elapsedSeconds)}
               </span>
               <span>•</span>
@@ -976,7 +976,10 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
               {isConnected && (
                 <>
                   <span>•</span>
-                  <span className="text-zinc-300">AI: {selectedModel}</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-200">
+                    <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
+                    AI: {selectedModel}
+                  </span>
                 </>
               )}
               {screenshots.length > 0 && (
@@ -991,8 +994,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
             </div>
           </div>
 
-          {/* Recording Badge */}
-          <div className="flex items-center gap-3">
+          {/* Recording Badge & Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full lg:w-auto justify-start lg:justify-end">
             {isRecording ? (
               <Badge variant="recording" dot>
                 RECORDING
@@ -1002,7 +1005,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
             )}
 
             {!isRecording ? (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button variant="primary" size="md" onClick={startRecording}>
                   <Mic className="w-4 h-4" />
                   <span>Start Microphone</span>
@@ -1023,7 +1026,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Pop-out Quick Navbar to Meeting Screen */}
                 <Button
                   variant="outline"
@@ -1221,7 +1224,7 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       </div>
 
       {/* Main split: Live Transcript on left, Manual Notes on right */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 min-h-0 pb-4">
         {/* Live Transcript Pane */}
         <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-5 flex flex-col min-h-0">
           <div className="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 shrink-0 flex-wrap gap-2">

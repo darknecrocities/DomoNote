@@ -93,6 +93,43 @@ export const App: React.FC = () => {
     recordSiteVisit();
   }, []);
 
+  // ── Global F11 Fullscreen Handler (Windows WebView2, macOS WebKit, Browser) ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+
+        // 1. Windows Desktop App (WebView2)
+        const winChrome = (window as unknown as { chrome?: { webview?: { postMessage: (msg: unknown) => void } } }).chrome;
+        if (winChrome?.webview?.postMessage) {
+          winChrome.webview.postMessage({ action: 'toggleFullscreen' });
+          return;
+        }
+
+        // 2. macOS Desktop App (WebKit message handler)
+        const webkit = (window as unknown as { webkit?: { messageHandlers?: { domonoteDesktop?: { postMessage: (msg: unknown) => void } } } }).webkit;
+        if (webkit?.messageHandlers?.domonoteDesktop?.postMessage) {
+          webkit.messageHandlers.domonoteDesktop.postMessage({ action: 'toggleFullscreen' });
+          return;
+        }
+
+        // 3. Browser Fullscreen API fallback (Chrome, Edge, Firefox on laptop)
+        try {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+        } catch {
+          // ignore any fullscreen API rejection
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // ── Ollama first-run check (Workspace only, silent auto-connect if running) ─
   useEffect(() => {
     // NEVER pop up on landing page or download page

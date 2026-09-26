@@ -295,7 +295,7 @@ bash start.sh
           </Button>
 
           {/* Lampcord Pull Switch anchored directly on bottom border */}
-          <div className="absolute -bottom-[2px] right-0 pointer-events-auto z-50">
+          <div className="absolute -bottom-[2px] right-0 pointer-events-none z-40">
             <PhysicsRopeToggle />
           </div>
         </div>

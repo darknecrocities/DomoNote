@@ -13,6 +13,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
   const pathShadowRef = useRef<SVGPathElement>(null);
   const pathCoreRef = useRef<SVGPathElement>(null);
   const pathAccentRef = useRef<SVGPathElement>(null);
+  const pathHitboxRef = useRef<SVGPathElement>(null);
   const handleGroupRef = useRef<SVGGElement>(null);
 
   const [isHovered, setIsHovered] = useState(false);
@@ -177,6 +178,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
       if (pathCoreRef.current) pathCoreRef.current.setAttribute('d', d);
       if (pathShadowRef.current) pathShadowRef.current.setAttribute('d', d);
       if (pathAccentRef.current) pathAccentRef.current.setAttribute('d', d);
+      if (pathHitboxRef.current) pathHitboxRef.current.setAttribute('d', d);
 
       // Handle orientation angle following rope tangent
       const prevPt = points[lastIdx - 1];
@@ -214,9 +216,12 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
   }, [fireThemeSwitch]);
 
   // Pointer interaction
-  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<SVGElement>) => {
     e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    e.stopPropagation();
+    try {
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    } catch { /* ignore */ }
 
     pointerDownTimeRef.current = performance.now();
     themeFiredRef.current = false;
@@ -258,10 +263,10 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
     };
   };
 
-  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+  const handlePointerUp = (e: React.PointerEvent<SVGElement>) => {
     if (!isDraggingRef.current) return;
     try {
-      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+      (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
     } catch { /* ignore */ }
 
     isDraggingRef.current = false;
@@ -301,23 +306,21 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
   return (
     <div
       ref={containerRef}
-      className={`relative select-none touch-none ${className}`}
+      className={`relative select-none pointer-events-none ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       title={`Pull cord: Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
       aria-label="Physics pull-cord lampshade switch under appbar"
     >
-      <div className="relative w-[72px] h-[130px] pointer-events-auto">
+      <div className="relative w-[48px] h-[98px] pointer-events-none">
         <svg
           ref={svgRef}
-          className="w-full h-full overflow-visible block"
+          className="w-full h-full overflow-visible block pointer-events-none"
           viewBox="0 0 100 150"
           preserveAspectRatio="xMidYMin meet"
-          onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
           <defs>
             <linearGradient id="ropeFixtureMetal" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -334,7 +337,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
           </defs>
 
           {/* ONE-PIECE MOUNTING FIXTURE – clamped flush against the appbar bottom border */}
-          <g>
+          <g className="pointer-events-none">
             {/* Top flush plate (y=0, sits precisely on the 1px bottom border) */}
             <path
               d="M 22 0 L 78 0 C 78 3.5 72 4 66 4 L 34 4 C 28 4 22 3.5 22 0 Z"
@@ -363,6 +366,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
             strokeLinecap="round"
             fill="none"
             transform="translate(1,2)"
+            className="pointer-events-none"
           />
 
           {/* Rope core */}
@@ -373,6 +377,7 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
+            className="pointer-events-none"
           />
 
           {/* Rope braided accent */}
@@ -384,12 +389,30 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
             strokeLinecap="round"
             fill="none"
             opacity={isDark ? 0.7 : 0.35}
+            className="pointer-events-none"
+          />
+
+          {/* Narrow invisible rope hit path - strictly 10px wide along the rope */}
+          <path
+            ref={pathHitboxRef}
+            stroke="transparent"
+            strokeWidth="10"
+            strokeLinecap="round"
+            fill="none"
+            className="pointer-events-auto cursor-grab active:cursor-grabbing"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
           />
 
           {/* Bell handle group – moved by physics via direct DOM */}
           <g
             ref={handleGroupRef}
             transform={`translate(${ANCHOR_X}, ${ANCHOR_Y + L_REST}) rotate(0)`}
+            className="pointer-events-auto cursor-grab active:cursor-grabbing"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
             style={{
               filter: isHovered || isDragging
                 ? 'drop-shadow(0 4px 10px rgba(0,0,0,0.35))'
@@ -397,9 +420,20 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
               transition: 'filter 0.15s ease',
             }}
           >
+            {/* Invisible compact hit area bounded exactly around the bell and tag */}
+            <rect
+              x="-22"
+              y="-4"
+              width="44"
+              height="38"
+              rx="6"
+              fill="transparent"
+              className="pointer-events-auto cursor-grab active:cursor-grabbing"
+            />
+
             {/* Ring collar */}
             <rect x="-3" y="-1" width="6" height="3" rx="1"
-              fill={isDark ? '#a1a1aa' : '#475569'} />
+              fill={isDark ? '#a1a1aa' : '#475569'} className="pointer-events-none" />
 
             {/* Bell body */}
             <path
@@ -407,14 +441,15 @@ export const PhysicsRopeToggle: React.FC<{ className?: string }> = ({ className 
               fill="url(#ropeBellMetal)"
               stroke={isDark ? '#52525b' : '#334155'}
               strokeWidth="1.1"
+              className="pointer-events-none"
             />
             {/* Center groove */}
             <rect x="-1.8" y="4.5" width="3.6" height="6" rx="0.8"
-              fill={isDark ? '#18181b' : '#ffffff'} opacity="0.85" />
-            <circle cx="0" cy="15" r="1.5" fill={isDark ? '#27272a' : '#cbd5e1'} />
+              fill={isDark ? '#18181b' : '#ffffff'} opacity="0.85" className="pointer-events-none" />
+            <circle cx="0" cy="15" r="1.5" fill={isDark ? '#27272a' : '#cbd5e1'} className="pointer-events-none" />
 
             {/* DARK / LIGHT badge with high contrast in both modes */}
-            <g transform="translate(0, 24)">
+            <g transform="translate(0, 24)" className="pointer-events-none">
               <rect
                 x="-21" y="-8" width="42" height="16" rx="8"
                 fill={isDark ? '#f8fafc' : '#09090b'}

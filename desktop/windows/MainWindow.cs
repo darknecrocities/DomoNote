@@ -60,6 +60,22 @@ namespace DomoNote
             }
             catch { }
 
+            // Enable KeyPreview for global hotkeys like F11 Fullscreen
+            KeyPreview = true;
+            KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.F11)
+                {
+                    e.Handled = true;
+                    ToggleFullscreen();
+                }
+                else if (e.KeyCode == Keys.Escape && _isFullscreen)
+                {
+                    e.Handled = true;
+                    ToggleFullscreen();
+                }
+            };
+
             // Initialize WebView2
             _webView = new WebView2
             {
@@ -201,7 +217,22 @@ namespace DomoNote
                     }
                 };
 
-                // Native WebMessage IPC handler to launch Local AI (Ollama) on demand
+                // Also wire WinForms KeyDown on webView control as fallback
+                _webView.KeyDown += (s, e) =>
+                {
+                    if (e.KeyCode == Keys.F11)
+                    {
+                        e.Handled = true;
+                        ToggleFullscreen();
+                    }
+                    else if (e.KeyCode == Keys.Escape && _isFullscreen)
+                    {
+                        e.Handled = true;
+                        ToggleFullscreen();
+                    }
+                };
+
+                // Native WebMessage IPC handler
                 _webView.CoreWebView2.WebMessageReceived += (s, e) =>
                 {
                     try
@@ -211,6 +242,11 @@ namespace DomoNote
                             raw.Contains("START_OLLAMA", StringComparison.OrdinalIgnoreCase))
                         {
                             StaticServer.TryStartOllama();
+                        }
+                        else if (raw.Contains("toggleFullscreen", StringComparison.OrdinalIgnoreCase) ||
+                                 raw.Contains("TOGGLE_FULLSCREEN", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ToggleFullscreen();
                         }
                     }
                     catch { }
@@ -340,6 +376,35 @@ namespace DomoNote
         {
             if (_webView.CoreWebView2 == null) return;
             _webView.CoreWebView2.ExecuteScriptAsync("window.dispatchEvent(new CustomEvent('domonote:toggle-hud'))");
+        }
+
+        private bool _isFullscreen = false;
+        private FormWindowState _previousWindowState = FormWindowState.Normal;
+        private FormBorderStyle _previousBorderStyle = FormBorderStyle.Sizable;
+
+        public void ToggleFullscreen()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(ToggleFullscreen));
+                return;
+            }
+
+            if (!_isFullscreen)
+            {
+                _previousWindowState = WindowState;
+                _previousBorderStyle = FormBorderStyle;
+                FormBorderStyle = FormBorderStyle.None;
+                WindowState = FormWindowState.Normal;
+                WindowState = FormWindowState.Maximized;
+                _isFullscreen = true;
+            }
+            else
+            {
+                FormBorderStyle = _previousBorderStyle;
+                WindowState = _previousWindowState;
+                _isFullscreen = false;
+            }
         }
 
         public void ExitApplication()

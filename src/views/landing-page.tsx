@@ -394,8 +394,8 @@ export const LandingPage: React.FC = () => {
             <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
 
             {/* Physics Lampcord Toggle Hanging Seamlessly Under Action Bar */}
-            <div className="relative flex items-center justify-center w-8 h-full self-stretch">
-              <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+            <div className="relative flex items-center justify-center w-8 h-full self-stretch pointer-events-none">
+              <div className="absolute top-full -mt-[2px] left-1/2 -translate-x-1/2 z-40 pointer-events-none">
                 <PhysicsRopeToggle />
               </div>
             </div>
