@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAI, type PullProgressUpdate } from '../context/ai-context';
 import { useWorkspace } from '../context/workspace-context';
 import { db, exportWorkspaceToJson, importWorkspaceFromJson } from '../db';
@@ -49,9 +49,23 @@ import {
   Key,
   ExternalLink,
   Languages,
+  ArrowUpCircle,
+  Info,
+  Wrench,
+  Lock,
+  Globe,
 } from 'lucide-react';
 import { ChromeIcon } from '../components/ui/chrome-icon';
 import { SUPPORTED_LANGUAGES } from '../services/ai/translation';
+import {
+  checkForUpdates,
+  type UpdateInfo,
+  clearDismissedVersion,
+  shouldShowUpdateBanner,
+} from '../services/updates/update-checker';
+import { isModelAvailable, DEFAULT_MODEL, clearSetupState } from '../services/ai/ollama-setup';
+
+const APP_VERSION = '1.0.0';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -71,6 +85,46 @@ export const SettingsView: React.FC = () => {
   const [inputUrl, setInputUrl] = useState(baseUrl);
   const [companionStatus, setCompanionStatus] = useState<string>('checking');
   const importFileRef = useRef<HTMLInputElement>(null);
+
+  // Update checker state
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [updateCheckError, setUpdateCheckError] = useState<string | null>(null);
+
+  // Default model installed check
+  const [isDefaultModelInstalled, setIsDefaultModelInstalled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (isConnected) {
+      isModelAvailable(DEFAULT_MODEL).then(setIsDefaultModelInstalled);
+    }
+  }, [isConnected, models]);
+
+  const handleCheckUpdates = useCallback(async () => {
+    setIsCheckingUpdates(true);
+    setUpdateCheckError(null);
+    clearDismissedVersion();
+    try {
+      const info = await checkForUpdates(APP_VERSION, true);
+      setUpdateInfo(info);
+      if (!info || !info.updateAvailable) {
+        addToast('DomoNote is up to date.', 'success');
+      } else {
+        addToast(`DomoNote ${info.latestVersion} is available!`, 'info');
+      }
+    } catch {
+      setUpdateCheckError('Could not reach GitHub. Check your internet connection.');
+      addToast('Update check failed. Please try again later.', 'error');
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  }, [addToast]);
+
+  const handleRepairAI = () => {
+    clearSetupState();
+    window.dispatchEvent(new CustomEvent('domonote:repair-ai'));
+    addToast('Launching AI setup…', 'info');
+  };
 
   // Google Calendar Integration State
   const [gcalConfig, setGcalConfig] = useState<GoogleCalendarConfig>(() => getGoogleCalendarConfig());
@@ -337,6 +391,13 @@ export const SettingsView: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
           <button
             type="button"
+            onClick={() => document.getElementById('section-ai-status')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
+          >
+            AI Status
+          </button>
+          <button
+            type="button"
             onClick={() => document.getElementById('section-ai')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
           >
@@ -371,10 +432,117 @@ export const SettingsView: React.FC = () => {
           >
             Storage & Backup
           </button>
+          <button
+            type="button"
+            onClick={() => document.getElementById('section-updates')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-3 py-1 rounded-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-700 transition-colors whitespace-nowrap text-xs cursor-pointer shadow-xs font-medium"
+          >
+            Updates
+          </button>
         </div>
       </div>
 
       <div className="space-y-8">
+
+        {/* ───────────────────────────────────────────────────────────────── */}
+        {/* AI STATUS CARD */}
+        {/* ───────────────────────────────────────────────────────────────── */}
+        <div id="section-ai-status" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-4 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
+            <div className="flex items-center gap-3">
+              <Cpu className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Local AI</h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">Status &amp; quick actions</p>
+              </div>
+            </div>
+            {/* Status badge */}
+            {isConnected ? (
+              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Ready
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-zinc-500 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-600" />
+                Offline
+              </span>
+            )}
+          </div>
+
+          {/* Status summary (plain language) */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-3">
+            {isConnected ? (
+              <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                {isDefaultModelInstalled
+                  ? `Local AI is ready. The model ${selectedModel || DEFAULT_MODEL} is installed and powering your workspace.`
+                  : `Ollama is running but the default model (${DEFAULT_MODEL}) isn't downloaded yet. Visit AI Engine → Models Catalog to pull it.`}
+              </p>
+            ) : (
+              <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                Ollama is installed but the local AI service is not running, or Ollama isn't installed yet.
+                Use <strong className="text-slate-950 dark:text-white">Repair AI</strong> below to launch the guided setup.
+              </p>
+            )}
+
+            {/* Metadata grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              {[
+                { label: 'Runtime', value: 'Ollama', icon: <Server className="w-3 h-3" /> },
+                {
+                  label: 'Model',
+                  value: selectedModel ? selectedModel.split(':')[0] : '—',
+                  icon: <Cpu className="w-3 h-3" />,
+                },
+                { label: 'Connection', value: 'Local', icon: <Lock className="w-3 h-3" /> },
+                { label: 'Privacy', value: 'On-device', icon: <Shield className="w-3 h-3" /> },
+              ].map(({ label, value, icon }) => (
+                <div key={label} className="p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-1">
+                  <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-zinc-500 font-semibold uppercase tracking-wide">
+                    {icon}
+                    <span>{label}</span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-950 dark:text-white truncate">{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => checkConnection()}
+              disabled={isChecking}
+              id="ai-status-test-connection-btn"
+              className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin' : ''}`} />
+              <span>Test Connection</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRepairAI}
+              id="ai-status-repair-btn"
+              className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span>Setup / Repair AI</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => document.getElementById('section-ai')?.scrollIntoView({ behavior: 'smooth' })}
+              className="border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-white"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Change Model</span>
+            </Button>
+          </div>
+        </div>
+
         {/* Local AI / Ollama Configuration */}
         <div id="section-ai" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-850 pb-4">
@@ -1328,6 +1496,126 @@ export const SettingsView: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        {/* ───────────────────────────────────────────────────────────────── */}
+        {/* UPDATES SECTION */}
+        {/* ───────────────────────────────────────────────────────────────── */}
+        <div id="section-updates" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-xl p-6 space-y-5 scroll-mt-28 shadow-xs dark:shadow-xl transition-colors duration-500">
+          <div className="flex items-center gap-3 border-b border-slate-200 dark:border-zinc-850 pb-4">
+            <ArrowUpCircle className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
+            <div>
+              <h3 className="text-sm font-bold text-slate-950 dark:text-zinc-100">Application Updates</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400">Keep DomoNote up to date from GitHub Releases</p>
+            </div>
+          </div>
+
+          {/* Version info */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-500">Current Version</div>
+              <div className="text-lg font-bold font-mono text-slate-950 dark:text-white">v{APP_VERSION}</div>
+              <div className="text-[11px] text-slate-500 dark:text-zinc-500">Installed on this device</div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-500">Latest Release</div>
+              <div className="text-lg font-bold font-mono text-slate-950 dark:text-white">
+                {updateInfo ? updateInfo.latestVersion : '—'}
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-zinc-500">
+                {updateInfo
+                  ? updateInfo.updateAvailable
+                    ? 'Update available'
+                    : 'You are up to date'
+                  : 'Click "Check for Updates" to check'}
+              </div>
+            </div>
+          </div>
+
+          {/* Update available banner inside settings */}
+          {updateInfo && updateInfo.updateAvailable && (
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                  <ArrowUpCircle className="w-4 h-4" />
+                  DomoNote {updateInfo.latestVersion} is available
+                </div>
+                {updateInfo.releaseNotes && (
+                  <p className="text-[11px] text-amber-600 dark:text-amber-500/80 leading-relaxed line-clamp-3">
+                    {updateInfo.releaseNotes.slice(0, 200)}{updateInfo.releaseNotes.length > 200 ? '…' : ''}
+                  </p>
+                )}
+              </div>
+              <a
+                href={updateInfo.releaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                id="settings-view-update-btn"
+                className="flex items-center gap-1.5 shrink-0 bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Release
+              </a>
+            </div>
+          )}
+
+          {/* Error */}
+          {updateCheckError && (
+            <div className="text-[11px] text-red-500 font-mono bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg p-3">
+              {updateCheckError}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleCheckUpdates}
+              disabled={isCheckingUpdates}
+              id="settings-check-updates-btn"
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold shadow-sm"
+            >
+              {isCheckingUpdates ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5" />
+              )}
+              <span>{isCheckingUpdates ? 'Checking…' : 'Check for Updates'}</span>
+            </Button>
+            {updateInfo && (
+              <a
+                href={updateInfo.releaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Release Notes
+              </a>
+            )}
+            <a
+              href="https://github.com/darknecrocities/DomoNote/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white transition-colors ml-auto"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              All Releases on GitHub
+            </a>
+          </div>
+
+          {/* How updates work */}
+          <div className="pt-2 border-t border-slate-200 dark:border-zinc-850 space-y-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-500">How updates work</div>
+            <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">
+              DomoNote checks GitHub Releases for published versions (not arbitrary commits on the main branch).
+              When a new release is detected, a small notification appears at the top of the app.
+              You can dismiss it for the current version — it won't reappear until a newer release is published.
+              Updates are downloaded from the official GitHub Release page.
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

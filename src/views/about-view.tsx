@@ -1,13 +1,28 @@
-import React from 'react';
-import { ExternalLink, Sparkles, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { ExternalLink, Sparkles, Star, ArrowUpCircle } from 'lucide-react';
 import { GithubIcon } from '../components/ui/github-icon';
 import { PandaMascot } from '../components/ui/panda-mascot';
 import { TiltCard } from '../components/ui/tilt-card';
 import { useGitHubStars } from '../services/github/stars';
 import logoImg from '../assets/official_domonote.png';
+import { checkForUpdates, type UpdateInfo } from '../services/updates/update-checker';
+
+const APP_VERSION = '1.0.0';
 
 export const AboutView: React.FC = () => {
   const { starCount } = useGitHubStars();
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleCheckUpdates = async () => {
+    setIsChecking(true);
+    try {
+      const info = await checkForUpdates(APP_VERSION, true);
+      setUpdateInfo(info);
+    } finally {
+      setIsChecking(false);
+    }
+  };
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white p-8 overflow-y-auto max-w-5xl mx-auto w-full select-none font-sans transition-colors duration-500">
       {/* Brand Header */}
@@ -114,6 +129,47 @@ export const AboutView: React.FC = () => {
                 AI engineering education and hands-on learning resources.
               </p>
             </TiltCard>
+          </div>
+        </section>
+
+        {/* Version & Updates */}
+        <section className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-850 rounded-2xl p-6 space-y-3 shadow-xs dark:shadow-none transition-colors duration-500">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white tracking-tight uppercase tracking-wider">
+            Version & Updates
+          </h3>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-xs text-slate-500 dark:text-zinc-500 font-semibold uppercase tracking-wider">Installed Version</div>
+              <div className="text-2xl font-bold font-mono text-slate-950 dark:text-white">v{APP_VERSION}</div>
+              {updateInfo && (
+                <div className={`text-xs font-medium mt-1 ${updateInfo.updateAvailable ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  {updateInfo.updateAvailable
+                    ? `${updateInfo.latestVersion} is available on GitHub`
+                    : 'You are up to date'}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCheckUpdates}
+                disabled={isChecking}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 px-3 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 shadow-xs"
+              >
+                <ArrowUpCircle className="w-3.5 h-3.5" />
+                {isChecking ? 'Checking…' : 'Check for Updates'}
+              </button>
+              {updateInfo && updateInfo.updateAvailable && (
+                <a
+                  href={updateInfo.releaseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Release
+                </a>
+              )}
+            </div>
           </div>
         </section>
 
