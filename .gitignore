@@ -53,7 +53,9 @@ AppIcon.iconset/
 desktop/bundle/
 public/downloads/*.exe
 public/downloads/*.zip
-# public/downloads/*.dmg tracked for direct Vercel & native download delivery
-public/downloads/*.AppImage
-public/downloads/*.deb
+# public/downloads binary installers tracked for direct Vercel & native download delivery
+!public/downloads/*.dmg
+!public/downloads/*.AppImage
+!public/downloads/*.deb
+!public/downloads/*.tar.gz
 dist/downloads/

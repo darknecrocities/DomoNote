@@ -706,8 +706,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "domonoteDesktop", let body = message.body as? [String: Any] {
-            if let action = body["action"] as? String, action == "startOllama" {
-                startOllama()
+            if let action = body["action"] as? String {
+                if action == "startOllama" {
+                    startOllama()
+                } else if action == "toggleFullscreen" {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.window?.toggleFullScreen(nil)
+                    }
+                }
             }
         }
     }

@@ -42,10 +42,13 @@ jobs:
       - name: Build Web Application & Desktop Installer
         run: powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1
 
+      - name: Build Linux Packages (Debian, AppImage, Portable)
+        run: python scripts/build-linux.py
+
       - name: Generate Checksums
         run: |
           Set-Location public\downloads
-          Get-FileHash -Algorithm SHA256 DomoNote-Setup-x64.exe, DomoNote-Windows-Portable.zip, DomoNote-Setup.bat | 
+          Get-ChildItem -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" } | Get-FileHash -Algorithm SHA256 | 
             ForEach-Object { "$($_.Hash)  $($_.Path | Split-Path -Leaf)" } | 
             Out-File -Encoding ascii SHA256SUMS.txt
           Get-Content SHA256SUMS.txt
@@ -65,4 +68,9 @@ jobs:
             public/downloads/DomoNote-macOS-Universal.dmg
             public/downloads/DomoNote-macOS-arm64.dmg
             public/downloads/DomoNote-macOS-x64.dmg
+            public/downloads/DomoNote-Linux-x86_64.AppImage
+            public/downloads/domonote_1.0.2_amd64.deb
+            public/downloads/DomoNote-Linux-x64.tar.gz
+            public/downloads/DomoNote-Setup.sh
+            public/downloads/DomoNote-Chrome-Extension.zip
             public/downloads/SHA256SUMS.txt

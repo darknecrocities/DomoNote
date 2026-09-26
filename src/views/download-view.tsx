@@ -94,7 +94,9 @@ export const DownloadView: React.FC = () => {
       filename.endsWith('.zip') ||
       filename.endsWith('.dmg') ||
       filename.endsWith('.AppImage') ||
-      filename.endsWith('.deb')
+      filename.endsWith('.deb') ||
+      filename.endsWith('.tar.gz') ||
+      filename.endsWith('.sh')
     ) {
       const localUrl = `/downloads/${filename}`;
       const releaseUrl = `${GITHUB_RELEASE_BASE}/${filename}`;
@@ -731,11 +733,18 @@ bash start.sh
               <span>Download AppImage (.AppImage)</span>
             </button>
             <button
-              onClick={(e) => handleDownload('domonote_1.0.0_amd64.deb', 'Debian/Ubuntu', e)}
+              onClick={(e) => handleDownload('domonote_1.0.2_amd64.deb', 'Debian/Ubuntu', e)}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Debian Package (.DEB)</span>
+            </button>
+            <button
+              onClick={(e) => handleDownload('DomoNote-Linux-x64.tar.gz', 'Linux Portable (.tar.gz)', e)}
+              className="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-500 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Download className="w-3 h-3" />
+              <span>Portable Standalone (.TAR.GZ)</span>
             </button>
           </div>
         </div>
