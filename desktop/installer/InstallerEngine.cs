@@ -20,11 +20,14 @@ namespace DomoNote.Setup
         {
             string installDir = string.IsNullOrWhiteSpace(targetDir) ? DefaultInstallDir : targetDir;
 
-            progress?.Invoke($"Preparing installation directory: {installDir}", 10);
+            // 1. Terminate any running DomoNote instances (including tray/background)
+            TerminateRunningInstances(installDir, progress);
+
+            progress?.Invoke($"Preparing installation directory: {installDir}", 15);
             Directory.CreateDirectory(installDir);
 
             progress?.Invoke("Extracting application bundle...", 25);
-            ExtractBundle(installDir);
+            ExtractBundle(installDir, progress);
 
             progress?.Invoke("Creating Desktop shortcut with official icon...", 60);
             CreateDesktopShortcut(installDir);
@@ -42,7 +45,87 @@ namespace DomoNote.Setup
             progress?.Invoke("Installation completed successfully!", 100);
         }
 
-        private static void ExtractBundle(string destDir)
+        public static void TerminateRunningInstances(string installDir, Action<string, int>? progress = null)
+        {
+            try
+            {
+                progress?.Invoke("Checking for running DomoNote instances...", 5);
+
+                var running = Process.GetProcessesByName("DomoNote");
+                if (running.Length > 0)
+                {
+                    progress?.Invoke("Closing running DomoNote instance to allow reinstall/update...", 8);
+                    foreach (var p in running)
+                    {
+                        try
+                        {
+                            p.CloseMainWindow();
+                        }
+                        catch { }
+                    }
+
+                    // Wait up to 1.5 seconds for graceful exit
+                    for (int i = 0; i < 15; i++)
+                    {
+                        if (Process.GetProcessesByName("DomoNote").Length == 0) break;
+                        System.Threading.Thread.Sleep(100);
+                    }
+
+                    // Force terminate any remaining instances
+                    foreach (var p in Process.GetProcessesByName("DomoNote"))
+                    {
+                        try
+                        {
+                            p.Kill();
+                            p.WaitForExit(2000);
+                        }
+                        catch { }
+                    }
+                }
+
+                // Guaranteed fallback taskkill
+                try
+                {
+                    using var proc = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "taskkill",
+                        Arguments = "/f /im DomoNote.exe",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    proc?.WaitForExit(2000);
+                }
+                catch { }
+
+                // Terminate any helper/WebView2 processes whose executable is inside installDir
+                try
+                {
+                    foreach (var p in Process.GetProcesses())
+                    {
+                        try
+                        {
+                            string? fn = p.MainModule?.FileName;
+                            if (!string.IsNullOrEmpty(fn) && fn.StartsWith(installDir, StringComparison.OrdinalIgnoreCase))
+                            {
+                                p.Kill();
+                                p.WaitForExit(1000);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+
+                // Brief pause so Windows OS kernel releases all file locks
+                System.Threading.Thread.Sleep(500);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Process Termination Warning] {ex.Message}");
+            }
+        }
+
+        private static void ExtractBundle(string destDir, Action<string, int>? progress = null)
         {
             var asm = Assembly.GetExecutingAssembly();
             string? resourceName = asm.GetManifestResourceNames()
@@ -54,7 +137,7 @@ namespace DomoNote.Setup
                 if (stream != null)
                 {
                     using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
-                    archive.ExtractToDirectory(destDir, overwriteFiles: true);
+                    ExtractArchiveSafely(archive, destDir, progress);
                     return;
                 }
             }
@@ -63,11 +146,116 @@ namespace DomoNote.Setup
             string adjacentBundle = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bundle.zip");
             if (File.Exists(adjacentBundle))
             {
-                ZipFile.ExtractToDirectory(adjacentBundle, destDir, overwriteFiles: true);
+                using var fileStream = File.OpenRead(adjacentBundle);
+                using var archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
+                ExtractArchiveSafely(archive, destDir, progress);
                 return;
             }
 
             throw new InvalidOperationException("Embedded resource 'bundle.zip' was not found in the installer binary.");
+        }
+
+        private static void ExtractArchiveSafely(ZipArchive archive, string destDir, Action<string, int>? progress = null)
+        {
+            int total = archive.Entries.Count;
+            int count = 0;
+
+            foreach (var entry in archive.Entries)
+            {
+                count++;
+                if (string.IsNullOrEmpty(entry.Name) && (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\")))
+                {
+                    string dir = Path.Combine(destDir, entry.FullName);
+                    Directory.CreateDirectory(dir);
+                    continue;
+                }
+
+                string targetPath = Path.Combine(destDir, entry.FullName);
+                string? targetDir = Path.GetDirectoryName(targetPath);
+                if (!string.IsNullOrEmpty(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                }
+
+                WriteEntryWithRetry(entry, targetPath);
+
+                if (count % 15 == 0 || count == total)
+                {
+                    int pct = 25 + (int)((count / (float)total) * 35);
+                    progress?.Invoke($"Extracting: {entry.Name}", pct);
+                }
+            }
+
+            // Clean up any temporary backup files created during locked file replacement
+            CleanTemporaryFiles(destDir);
+        }
+
+        private static void WriteEntryWithRetry(ZipArchiveEntry entry, string targetPath)
+        {
+            const int maxRetries = 5;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    // Normal extraction with overwrite
+                    entry.ExtractToFile(targetPath, overwrite: true);
+                    return;
+                }
+                catch (IOException) when (attempt < maxRetries)
+                {
+                    // If file is locked, try renaming the locked file to a temporary backup name.
+                    // On Windows NTFS, renaming an in-use file is allowed, which frees up the original path!
+                    try
+                    {
+                        if (File.Exists(targetPath))
+                        {
+                            string backupPath = targetPath + ".old." + Guid.NewGuid().ToString("N");
+                            File.Move(targetPath, backupPath);
+                            // Now extract to original targetPath
+                            entry.ExtractToFile(targetPath, overwrite: true);
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        // Wait and retry
+                        System.Threading.Thread.Sleep(250 * attempt);
+                    }
+                }
+                catch (UnauthorizedAccessException) when (attempt < maxRetries)
+                {
+                    try
+                    {
+                        if (File.Exists(targetPath))
+                        {
+                            File.SetAttributes(targetPath, FileAttributes.Normal);
+                        }
+                    }
+                    catch { }
+                    System.Threading.Thread.Sleep(250 * attempt);
+                }
+            }
+
+            // Final attempt
+            entry.ExtractToFile(targetPath, overwrite: true);
+        }
+
+        private static void CleanTemporaryFiles(string dir)
+        {
+            try
+            {
+                if (!Directory.Exists(dir)) return;
+                var oldFiles = Directory.GetFiles(dir, "*.old.*", SearchOption.AllDirectories);
+                foreach (var f in oldFiles)
+                {
+                    try
+                    {
+                        File.Delete(f);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
         }
 
         private static void CreateDesktopShortcut(string installDir)

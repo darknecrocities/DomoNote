@@ -13,6 +13,9 @@ echo   Capture it. Understand it. Keep it.
 echo ========================================================
 echo.
 
+rem Close existing DomoNote instances to prevent file lock during install/reinstall
+taskkill /f /im DomoNote.exe >nul 2>nul
+
 rem 1. Check Git
 where git >nul 2>nul
 if %ERRORLEVEL% neq 0 (

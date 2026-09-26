@@ -206,6 +206,8 @@ namespace DomoNote
                 }
                 catch { }
             }
+        }
+
         public static bool TryStartOllama()
         {
             try

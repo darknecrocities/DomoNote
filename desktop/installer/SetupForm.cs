@@ -76,10 +76,14 @@ namespace DomoNote.Setup
             };
             headerPanel.Controls.Add(subtitleLabel);
 
+            bool isAlreadyInstalled = File.Exists(Path.Combine(_installDir, "DomoNote.exe"));
+
             // Body Controls
             _statusLabel = new Label
             {
-                Text = "Ready to install DomoNote to: " + _installDir,
+                Text = isAlreadyInstalled
+                    ? "Existing installation detected. Ready to reinstall / update."
+                    : "Ready to install DomoNote to: " + _installDir,
                 Font = new Font("Segoe UI", 9, FontStyle.Regular),
                 ForeColor = Color.FromArgb(200, 200, 210),
                 Location = new Point(20, 95),
@@ -122,16 +126,16 @@ namespace DomoNote.Setup
             // Bottom Buttons
             _installButton = new Button
             {
-                Text = "Install Now",
-                Location = new Point(340, 360),
-                Size = new Size(100, 32),
+                Text = isAlreadyInstalled ? "Reinstall / Update" : "Install Now",
+                Location = new Point(320, 360),
+                Size = new Size(120, 32),
                 BackColor = Color.White,
                 ForeColor = Color.Black,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 FlatStyle = FlatStyle.Flat
             };
             _installButton.FlatAppearance.BorderSize = 0;
-            _installButton.Click += async (s, e) => await StartInstallationAsync();
+            _installButton.Click += async (s, e) => await HandleInstallButtonClickAsync();
             Controls.Add(_installButton);
 
             _closeButton = new Button
@@ -148,13 +152,33 @@ namespace DomoNote.Setup
             _closeButton.Click += (s, e) => Close();
             Controls.Add(_closeButton);
 
-            Log("Ready. Click 'Install Now' to begin.");
+            if (isAlreadyInstalled)
+            {
+                Log("Existing DomoNote installation detected. Click 'Reinstall / Update' to safely update.");
+            }
+            else
+            {
+                Log("Ready. Click 'Install Now' to begin.");
+            }
         }
+
+        private bool _isCompleted = false;
 
         private void Log(string msg)
         {
             _logBox.Items.Add($"[{DateTime.Now:HH:mm:ss}] {msg}");
             _logBox.TopIndex = _logBox.Items.Count - 1;
+        }
+
+        private async Task HandleInstallButtonClickAsync()
+        {
+            if (_isCompleted)
+            {
+                FinishAndClose();
+                return;
+            }
+
+            await StartInstallationAsync();
         }
 
         private async Task StartInstallationAsync()
@@ -177,13 +201,12 @@ namespace DomoNote.Setup
                     });
                 });
 
+                _isCompleted = true;
                 _statusLabel.Text = "Installation Completed Successfully!";
                 _statusLabel.ForeColor = Color.LightGreen;
 
                 _installButton.Text = "Finish";
                 _installButton.Enabled = true;
-                _installButton.Click -= async (s, e) => await StartInstallationAsync();
-                _installButton.Click += (s, e) => FinishAndClose();
 
                 _closeButton.Text = "Close";
                 _closeButton.Enabled = true;
@@ -194,6 +217,7 @@ namespace DomoNote.Setup
                 _statusLabel.Text = "Installation failed: " + ex.Message;
                 _statusLabel.ForeColor = Color.Salmon;
                 _closeButton.Enabled = true;
+                _installButton.Text = "Retry";
                 _installButton.Enabled = true;
             }
         }
