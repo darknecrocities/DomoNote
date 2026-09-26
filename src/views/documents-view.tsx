@@ -154,12 +154,12 @@ export const DocumentsView: React.FC = () => {
   const getDocIcon = (fileName: string) => {
     const lower = fileName.toLowerCase();
     if (lower.endsWith('.pptx') || lower.endsWith('.ppt')) {
-      return <Presentation className="w-4 h-4 text-zinc-300 shrink-0" />;
+      return <Presentation className="w-4 h-4 text-slate-500 dark:text-zinc-300 shrink-0" />;
     }
     if (lower.endsWith('.docx') || lower.endsWith('.doc') || lower.endsWith('.txt') || lower.endsWith('.md')) {
-      return <FileText className="w-4 h-4 text-zinc-300 shrink-0" />;
+      return <FileText className="w-4 h-4 text-slate-500 dark:text-zinc-300 shrink-0" />;
     }
-    return <File className="w-4 h-4 text-zinc-400 shrink-0" />;
+    return <File className="w-4 h-4 text-slate-400 dark:text-zinc-400 shrink-0" />;
   };
 
   return (
@@ -282,12 +282,12 @@ export const DocumentsView: React.FC = () => {
             }}
             className="flex-1 flex items-center justify-center p-8"
           >
-            <div className="max-w-md w-full border-2 border-dashed border-zinc-850 rounded-2xl p-12 text-center bg-zinc-950/40 flex flex-col items-center shadow-2xl">
-              <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 mb-4">
+            <div className="max-w-md w-full border-2 border-dashed border-slate-300 dark:border-zinc-800 rounded-2xl p-12 text-center bg-white/60 dark:bg-zinc-950/40 backdrop-blur-sm flex flex-col items-center shadow-sm dark:shadow-2xl transition-colors duration-300">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-500 dark:text-zinc-400 mb-4">
                 <UploadCloud className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-semibold text-zinc-100 mb-1">Upload Any Document</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100 mb-1">Upload Any Document</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-6">
                 Drag and drop your PDF, Word (.docx), PowerPoint (.pptx), Markdown (.md), or plain text (.txt) file here.
                 Parsed 100% locally with instant AI analysis.
               </p>

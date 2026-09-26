@@ -111,24 +111,24 @@ export const Sidebar: React.FC = () => {
                 collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
               } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
                 isActive
-                  ? 'bg-slate-950 text-white dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-900 dark:border-white/20 backdrop-blur-md'
+                  ? 'bg-slate-200/70 text-slate-900 dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-300/60 dark:border-white/20 backdrop-blur-md'
                   : 'text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent'
               }`}
             >
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-400 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-500 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               )}
 
               <Icon
                 className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
                   isActive
-                    ? 'text-emerald-400 dark:text-white'
+                    ? 'text-emerald-600 dark:text-white'
                     : 'text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-zinc-100'
                 }`}
               />
               {!collapsed && (
                 <span className={`ml-3 truncate tracking-tight text-[13px] ${
-                  isActive ? 'font-semibold text-white' : 'font-semibold'
+                  isActive ? 'font-semibold text-slate-900 dark:text-white' : 'font-semibold'
                 }`}>
                   {item.label}
                 </span>
@@ -155,24 +155,24 @@ export const Sidebar: React.FC = () => {
                 collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
               } rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
                 isActive
-                  ? 'bg-slate-950 text-white dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-900 dark:border-white/20 backdrop-blur-md'
+                  ? 'bg-slate-200/70 text-slate-900 dark:bg-white/12 dark:text-white font-semibold shadow-sm border border-slate-300/60 dark:border-white/20 backdrop-blur-md'
                   : 'text-slate-900 dark:text-zinc-200 font-semibold hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-transparent'
               }`}
             >
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-400 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-emerald-500 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               )}
 
               <Icon
                 className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
                   isActive
-                    ? 'text-emerald-400 dark:text-white'
+                    ? 'text-emerald-600 dark:text-white'
                     : 'text-slate-700 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-zinc-100'
                 }`}
               />
               {!collapsed && (
                 <span className={`ml-3 truncate tracking-tight text-[13px] ${
-                  isActive ? 'font-semibold text-white' : 'font-semibold'
+                  isActive ? 'font-semibold text-slate-900 dark:text-white' : 'font-semibold'
                 }`}>
                   {item.label}
                 </span>
