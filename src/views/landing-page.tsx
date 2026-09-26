@@ -43,6 +43,8 @@ import { HeroCloudBackground } from '../components/landing/hero-cloud-background
 import { StarfieldBackground } from '../components/landing/starfield-background';
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import { BrandCarouselBelts } from '../components/landing/brand-carousel-belts';
+import { StatsBelt } from '../components/landing/stats-belt';
+import { recordAppDownload } from '../services/firebase/stats';
 import { TiltCard } from '../components/ui/tilt-card';
 import { useGitHubStars } from '../services/github/stars';
 import pandaImg from '../assets/panda-mascot.png';
@@ -80,7 +82,7 @@ const TYPEWRITER_PHRASES: Record<string, string[]> = {
 };
 
 export const LandingPage: React.FC = () => {
-  const { setActiveView, isCloudHost, setIsCloudModalOpen, setIsExtensionModalOpen } = useWorkspace();
+  const { setActiveView, isCloudHost, setIsCloudModalOpen, setIsExtensionModalOpen, addToast } = useWorkspace();
   const { playPop, playThock } = useSound();
   const { t, language } = useLanguage();
   const { theme } = useTheme();
@@ -107,6 +109,49 @@ export const LandingPage: React.FC = () => {
     } else {
       setActiveView('dashboard');
     }
+  };
+
+  // 1-Click Fully Automated Extension Setup (Zero manual modals or popups)
+  const handleAutoSetupExtension = async () => {
+    setIsMobileMenuOpen(false);
+
+    // 1. Try local companion service (instant silent launch in background)
+    try {
+      const compRes = await fetch('http://localhost:8765/extension/launch', {
+        method: 'POST',
+        signal: AbortSignal.timeout(1500),
+      }).catch(() => null);
+      if (compRes && compRes.ok) {
+        addToast('🚀 Chrome launched with DomoNote extension active!', 'success');
+        return;
+      }
+    } catch {}
+
+    // 2. Try local dev server API if running on localhost
+    try {
+      const localRes = await fetch('/api/chrome-extension/launch-browser', {
+        method: 'POST',
+        signal: AbortSignal.timeout(1500),
+      }).catch(() => null);
+      if (localRes && localRes.ok) {
+        addToast('🚀 Chrome launched with DomoNote extension pre-loaded!', 'success');
+        return;
+      }
+    } catch {}
+
+    // 3. Fallback on web/cloud: automatically trigger 1-click launcher download directly without opening modal
+    const isMac = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('mac');
+    const filename = isMac ? 'Setup-DomoNote-Extension.command' : 'Setup-DomoNote-Extension.bat';
+    const a = document.createElement('a');
+    a.href = `/downloads/${filename}`;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      if (document.body.contains(a)) document.body.removeChild(a);
+    }, 500);
+
+    addToast(`⚡ Automated 1-Click launcher downloaded (${filename})! Double-click to auto-launch Chrome.`, 'success');
   };
 
   const activeTypewriterList = TYPEWRITER_PHRASES[language] || TYPEWRITER_PHRASES.en;
@@ -298,16 +343,19 @@ export const LandingPage: React.FC = () => {
           <div className="hidden md:flex items-center gap-2.5 h-full">
             {/* 1-Click Chrome Extension Button */}
             <button
-              onClick={() => setIsExtensionModalOpen(true)}
+              onClick={handleAutoSetupExtension}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors group"
               title="DomoNote Chrome Extension (1-Click Automated Setup)"
             >
-              <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
+              <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110 text-emerald-500" />
               <span className="font-medium">Chrome Extension</span>
             </button>
 
             <button
-              onClick={() => setActiveView('download')}
+              onClick={() => {
+                recordAppDownload('navbar');
+                setActiveView('download');
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
@@ -385,18 +433,16 @@ export const LandingPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                setIsExtensionModalOpen(true);
-              }}
-              className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-zinc-700 transition-colors"
+              onClick={handleAutoSetupExtension}
+              className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
             >
               <ChromeIcon className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Extension</span>
+              <span>Extension (1-Click)</span>
             </button>
 
             <button
               onClick={() => {
+                recordAppDownload('mobile-menu');
                 setIsMobileMenuOpen(false);
                 setActiveView('download');
               }}
@@ -526,10 +572,10 @@ export const LandingPage: React.FC = () => {
                   variant="outline"
                   size="md"
                   className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
-                  onClick={() => setIsExtensionModalOpen(true)}
-                  title="1-Click Chrome Extension Setup"
+                  onClick={handleAutoSetupExtension}
+                  title="1-Click Chrome Extension Automated Setup"
                 >
-                  <ChromeIcon className="w-3.5 h-3.5 shrink-0" />
+                  <ChromeIcon className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
                   <span>Chrome Extension</span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-300 dark:border-emerald-800">
                     1-Click
@@ -540,7 +586,10 @@ export const LandingPage: React.FC = () => {
                   variant="outline"
                   size="md"
                   className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-white/40 text-slate-800 dark:text-white bg-white dark:bg-transparent"
-                  onClick={() => setActiveView('download')}
+                  onClick={() => {
+                    recordAppDownload('hero-cta');
+                    setActiveView('download');
+                  }}
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-300" />
                   <span>{t('landing.hero.downloadAll', 'Download (Mac / Win / Linux)')}</span>
@@ -659,6 +708,9 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Real-Time Live Stats Belt: Visitors & App Downloads */}
+        <StatsBelt />
 
         {/* Continuous Looping Brand Belts: Video Platforms & Supported File Formats */}
         <BrandCarouselBelts />
@@ -1019,7 +1071,10 @@ cd DomoNote
                 variant="outline"
                 size="lg"
                 className="w-full sm:w-auto justify-center border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-white/40 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-transparent"
-                onClick={() => setActiveView('download')}
+                onClick={() => {
+                  recordAppDownload('bottom-cta');
+                  setActiveView('download');
+                }}
               >
                 <Download className="w-4 h-4 text-slate-500 dark:text-zinc-300" />
                 <span>{t('landing.cta.downloadApp', 'Download App')}</span>
@@ -1045,7 +1100,10 @@ cd DomoNote
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 dark:text-zinc-400">
             <button
-              onClick={() => setActiveView('download')}
+              onClick={() => {
+                recordAppDownload('footer');
+                setActiveView('download');
+              }}
               className="text-slate-900 dark:text-white font-semibold hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
             >
               {t('common.download', 'Download')}

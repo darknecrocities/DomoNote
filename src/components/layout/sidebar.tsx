@@ -19,8 +19,6 @@ import {
   GitCommit,
   X,
   Download,
-  Sparkles,
-  Layers,
   Star,
 } from 'lucide-react';
 import { GithubIcon } from '../ui/github-icon';

@@ -53,17 +53,32 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
 
     let width = 0;
     let height = 0;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Cap DPR at 1 for ambient canvas particles: visually identical but 4x lower memory and GPU fill rate
+    const dpr = 1;
+
+    let cachedMascotEx: { cx: number; cy: number; radius: number; radiusSq: number } | null = null;
+    const updateMascotExclusion = () => {
+      if (!mascotExclusionRef?.current || !canvas) {
+        cachedMascotEx = null;
+        return;
+      }
+      const mascotRect = mascotExclusionRef.current.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const cx = mascotRect.left - canvasRect.left + mascotRect.width / 2;
+      const cy = mascotRect.top - canvasRect.top + mascotRect.height / 2;
+      const radius = Math.max(mascotRect.width, mascotRect.height) * 0.55;
+      cachedMascotEx = { cx, cy, radius, radiusSq: radius * radius };
+    };
 
     const resize = () => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      updateMascotExclusion();
     };
 
     resize();
@@ -125,7 +140,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
 
     const theme = getThemeConfig();
 
-    // Initialize particles with slightly smaller, delicate star nodes
+    // Initialize particles with delicate star nodes
     const init = () => {
       particles.length = 0;
       pulses.length = 0;
@@ -147,8 +162,8 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
             y: center.y + Math.sin(angle) * dist,
             vx: (Math.random() - 0.5) * 0.4,
             vy: (Math.random() - 0.5) * 0.4,
-            radius: Math.random() * 1.3 + 1.2, // Delicate star size (1.2 - 2.5px)
-            baseAlpha: Math.random() * 0.35 + 0.65, // Bright white
+            radius: Math.random() * 1.3 + 1.2,
+            baseAlpha: Math.random() * 0.35 + 0.65,
             phase: Math.random() * Math.PI * 2,
             color: col,
             glowColor: 'rgba(255, 255, 255, 0.75)',
@@ -168,7 +183,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
               y: r * yStep + (Math.random() - 0.5) * 22,
               vx: (Math.random() - 0.5) * 0.25,
               vy: (Math.random() - 0.5) * 0.25,
-              radius: Math.random() * 1.2 + 1.2, // 1.2 - 2.4px
+              radius: Math.random() * 1.2 + 1.2,
               baseAlpha: Math.random() * 0.3 + 0.7,
               phase: Math.random() * Math.PI * 2,
               color: col,
@@ -212,7 +227,6 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
           });
         }
       } else {
-        // crystalline-polyhedra or synaptic-flow
         for (let i = 0; i < theme.count; i++) {
           const col = theme.colors[i % theme.colors.length];
           particles.push({
@@ -231,17 +245,6 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
     };
 
     init();
-
-    // Check mascot exclusion zone
-    const getMascotExclusion = () => {
-      if (!mascotExclusionRef?.current) return null;
-      const mascotRect = mascotExclusionRef.current.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-      const cx = mascotRect.left - canvasRect.left + mascotRect.width / 2;
-      const cy = mascotRect.top - canvasRect.top + mascotRect.height / 2;
-      const radius = Math.max(mascotRect.width, mascotRect.height) * 0.55;
-      return { cx, cy, radius };
-    };
 
     let isVisible = !document.hidden;
     let isIntersecting = false;
@@ -280,20 +283,29 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
           stopLoop();
         }
       },
-      { rootMargin: '80px 0px 80px 0px' }
+      { rootMargin: '60px 0px 60px 0px' }
     );
     observer.observe(canvas);
 
     let time = 0;
+    let lastTimestamp = 0;
 
-    const render = () => {
+    const render = (timestamp: number) => {
       if (!isRunning) return;
+
+      // Throttle to 60fps on 120Hz promotion screens to save GPU cycles & avoid stutter
+      if (timestamp - lastTimestamp < 15) {
+        animIdRef.current = requestAnimationFrame(render);
+        return;
+      }
+      lastTimestamp = timestamp;
 
       time += 0.016;
       ctx.clearRect(0, 0, width, height);
 
-      const mascotEx = getMascotExclusion();
+      const mascotEx = cachedMascotEx;
       const connectionDist = theme.lineDist;
+      const connDistSq = connectionDist * connectionDist;
 
       // Update positions
       if (variant === 'stellar-vortex') {
@@ -344,20 +356,19 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
           if (Math.abs(dx) >= connectionDist) continue;
           const dy = p1.y - p2.y;
           if (Math.abs(dy) >= connectionDist) continue;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const distSq = dx * dx + dy * dy;
 
-          if (dist < connectionDist) {
+          if (distSq < connDistSq) {
+            const dist = Math.sqrt(distSq);
             const factor = 1 - dist / connectionDist;
             let lineAlpha = factor * 0.42;
 
-            // Protect mascot face
+            // Protect mascot face without calling getBoundingClientRect
             if (mascotEx) {
               const midX = (p1.x + p2.x) / 2;
               const midY = (p1.y + p2.y) / 2;
-              const dToMascot = Math.sqrt(
-                Math.pow(midX - mascotEx.cx, 2) + Math.pow(midY - mascotEx.cy, 2)
-              );
-              if (dToMascot < mascotEx.radius * 0.75) {
+              const dMascotSq = Math.pow(midX - mascotEx.cx, 2) + Math.pow(midY - mascotEx.cy, 2);
+              if (dMascotSq < mascotEx.radiusSq * 0.5625) {
                 lineAlpha *= 0.05;
               }
             }
@@ -388,7 +399,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
         });
       }
 
-      // Draw white signal pulses with fast multi-arc glow instead of slow shadowBlur
+      // Draw white signal pulses
       for (let i = pulses.length - 1; i >= 0; i--) {
         const pulse = pulses[i];
         pulse.progress += pulse.speed;
@@ -427,10 +438,8 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
         let alpha = p.baseAlpha * pulseFactor;
 
         if (mascotEx) {
-          const dToMascot = Math.sqrt(
-            Math.pow(p.x - mascotEx.cx, 2) + Math.pow(p.y - mascotEx.cy, 2)
-          );
-          if (dToMascot < mascotEx.radius) {
+          const dMascotSq = Math.pow(p.x - mascotEx.cx, 2) + Math.pow(p.y - mascotEx.cy, 2);
+          if (dMascotSq < mascotEx.radiusSq) {
             alpha *= 0.05;
           }
         }
@@ -455,10 +464,6 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
       }
     };
 
-    if (opacity > 0) {
-      startLoop();
-    }
-
     return () => {
       stopLoop();
       observer.disconnect();
@@ -474,7 +479,7 @@ export const SectionConstellation: React.FC<SectionConstellationProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}
+      className={`absolute inset-0 w-full h-full pointer-events-none will-change-transform ${className}`}
       style={{
         opacity,
         zIndex: 0,

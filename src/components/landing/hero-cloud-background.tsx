@@ -33,7 +33,8 @@ export const HeroCloudBackground: React.FC<HeroCloudBackgroundProps> = ({ isLigh
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none z-0 transition-opacity duration-700 ease-in-out opacity-100"
+      className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none z-0 transition-opacity duration-700 ease-in-out opacity-100 will-change-transform"
+      style={{ contain: 'paint' }}
       aria-hidden="true"
     >
       {/* 

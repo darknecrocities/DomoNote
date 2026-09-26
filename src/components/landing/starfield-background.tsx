@@ -53,27 +53,26 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = 0;
-    let height = 0;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    // Cap DPR at 1 for ambient starfield: identical crisp stars but saves 4x fill-rate
+    const dpr = 1;
 
     const resize = () => {
       if (!canvas) return;
-      width = canvas.parentElement?.clientWidth || window.innerWidth;
-      height = canvas.parentElement?.clientHeight || window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
     };
 
     resize();
     window.addEventListener('resize', resize);
 
+    // Mouse parallax with 0 DOM queries (canvas is fixed inset-0)
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / (rect.width || 1) - 0.5;
-      const y = (e.clientY - rect.top) / (rect.height || 1) - 0.5;
+      const x = (e.clientX / (width || 1)) - 0.5;
+      const y = (e.clientY / (height || 1)) - 0.5;
       mouseRef.current.targetX = x * 25;
       mouseRef.current.targetY = y * 25;
     };
@@ -88,7 +87,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
       'rgba(225, 225, 225,',
     ];
 
-    const starCount = Math.min(160, Math.floor((width * height) / 5000));
+    const starCount = Math.min(140, Math.floor((width * height) / 6000));
     const stars: Star[] = [];
 
     for (let i = 0; i < starCount; i++) {
@@ -114,7 +113,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
     let lastMeteorTime = Date.now();
 
     const spawnMeteor = () => {
-      const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.35; // ~45 deg downward slope
+      const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.35;
       const speed = (7 + Math.random() * 6) * speedMultiplier;
       meteors.push({
         x: Math.random() * (width * 1.1) - (width * 0.1),
@@ -129,9 +128,17 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
     };
 
     let isRunning = true;
+    let lastFrameTime = 0;
 
-    const render = () => {
+    const render = (timestamp: number) => {
       if (!isRunning || !ctx || !canvas) return;
+
+      // Throttle to 60fps on high refresh screens
+      if (timestamp - lastFrameTime < 15) {
+        animFrameIdRef.current = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp;
 
       // Smooth mouse parallax
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
@@ -145,7 +152,6 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
         star.phase += star.twinkleSpeed;
         const currentAlpha = Math.max(0.15, Math.min(1.0, star.baseAlpha + Math.sin(star.phase) * 0.35));
 
-        // Parallax offset based on star depth
         const offsetX = mouseRef.current.x * (star.depth * 0.4);
         const offsetY = mouseRef.current.y * (star.depth * 0.4);
         const posX = star.x + offsetX;
@@ -157,7 +163,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
         ctx.fillStyle = `${star.color} ${currentAlpha})`;
         ctx.fill();
 
-        // 4-Point cross sparkle for larger stars
+        // 4-Point cross sparkle for larger stars (without allocating gradient objects in loop)
         if (star.hasSparkle && currentAlpha > 0.6) {
           const sparkleSize = star.size * 3.5 * currentAlpha;
           ctx.strokeStyle = `rgba(255, 255, 255, ${currentAlpha * 0.45})`;
@@ -171,17 +177,14 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
           ctx.stroke();
 
           // Soft center aura
-          const aura = ctx.createRadialGradient(posX, posY, 0, posX, posY, star.size * 2.8);
-          aura.addColorStop(0, `rgba(255, 255, 255, ${currentAlpha * 0.3})`);
-          aura.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          ctx.fillStyle = aura;
+          ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha * 0.15})`;
           ctx.beginPath();
-          ctx.arc(posX, posY, star.size * 2.8, 0, Math.PI * 2);
+          ctx.arc(posX, posY, star.size * 2.4, 0, Math.PI * 2);
           ctx.fill();
         }
       }
 
-      // Spawn Meteors periodically (every 5-9 seconds in dark mode)
+      // Spawn Meteors periodically
       const now = Date.now();
       if (now - lastMeteorTime > 5000 && Math.random() < 0.035) {
         spawnMeteor();
@@ -216,7 +219,6 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
         ctx.lineTo(m.x, m.y);
         ctx.stroke();
 
-        // Meteor Head Spark
         ctx.fillStyle = `rgba(255, 255, 255, ${m.alpha})`;
         ctx.beginPath();
         ctx.arc(m.x, m.y, m.thickness * 1.2, 0, Math.PI * 2);
@@ -260,7 +262,7 @@ export const StarfieldBackground: React.FC<StarfieldBackgroundProps> = ({
 
   return (
     <div
-      className={`absolute inset-0 w-full h-full pointer-events-none overflow-hidden select-none transition-opacity duration-700 ease-in-out opacity-100 ${className}`}
+      className={`fixed inset-0 w-full h-full pointer-events-none overflow-hidden select-none transition-opacity duration-700 ease-in-out opacity-100 will-change-transform ${className}`}
       aria-hidden="true"
     >
       <canvas

@@ -87,25 +87,44 @@ export const ChromeExtensionModal: React.FC<ChromeExtensionModalProps> = ({
   };
 
   // 1-Click Automated Setup: Triggers native macOS automation via local dev server
+  // 1-Click Automated Setup: Triggers native automation or downloads 1-click launcher
   const handleAutoInstall = async () => {
     setIsAutoInstalling(true);
     setAutoInstallStatus(null);
     try {
-      const res = await fetch('/api/chrome-extension/auto-install', {
+      // 1. Try companion service
+      const compRes = await fetch('http://localhost:8765/extension/launch', {
         method: 'POST',
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAutoInstallStatus(
-          '✨ Extensions tab opened and folder revealed in Finder! Simply drag the "browser-extension" folder into Chrome (or click "Load unpacked" and paste the path from your clipboard).'
-        );
-      } else {
-        setAutoInstallStatus('Folder path copied! Open chrome://extensions to load.');
+        signal: AbortSignal.timeout(1500),
+      }).catch(() => null);
+      if (compRes && compRes.ok) {
+        setAutoInstallStatus('🚀 Chrome launched automatically with DomoNote extension pre-loaded!');
+        setIsConnected(true);
+        return;
       }
+
+      // 2. Try local dev server API
+      const res = await fetch('/api/chrome-extension/launch-browser', {
+        method: 'POST',
+        signal: AbortSignal.timeout(1500),
+      }).catch(() => null);
+      if (res && res.ok) {
+        setAutoInstallStatus('🚀 Chrome launched automatically with DomoNote extension pre-loaded!');
+        setIsConnected(true);
+        return;
+      }
+
+      // 3. Fallback on web/cloud: trigger 1-click launcher download directly
+      const a = document.createElement('a');
+      a.href = '/downloads/Setup-DomoNote-Extension.command';
+      a.download = 'Setup-DomoNote-Extension.command';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setAutoInstallStatus('⚡ 1-Click launcher script downloaded! Double-click "Setup-DomoNote-Extension.command" to launch Chrome with DomoNote.');
     } catch {
-      // Fallback if API route is unreachable: copy path to clipboard
-      copyExtensionPath();
-      setAutoInstallStatus('Path copied to clipboard! Navigate to chrome://extensions and select "Load unpacked".');
+      copyLaunchCommand();
+      setAutoInstallStatus('Launcher command copied to clipboard!');
     } finally {
       setIsAutoInstalling(false);
     }
@@ -308,7 +327,7 @@ export const ChromeExtensionModal: React.FC<ChromeExtensionModalProps> = ({
           <div className="flex items-center gap-2">
             {/* Direct ZIP download with proper headers */}
             <a
-              href="/api/chrome-extension/download-zip"
+              href="/downloads/DomoNote-Chrome-Extension.zip"
               download="DomoNote-Chrome-Extension.zip"
               className="px-3.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium transition-all flex items-center gap-1.5 shadow-sm"
               title="Download zipped extension"
@@ -319,7 +338,7 @@ export const ChromeExtensionModal: React.FC<ChromeExtensionModalProps> = ({
 
             {/* Direct script download with proper headers */}
             <a
-              href="/api/chrome-extension/download-script"
+              href="/downloads/Setup-DomoNote-Extension.command"
               download="Setup-DomoNote-Extension.command"
               className="px-3.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium transition-all flex items-center gap-1.5 shadow-sm"
               title="Download executable launcher script"

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ScrollRevealProps {
   children: React.ReactNode;
@@ -21,77 +21,38 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   const [state, setState] = useState<'hidden' | 'visible' | 'exiting'>('hidden');
   const domRef = useRef<HTMLDivElement>(null);
 
-  const updateState = useCallback(() => {
-    const el = domRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight;
-
-    // Fully above viewport (scrolled past)
-    if (rect.bottom < 0) {
-      if (fadeOut) setState('hidden');
-      return;
-    }
-    // Fully below viewport
-    if (rect.top > vh) {
-      setState('hidden');
-      return;
-    }
-
-    // Exiting: top is being scrolled past the upper portion of the viewport
-    if (fadeOut && rect.top < -rect.height * 0.15) {
-      setState('exiting');
-      return;
-    }
-
-    // Entering: element is sufficiently visible
-    const visiblePx = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
-    const visibleRatio = visiblePx / rect.height;
-    if (visibleRatio >= threshold) {
-      setState('visible');
-    }
-  }, [fadeOut, threshold]);
-
   useEffect(() => {
     const el = domRef.current;
     if (!el) return;
 
-    // IntersectionObserver for entry
+    // Use IntersectionObserver natively for 0-CPU, 0-scroll-listener performance
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+
         if (entry.isIntersecting) {
           setState('visible');
+        } else if (fadeOut) {
+          if (entry.boundingClientRect.top < 0) {
+            setState('exiting');
+          } else {
+            setState('hidden');
+          }
         }
       },
-      { threshold, rootMargin: '0px 0px -30px 0px' }
+      {
+        threshold: [0, threshold],
+        rootMargin: '20px 0px -40px 0px',
+      }
     );
+
     observer.observe(el);
 
-    let ticking = false;
-    let animId = 0;
-
-    // Scroll listener for exit fade-out, throttled to 1 call per animation frame
-    const onScroll = () => {
-      if (!fadeOut || ticking) return;
-      ticking = true;
-      animId = requestAnimationFrame(() => {
-        updateState();
-        ticking = false;
-      });
-    };
-
-    if (fadeOut) {
-      window.addEventListener('scroll', onScroll, { passive: true });
-    }
-
     return () => {
-      observer.unobserve(el);
-      if (animId) cancelAnimationFrame(animId);
-      if (fadeOut) {
-        window.removeEventListener('scroll', onScroll);
-      }
+      observer.disconnect();
     };
-  }, [threshold, fadeOut, updateState]);
+  }, [threshold, fadeOut]);
 
   const directionClasses: Record<string, string> = {
     up: 'translate-y-10',

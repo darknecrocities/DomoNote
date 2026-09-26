@@ -21,6 +21,7 @@ import {
 import { GithubIcon } from '../components/ui/github-icon';
 import { ChromeIcon } from '../components/ui/chrome-icon';
 import { ChromeExtensionModal } from '../components/modals/chrome-extension-modal';
+import { recordAppDownload } from '../services/firebase/stats';
 
 export type SupportedOS = 'macos' | 'windows' | 'linux';
 
@@ -82,7 +83,11 @@ export const DownloadView: React.FC = () => {
   const GITHUB_REPO = 'https://github.com/darknecrocities/DomoNote';
   const GITHUB_RELEASE_BASE = `${GITHUB_REPO}/releases/latest/download`;
 
-  const handleDownload = async (filename: string, osName: string) => {
+  const handleDownload = async (filename: string, osName: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    // Record download event to Firebase and local telemetry
+    recordAppDownload(osName);
+
     // ─── Binary Package Downloads (.dmg, .exe, .zip, .AppImage, .deb) ────────
     if (
       filename.endsWith('.exe') ||
@@ -413,7 +418,11 @@ bash start.sh
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
         {/* macOS Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
+          onClick={() => {
+            setSelectedOS('macos');
+            recordAppDownload('macos-card');
+          }}
+          className={`cursor-pointer rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'macos'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
@@ -491,7 +500,7 @@ bash start.sh
           <div className="pt-6 space-y-2 mt-auto">
             {/* Apple Silicon DMG */}
             <button
-              onClick={() => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)')}
+              onClick={(e) => handleDownload('DomoNote-macOS-arm64.dmg', 'macOS (Apple Silicon)', e)}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
               title="Download Apple Silicon .dmg installer (M1, M2, M3, M4) · 21 MB"
               aria-label="Download macOS Apple Silicon .dmg"
@@ -500,7 +509,7 @@ bash start.sh
               <span>Apple Silicon (.dmg)</span>
             </button>
             <button
-              onClick={() => handleDownload('DomoNote-macOS-x64.dmg', 'macOS (Intel)')}
+              onClick={(e) => handleDownload('DomoNote-macOS-x64.dmg', 'macOS (Intel)', e)}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
               title="Download Intel Mac .dmg installer (Core i5, i7, i9) · 21 MB"
               aria-label="Download macOS Intel .dmg"
@@ -509,7 +518,7 @@ bash start.sh
               <span>Intel Mac (.dmg)</span>
             </button>
             <button
-              onClick={() => handleDownload('DomoNote-macOS-Universal.dmg', 'macOS (Universal)')}
+              onClick={(e) => handleDownload('DomoNote-macOS-Universal.dmg', 'macOS (Universal)', e)}
               className="w-full py-1.5 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-400 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
               title="Download Universal .dmg installer — works on any Mac · 21 MB"
               aria-label="Download Universal macOS .dmg"
@@ -522,7 +531,11 @@ bash start.sh
 
         {/* Windows Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
+          onClick={() => {
+            setSelectedOS('windows');
+            recordAppDownload('windows-card');
+          }}
+          className={`cursor-pointer rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'windows'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
@@ -599,14 +612,14 @@ bash start.sh
           {/* Download Buttons */}
           <div className="pt-6 space-y-2 mt-auto">
             <button
-              onClick={() => handleDownload('DomoNote-Setup-x64.exe', 'Windows')}
+              onClick={(e) => handleDownload('DomoNote-Setup-x64.exe', 'Windows', e)}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Installer (.EXE)</span>
             </button>
             <button
-              onClick={() => handleDownload('DomoNote-Windows-Portable.zip', 'Windows Portable')}
+              onClick={(e) => handleDownload('DomoNote-Windows-Portable.zip', 'Windows Portable', e)}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
@@ -616,6 +629,10 @@ bash start.sh
               href="https://github.com/darknecrocities/DomoNote/releases"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+                recordAppDownload('github-releases');
+              }}
               className="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 text-[11px] font-medium hover:border-slate-500 dark:hover:border-zinc-600 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
             >
               <ExternalLink className="w-3 h-3" />
@@ -626,7 +643,11 @@ bash start.sh
 
         {/* Linux Card */}
         <div
-          className={`rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
+          onClick={() => {
+            setSelectedOS('linux');
+            recordAppDownload('linux-card');
+          }}
+          className={`cursor-pointer rounded-2xl p-6 flex flex-col justify-between h-full transition-all duration-500 ${
             selectedOS === 'linux'
               ? 'bg-white dark:bg-zinc-950 border-2 border-slate-900 dark:border-white shadow-xl dark:shadow-white/5'
               : 'bg-white/80 dark:bg-zinc-950/70 border border-slate-200 dark:border-zinc-850 hover:border-slate-400 dark:hover:border-white/30'
@@ -703,14 +724,14 @@ bash start.sh
           {/* Download Buttons */}
           <div className="pt-6 space-y-2 mt-auto">
             <button
-              onClick={() => handleDownload('DomoNote-Linux-x86_64.AppImage', 'Linux AppImage')}
+              onClick={(e) => handleDownload('DomoNote-Linux-x86_64.AppImage', 'Linux AppImage', e)}
               className="w-full py-2.5 px-4 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download AppImage (.AppImage)</span>
             </button>
             <button
-              onClick={() => handleDownload('domonote_1.0.0_amd64.deb', 'Debian/Ubuntu')}
+              onClick={(e) => handleDownload('domonote_1.0.0_amd64.deb', 'Debian/Ubuntu', e)}
               className="w-full py-2 px-4 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 text-xs font-semibold hover:border-slate-500 dark:hover:border-white/40 hover:text-black dark:hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />

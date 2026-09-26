@@ -35,7 +35,8 @@ export interface OllamaSetupState {
   errorMessage?: string;
 }
 
-export const DEFAULT_MODEL = 'qwen2.5:3b';
+export const DEFAULT_MODEL = 'llama3.2:latest';
+export const FALLBACK_MODEL = 'qwen2.5:3b';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OS Detection
@@ -77,7 +78,7 @@ export async function isOllamaReachable(): Promise<boolean> {
 // Model check
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function isModelAvailable(modelTag: string): Promise<boolean> {
+export async function isModelAvailable(modelTag: string = DEFAULT_MODEL): Promise<boolean> {
   try {
     const res = await fetch(`${OLLAMA_BASE}/api/tags`, {
       method: 'GET',
@@ -86,13 +87,23 @@ export async function isModelAvailable(modelTag: string): Promise<boolean> {
     if (!res.ok) return false;
     const data = await res.json();
     const models: Array<{ name: string; model?: string }> = data.models || [];
+    if (models.length === 0) return false;
+
     const tag = modelTag.toLowerCase();
-    return models.some(
-      (m) =>
-        (m.name || '').toLowerCase() === tag ||
-        (m.model || '').toLowerCase() === tag ||
-        (m.name || '').toLowerCase().startsWith(tag.split(':')[0])
-    );
+    const baseTag = tag.split(':')[0];
+
+    return models.some((m) => {
+      const name = (m.name || '').toLowerCase();
+      const model = (m.model || '').toLowerCase();
+      return (
+        name === tag ||
+        model === tag ||
+        name.startsWith(baseTag) ||
+        model.startsWith(baseTag) ||
+        name.includes('llama3.2') ||
+        name.includes('qwen2.5')
+      );
+    });
   } catch {
     return false;
   }

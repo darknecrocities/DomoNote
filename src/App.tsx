@@ -25,7 +25,14 @@ import { handleGoogleAuthCallback } from './services/calendar/google-calendar';
 
 // ── New: Ollama setup flow ────────────────────────────────────────────────────
 import { OllamaSetupFlow } from './components/ollama/ollama-setup-flow';
-import { wasSetupCompleted, DEFAULT_MODEL, clearSetupState } from './services/ai/ollama-setup';
+import {
+  wasSetupCompleted,
+  DEFAULT_MODEL,
+  clearSetupState,
+  probeOllamaSetup,
+  markSetupComplete,
+} from './services/ai/ollama-setup';
+import { recordSiteVisit } from './services/firebase/stats';
 
 // ── New: Update banner ────────────────────────────────────────────────────────
 import { UpdateBanner } from './components/updates/update-banner';
@@ -81,17 +88,57 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('domonote:navigate', handleNavigate);
   }, [setActiveView]);
 
-  // ── Ollama first-run check ──────────────────────────────────────────────────
+  // ── Record site visit on startup ──────────────────────────────────────────
   useEffect(() => {
-    // Only run the setup flow check after a brief delay so the app UI renders first
-    const timer = setTimeout(() => {
-      const alreadyDone = wasSetupCompleted(DEFAULT_MODEL);
-      if (!alreadyDone) {
-        setShowSetupFlow(true);
-      }
-    }, 800);
-    return () => clearTimeout(timer);
+    recordSiteVisit();
   }, []);
+
+  // ── Ollama first-run check (Workspace only, silent auto-connect if running) ─
+  useEffect(() => {
+    // NEVER pop up on landing page or download page
+    if (activeView === 'landing' || activeView === 'download') {
+      setShowSetupFlow(false);
+      return;
+    }
+
+    // Never pop up on cloud deployments (e.g. Vercel)
+    const isCloudHost =
+      typeof window !== 'undefined' &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1';
+    if (isCloudHost) {
+      setShowSetupFlow(false);
+      return;
+    }
+
+    const alreadyDone = wasSetupCompleted(DEFAULT_MODEL);
+    if (alreadyDone) {
+      setShowSetupFlow(false);
+      return;
+    }
+
+    // Inside workspace view: probe silently FIRST
+    let cancelled = false;
+    probeOllamaSetup(DEFAULT_MODEL)
+      .then((result) => {
+        if (cancelled) return;
+        if (result.status === 'ready') {
+          // Ollama is already running and model is ready -> silently connect with ZERO popup!
+          markSetupComplete(DEFAULT_MODEL);
+          setShowSetupFlow(false);
+        } else {
+          // Only show modal if Ollama is truly not ready and user is inside workspace
+          setShowSetupFlow(true);
+        }
+      })
+      .catch(() => {
+        // Silently ignore probe exceptions
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView]);
 
   // ── Also listen for a "repair AI" event from settings ──────────────────────
   useEffect(() => {
@@ -192,13 +239,15 @@ export const App: React.FC = () => {
         />
       </AppLayout>
 
-      {/* Ollama first-run / repair setup flow */}
-      <OllamaSetupFlow
-        isOpen={showSetupFlow}
-        onDismiss={handleSetupDismiss}
-        onComplete={handleSetupComplete}
-        silentIfReady
-      />
+      {/* Ollama first-run / repair setup flow (Workspace only) */}
+      {activeView !== 'landing' && activeView !== 'download' && (
+        <OllamaSetupFlow
+          isOpen={showSetupFlow}
+          onDismiss={handleSetupDismiss}
+          onComplete={handleSetupComplete}
+          silentIfReady
+        />
+      )}
     </>
   );
 };
