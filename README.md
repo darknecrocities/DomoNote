@@ -8,11 +8,31 @@
 
 > Capture it. Understand it. Keep it — entirely on your device.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-black?style=flat-square)](https://github.com/darknecrocities/DomoNote/releases)
-[![License](https://img.shields.io/badge/license-MIT-black?style=flat-square)](LICENSE)
-[![Built with React](https://img.shields.io/badge/React-18-black?style=flat-square&logo=react)](https://react.dev)
-[![Powered by Ollama](https://img.shields.io/badge/AI-Ollama-black?style=flat-square)](https://ollama.com)
-[![Privacy First](https://img.shields.io/badge/privacy-100%25%20local-black?style=flat-square)](#privacy)
+<!-- Status & Quality -->
+[![Release](https://img.shields.io/badge/Release-v1.0.2-10b981?style=flat-square&logo=github&logoColor=white)](https://github.com/darknecrocities/DomoNote/releases/latest)
+[![License](https://img.shields.io/badge/License-MIT-3b82f6?style=flat-square&logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Privacy](https://img.shields.io/badge/Privacy-100%25_Local-emerald?style=flat-square&logo=shield&logoColor=white)](#-privacy)
+[![Tests](https://img.shields.io/badge/Tests-84_Passed-brightgreen?style=flat-square&logo=vitest&logoColor=white)](https://github.com/darknecrocities/DomoNote/actions)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088ff?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/darknecrocities/DomoNote/actions)
+
+<!-- Frontend & Web Core -->
+[![React](https://img.shields.io/badge/React-18.3-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6.4-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Dexie.js](https://img.shields.io/badge/Storage-IndexedDB_(Dexie)-8b5cf6?style=flat-square&logo=databricks&logoColor=white)](https://dexie.org)
+
+<!-- Local AI & Audio Intelligence -->
+[![Ollama](https://img.shields.io/badge/AI_Engine-Ollama_Local-black?style=flat-square&logo=ollama&logoColor=white)](https://ollama.com)
+[![Models](https://img.shields.io/badge/LLMs-CodeGemma_%7C_Llama_3_%7C_Qwen_2.5-7c3aed?style=flat-square&logo=openai&logoColor=white)](https://ollama.com/library)
+[![Speech](https://img.shields.io/badge/Speech-Web_Speech_%26_Audio_API-f59e0b?style=flat-square&logo=webrtc&logoColor=white)](#-meeting-secretary)
+[![Translation](https://img.shields.io/badge/Translation-Multilingual_AI_(10+_Langs)-06b6d4?style=flat-square&logo=googletranslate&logoColor=white)](#-features-at-a-glance)
+
+<!-- Desktop Native Apps & Extensions -->
+[![Windows](https://img.shields.io/badge/Windows-.NET_9_%7C_WebView2-0078d4?style=flat-square&logo=windows&logoColor=white)](#windows)
+[![macOS](https://img.shields.io/badge/macOS-Swift_Native_%7C_Universal-000000?style=flat-square&logo=apple&logoColor=white)](#macos)
+[![Linux](https://img.shields.io/badge/Linux-AppImage_%7C_Debian_%7C_Tarball-fcc624?style=flat-square&logo=linux&logoColor=black)](#linux)
+[![Chrome Extension](https://img.shields.io/badge/Extension-Chrome_MV3-4285f4?style=flat-square&logo=googlechrome&logoColor=white)](#-chrome-extension)
 
 [**Download App**](#-download-the-app) · [**Clone & Run**](#-clone--run-locally) · [**Deploy Online**](#-deploy-to-vercel) · [**Chrome Extension**](#-chrome-extension)
 
@@ -78,7 +98,17 @@ The easiest way to use DomoNote — no Git or Node required.
 
 ### Linux
 
-Linux users run DomoNote from source (see [Clone & Run](#-clone--run-locally) below) or use the web version at your Vercel deployment.
+| Package / Installer | Description |
+|---------------------|-------------|
+| [**DomoNote-Linux-x86_64.AppImage**](https://github.com/darknecrocities/DomoNote/releases/latest) | ✅ Recommended — Standalone universal executable for all distributions |
+| [**domonote_1.0.2_amd64.deb**](https://github.com/darknecrocities/DomoNote/releases/latest) | Native Debian / Ubuntu package (`sudo dpkg -i domonote_1.0.2_amd64.deb`) |
+| [**DomoNote-Linux-x64.tar.gz**](https://github.com/darknecrocities/DomoNote/releases/latest) | Portable standalone archive with launcher |
+| [**DomoNote-Setup.sh**](https://github.com/darknecrocities/DomoNote/releases/latest) | Automated 1-line curl setup script |
+
+**Quick Terminal Install:**
+```bash
+curl -fsSL https://domonote.vercel.app/downloads/DomoNote-Setup.sh | bash
+```
 
 ---
 
@@ -334,18 +364,22 @@ DomoNote contains **no external analytics, no tracking pixels, no CDN-loaded scr
 
 | Layer | Technology |
 |-------|-----------|
-| UI Framework | React 18 + TypeScript 5 |
-| Build Tool | Vite 6 |
-| Styling | Tailwind CSS 3 |
-| Local Storage | Dexie (IndexedDB) |
-| AI Runtime | Ollama REST API |
-| PDF Rendering | PDF.js |
-| Audio | Web Audio API + MediaRecorder |
-| Document Parsing | Mammoth (.docx), JSZip (.pptx), PDF.js |
-| Markdown | react-markdown + remark-gfm |
-| Security | DOMPurify (XSS sanitization) |
-| Testing | Vitest |
-| Deployment | Vercel (static SPA) |
+| **Frontend Framework** | React 18.3 + TypeScript 5.6 |
+| **Build & Bundler** | Vite 6.4 (Code splitting & ES modules) |
+| **Styling & Design System** | Tailwind CSS 3.4 (Curated monochrome, glassmorphism, responsive) |
+| **Local Database & Storage** | Dexie.js (IndexedDB — offline-first, client-only persistence) |
+| **Desktop Shell (Windows)** | .NET 9 WinForms + Microsoft.Web.WebView2 + DWM dark mode |
+| **Desktop Shell (macOS)** | Swift 5 + WebKit (WKWebView) + NSStatusBar Menu Bar Controller |
+| **Desktop Shell (Linux)** | Standalone AppImage, Debian (.deb) package, and portable runner |
+| **Browser Extension** | Chrome Manifest V3 (Audio loopback capture & Always-on-top HUD) |
+| **Local AI Engine** | Ollama REST API (CodeGemma, Llama 3, Qwen 2.5, Mistral) |
+| **Speech & Audio Engine** | Web Speech API, Web Audio API Analyzer, MediaRecorder, Faster-Whisper |
+| **Multilingual AI Translation** | Real-time Ollama translation pipeline (10+ languages) |
+| **Document Processing** | PDF.js (viewer & text extraction), Mammoth (.docx), JSZip (.pptx) |
+| **Export Engines** | jsPDF, HTML2Canvas, standard Markdown, CSV, JSON |
+| **Security & Sanitization** | DOMPurify (Strict HTML/Markdown XSS sanitization) |
+| **Testing Suite** | Vitest (84 unit and integration tests) |
+| **CI / CD Pipeline** | GitHub Actions (automated multi-OS build & release packaging) |
 
 ---
 
