@@ -49,7 +49,7 @@ import WebKit
 // AppDelegate — NSApplication lifecycle and window management
 // ─────────────────────────────────────────────────────────────────────────────
 
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelegate, WKNavigationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler {
 
     // MARK: - Properties
 
@@ -111,6 +111,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
         if #available(macOS 12.3, *) {
             config.preferences.isElementFullscreenEnabled = true
         }
+
+        // Register native desktop script message handler for Ollama automation
+        config.userContentController.add(self, name: "domonoteDesktop")
 
         // ── WebView Instantiation ─────────────────────────────────────────
         webView = WKWebView(frame: rect, configuration: config)
@@ -609,7 +612,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
               Start DomoNote from the Terminal:
             </p>
             <code>cd DomoNote
-./start.sh</code>
+            ./start.sh</code>
             <p>Or in developer mode (after <code style="display:inline;padding:2px 6px">npm run build</code>):</p>
             <code>./DomoNote --dev</code>
             <p class="note">
@@ -626,8 +629,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
 
     /**
      * webView(_:requestMediaCapturePermissionFor:...)
-     * Auto-grants microphone and camera access to the DomoNote web app.
-     * This is required for the Meeting Recorder audio capture feature.
+     * Auto-grants microphone and camera access ONLY to local DomoNote origins.
+     * Denies all external web origins.
      * Available from macOS 12.0+.
      */
     @available(macOS 12.0, *)
@@ -638,9 +641,101 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKUIDelega
         type: WKMediaCaptureType,
         decisionHandler: @escaping (WKPermissionDecision) -> Void
     ) {
-        // Grant all media capture permissions automatically.
-        // DomoNote only uses the microphone for meeting recording.
-        decisionHandler(.grant)
+        let host = origin.host.lowercased()
+        if host == "127.0.0.1" || host == "localhost" {
+            decisionHandler(.grant)
+        } else {
+            decisionHandler(.deny)
+        }
+    }
+
+    /**
+     * webView(_:decidePolicyFor:decisionHandler:)
+     * Security: Traps external link navigations and opens them in the user's default browser
+     * rather than navigating inside the DomoNote WKWebView shell.
+     */
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
+        guard let url = navigationAction.request.url else {
+            decisionHandler(.allow)
+            return
+        }
+
+        // Allow internal navigation to localhost and local static server
+        if let host = url.host?.lowercased(), host == "127.0.0.1" || host == "localhost" {
+            decisionHandler(.allow)
+            return
+        }
+
+        // Allow initial file URL loading if bundled assets are loaded via file://
+        if url.isFileURL {
+            decisionHandler(.allow)
+            return
+        }
+
+        // External URLs: open in default OS browser (Safari, Chrome, etc.) and cancel WebView navigation
+        if let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" || scheme == "mailto" {
+            NSWorkspace.shared.open(url)
+            decisionHandler(.cancel)
+            return
+        }
+
+        decisionHandler(.allow)
+    }
+
+    /**
+     * webView(_:createWebViewWith:for:windowFeatures:)
+     * Security: Handle window.open / target="_blank" by launching the system browser.
+     */
+    func webView(
+        _ webView: WKWebView,
+        createWebViewWith configuration: WKWebViewConfiguration,
+        for navigationAction: WKNavigationAction,
+        windowFeatures: WKWindowFeatures
+    ) -> WKWebView? {
+        if let url = navigationAction.request.url {
+            NSWorkspace.shared.open(url)
+        }
+        return nil
+    }
+
+    // MARK: - Script Message Handler & Ollama Automation
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "domonoteDesktop", let body = message.body as? [String: Any] {
+            if let action = body["action"] as? String, action == "startOllama" {
+                startOllama()
+            }
+        }
+    }
+
+    func startOllama() {
+        if isPortOpen(port: 11434) { return }
+
+        // 1. Try launching native macOS Ollama.app
+        let appPath = "/Applications/Ollama.app"
+        if FileManager.default.fileExists(atPath: appPath) {
+            NSWorkspace.shared.open(URL(fileURLWithPath: appPath))
+            return
+        }
+
+        // 2. Try launching ollama binary in background with CORS configured
+        let candidates = ["/usr/local/bin/ollama", "/opt/homebrew/bin/ollama", "/usr/bin/ollama"]
+        for path in candidates {
+            if FileManager.default.fileExists(atPath: path) {
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: path)
+                task.arguments = ["serve"]
+                var env = ProcessInfo.processInfo.environment
+                env["OLLAMA_ORIGINS"] = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5892,http://127.0.0.1:5892,https://domonote.vercel.app"
+                task.environment = env
+                try? task.run()
+                return
+            }
+        }
     }
 
     // MARK: - Window Delegate

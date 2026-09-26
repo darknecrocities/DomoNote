@@ -48,8 +48,8 @@ const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const KEY_DISMISSED_VERSION = 'domonote_dismissed_update_version';
 const KEY_LAST_CHECK = 'domonote_last_update_check';
 
-/** Minimum time between update checks (4 hours) to avoid spamming the API */
-const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
+/** Minimum time between passive update checks (20 minutes) to keep notices prompt */
+const CHECK_INTERVAL_MS = 20 * 60 * 1000;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Semantic version comparison

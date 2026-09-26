@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny for all collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Public stats document (visitor & download counter)
+    match /stats/global {
+      // Allow public read for landing page live counter
+      allow read: if true;
+
+      // Never allow deletion or arbitrary recreation
+      allow delete: if false;
+      allow create: if false;
+
+      // Allow only constrained increment updates to specific metric fields
+      allow update: if (
+        // Only allow modifying existing valid stats fields
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['visitors', 'downloads', 'lastVisitedAt', 'lastDownloadedAt'])
+        
+        // Ensure visitor count can only increment modestly (anti-spam / anti-denial-of-wallet)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['visitors']) ||
+          (
+            request.resource.data.visitors is int &&
+            request.resource.data.visitors >= resource.data.visitors &&
+            request.resource.data.visitors <= resource.data.visitors + 5
+          )
+        )
+
+        // Ensure download count can only increment modestly
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['downloads']) ||
+          (
+            request.resource.data.downloads is int &&
+            request.resource.data.downloads >= resource.data.downloads &&
+            request.resource.data.downloads <= resource.data.downloads + 5
+          )
+        )
+
+        // Limit timestamp field lengths to prevent string payload injection
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastVisitedAt']) ||
+          (request.resource.data.lastVisitedAt is string && request.resource.data.lastVisitedAt.size() < 40)
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastDownloadedAt']) ||
+          (request.resource.data.lastDownloadedAt is string && request.resource.data.lastDownloadedAt.size() < 40)
+        )
+      );
+    }
+  }
+}

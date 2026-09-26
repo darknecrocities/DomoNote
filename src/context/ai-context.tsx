@@ -169,35 +169,35 @@ export const AIProviderContext: React.FC<{ children: React.ReactNode }> = ({ chi
   const startOllamaService = async (): Promise<{ success: boolean; message: string }> => {
     setIsChecking(true);
     try {
-      // First attempt to invoke companion on http://localhost:8765/ollama/start
-      const res = await fetch('http://localhost:8765/ollama/start', {
-        method: 'POST',
-      }).catch(() => null);
+      const { tryAutoStartOllama } = await import('../services/ai/ollama-setup');
+      const started = await tryAutoStartOllama();
 
-      if (res && res.ok) {
-        // Wait 3 seconds and check
-        await new Promise((r) => setTimeout(r, 3000));
+      if (started) {
         const ok = await checkConnection();
-        return {
-          success: ok,
-          message: ok
-            ? 'Ollama service successfully started by local companion.'
-            : 'Ollama service launched, waiting for endpoint to respond...',
-        };
+        if (ok) {
+          return { success: true, message: 'Local AI is online and ready.' };
+        }
       }
 
-      // If companion is not running, ping standard endpoint again
+      // If direct start didn't succeed, check once more directly
       const directOk = await checkConnection();
       if (directOk) {
         return { success: true, message: 'Connected to Ollama service.' };
       }
 
+      // Auto-open guided recovery modal with exact OS automated commands
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('domonote:repair-ai'));
+      }
+
       return {
         success: false,
-        message:
-          'Local companion not running. Execute "./start.sh" or "scripts/setup-ollama.sh" in your terminal to start Ollama with CORS enabled.',
+        message: 'Ollama is offline. Opening guided setup modal with automated commands...',
       };
     } catch (err: any) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('domonote:repair-ai'));
+      }
       return { success: false, message: err?.message || 'Failed to start Ollama service.' };
     } finally {
       setIsChecking(false);

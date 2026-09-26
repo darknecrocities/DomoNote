@@ -136,7 +136,7 @@ export const ModeSwitcher: React.FC = () => {
       >
         <CurrentIcon className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400 shrink-0" />
         <span className="font-bold text-xs text-slate-950 dark:text-zinc-200 tracking-tight">{currentMode.label}</span>
-        <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono text-slate-700 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 rounded font-semibold">
+        <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono text-slate-700 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 rounded font-semibold">
           {currentMode.hotkey}
         </kbd>
         <ChevronDown

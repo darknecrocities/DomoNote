@@ -21,6 +21,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5892",
+        "http://127.0.0.1:5892",
         "https://domonote.vercel.app"
     ],
     allow_credentials=True,
@@ -84,7 +86,8 @@ def start_ollama():
         raise HTTPException(status_code=404, detail="Ollama binary not found in system PATH")
 
     env = os.environ.copy()
-    env["OLLAMA_ORIGINS"] = "*"
+    # Security: Restrict Ollama CORS to local development, desktop shells, and official production origin
+    env["OLLAMA_ORIGINS"] = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5892,http://127.0.0.1:5892,https://domonote.vercel.app"
     try:
         # Launch background process
         subprocess.Popen([ollama_path, "serve"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -130,22 +133,27 @@ async def transcribe_audio(file: UploadFile = File(...)):
         try:
             from faster_whisper import WhisperModel
             model = WhisperModel("base", device="cpu", compute_type="int8")
+            import tempfile
             audio_bytes = await file.read()
-            # Save temporarily
-            tmp_path = f"/tmp/domonote_{file.filename}"
-            with open(tmp_path, "wb") as f:
-                f.write(audio_bytes)
+            # Security: Use safe temporary file to prevent path traversal via filename
+            with tempfile.NamedTemporaryFile(delete=False, prefix="domonote_audio_", suffix=".webm") as tmp:
+                tmp_path = tmp.name
+                tmp.write(audio_bytes)
             
-            segments, info = model.transcribe(tmp_path, beam_size=5)
-            transcript_text = " ".join([s.text for s in segments])
-            if os.path.exists(tmp_path):
-                os.remove(tmp_path)
-
-            return {
-                "status": "success",
-                "text": transcript_text.strip(),
-                "language": info.language
-            }
+            try:
+                segments, info = model.transcribe(tmp_path, beam_size=5)
+                transcript_text = " ".join([s.text for s in segments])
+                return {
+                    "status": "success",
+                    "text": transcript_text.strip(),
+                    "language": info.language
+                }
+            finally:
+                if os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except OSError:
+                        pass
         except ImportError:
             return {
                 "status": "unavailable",

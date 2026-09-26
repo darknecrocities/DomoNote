@@ -33,11 +33,15 @@ import {
   Power,
   ExternalLink,
   X,
+  Copy,
+  Check,
+  Monitor,
 } from 'lucide-react';
 import {
   type OllamaSetupStatus,
   type OllamaSetupState,
   type ModelPullProgress,
+  type OllamaOS,
   DEFAULT_MODEL,
   detectOS,
   isOllamaReachable,
@@ -109,6 +113,8 @@ export const OllamaSetupFlow: React.FC<OllamaSetupFlowProps> = ({
   const [isInstalling, setIsInstalling] = useState(false);
   const [pollActive, setPollActive] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedOS, setSelectedOS] = useState<OllamaOS>(detectedOS);
+  const [copied, setCopied] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -430,6 +436,43 @@ export const OllamaSetupFlow: React.FC<OllamaSetupFlowProps> = ({
   // Render: "needs_install" — main install flow
   // ─────────────────────────────────────────────────────────────────────────
 
+  const currentCommand = getManualInstallCommand(selectedOS);
+
+  const handleCopyCommand = async (cmd: string) => {
+    try {
+      await navigator.clipboard.writeText(cmd);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleManualAutoStart = async () => {
+    setIsInstalling(true);
+    setSetupState((s) => ({ ...s, status: 'starting' }));
+
+    const autoStarted = await tryAutoStartOllama();
+    if (autoStarted) {
+      const modelReady = await isModelAvailable(DEFAULT_MODEL);
+      setIsInstalling(false);
+      setSetupState({
+        status: modelReady ? 'ready' : 'needs_model',
+        isOllamaReachable: true,
+        isModelInstalled: modelReady,
+        detectedOS,
+      });
+      if (modelReady) {
+        markSetupComplete(DEFAULT_MODEL);
+        setTimeout(() => onComplete(), 1200);
+      }
+      return;
+    }
+
+    setIsInstalling(false);
+    setPollActive(true);
+  };
+
   return (
     <OverlayWrapper onDismiss={onDismiss}>
       <HeaderBlock
@@ -437,128 +480,151 @@ export const OllamaSetupFlow: React.FC<OllamaSetupFlowProps> = ({
         badge="Local AI Setup"
         badgeColor="bg-white text-black"
         title="Connect Local AI (Ollama)"
-        subtitle={`DomoNote needs Ollama to run its local AI features. A one-time setup is required on your ${detectedOS === 'macos' ? 'Mac' : detectedOS === 'windows' ? 'Windows PC' : 'Linux system'}.`}
+        subtitle="DomoNote uses local Ollama to ensure complete privacy with zero cloud dependencies. Works seamlessly across Windows, macOS, and Linux."
       />
 
       {/* Privacy note */}
       <PrivacyNote />
 
-      {/* What happens explanation */}
-      <div className="p-3.5 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-2">
-        <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-amber-400" />
-          <span>What happens when you click Install Ollama</span>
+      {/* OS Selector Tabs */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs text-zinc-400">
+          <span className="font-semibold text-white">Select Your Operating System:</span>
+          <span className="font-mono text-[11px] text-zinc-500">
+            Detected: <span className="text-zinc-300 capitalize">{detectedOS}</span>
+          </span>
         </div>
-        <ol className="text-xs text-zinc-400 leading-relaxed space-y-1">
-          <li className="flex items-start gap-1.5">
-            <span className="text-zinc-600 font-mono shrink-0">1.</span>
-            DomoNote checks if Ollama is already running on your machine
-          </li>
-          <li className="flex items-start gap-1.5">
-            <span className="text-zinc-600 font-mono shrink-0">2.</span>
-            If not found, the official Ollama installer for{' '}
-            <strong className="text-white capitalize">{detectedOS}</strong> is downloaded
-          </li>
-          <li className="flex items-start gap-1.5">
-            <span className="text-zinc-600 font-mono shrink-0">3.</span>
-            Once Ollama is running, DomoNote detects it and continues setup automatically
-          </li>
-          <li className="flex items-start gap-1.5">
-            <span className="text-zinc-600 font-mono shrink-0">4.</span>
-            The default AI model (Qwen 2.5 3B) is downloaded — one time only
-          </li>
-        </ol>
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl">
+          {(['windows', 'macos', 'linux'] as OllamaOS[]).map((os) => {
+            const isSelected = selectedOS === os;
+            return (
+              <button
+                key={os}
+                type="button"
+                onClick={() => setSelectedOS(os)}
+                className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  isSelected
+                    ? 'bg-white text-black shadow-sm font-bold'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span className="capitalize">{os === 'macos' ? 'macOS' : os}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* macOS Gatekeeper warning */}
-      {detectedOS === 'macos' && (
-        <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-400/80 leading-relaxed">
-          <AlertTriangle className="w-3 h-3 inline mr-1" />
-          <strong className="text-amber-400">macOS Gatekeeper:</strong> If macOS blocks Ollama after
-          download, run{' '}
-          <code className="font-mono bg-black/40 px-1 rounded">
-            xattr -cr /Applications/Ollama.app
-          </code>{' '}
-          in Terminal to allow it.
+      {/* Automated Terminal Command for Selected OS */}
+      <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 text-white font-semibold">
+            <Terminal className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Automated Terminal Command ({selectedOS === 'macos' ? 'macOS' : selectedOS === 'windows' ? 'PowerShell' : 'Bash'}):</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleCopyCommand(currentCommand)}
+            className="flex items-center gap-1 text-[11px] font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-md transition-colors border border-white/10"
+            title="Copy command to clipboard"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-400" />
+                <span className="text-emerald-400">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        <div className="relative group">
+          <pre className="text-[11px] text-zinc-300 font-mono bg-black/90 p-3 rounded-lg border border-zinc-850 overflow-x-auto whitespace-pre select-all leading-relaxed">
+            {currentCommand}
+          </pre>
+        </div>
+        <p className="text-[11px] text-zinc-400 leading-normal">
+          {selectedOS === 'windows' && 'Run PowerShell as Administrator, paste the command, then launch Ollama.'}
+          {selectedOS === 'macos' && 'Open Terminal, paste the command, then start Ollama.'}
+          {selectedOS === 'linux' && 'Open terminal, execute the command to install and start the Ollama service.'}
+        </p>
+      </div>
+
+      {/* macOS Gatekeeper tip if macOS */}
+      {selectedOS === 'macos' && (
+        <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400 flex items-start gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+          <span>
+            If macOS displays a security prompt, run{' '}
+            <code className="bg-black text-white px-1 py-0.5 rounded text-[10px]">
+              xattr -cr /Applications/Ollama.app
+            </code>{' '}
+            to allow it.
+          </span>
         </div>
       )}
 
-      {/* Advanced / manual install section */}
-      <div className="space-y-1.5">
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
-        >
-          <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-          />
-          <span>Advanced: Manual install</span>
-        </button>
-        {showAdvanced && (
-          <div className="space-y-1.5">
-            <div className="text-[11px] text-zinc-400 flex items-center gap-1.5">
-              <Terminal className="w-3 h-3" />
-              <span>Install Ollama in your terminal:</span>
-            </div>
-            <code className="block text-[10px] text-zinc-300 font-mono bg-black p-2.5 rounded border border-zinc-850 overflow-x-auto whitespace-pre select-all">
-              {getManualInstallCommand(detectedOS)}
-            </code>
-            {detectedOS !== 'linux' && (
-              <a
-                href="https://ollama.com/download"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white transition-colors"
-              >
-                <ExternalLink className="w-3 h-3" />
-                ollama.com/download
-              </a>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Action buttons */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <button
+          type="button"
           onClick={onDismiss}
           className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
         >
           Continue Without AI
         </button>
+
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={handleRecheck}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors border border-zinc-800 rounded-md px-3 py-1.5"
+            className="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white transition-colors border border-zinc-800 hover:border-zinc-700 bg-zinc-900 rounded-lg px-3 py-2"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Recheck
+            <span>Recheck</span>
           </button>
+
+          {selectedOS !== 'linux' && (
+            <button
+              type="button"
+              onClick={() => triggerOllamaDownload(selectedOS)}
+              className="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white transition-colors border border-zinc-800 hover:border-zinc-700 bg-zinc-900 rounded-lg px-3 py-2"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download .exe / .zip</span>
+            </button>
+          )}
+
           <PrimaryButton
-            onClick={handleInstall}
+            onClick={handleManualAutoStart}
             disabled={isInstalling || pollActive}
-            id="setup-install-ollama-btn"
+            id="setup-start-ollama-btn"
           >
             {isInstalling || pollActive ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Waiting…</span>
+                <span>Checking...</span>
               </>
             ) : (
               <>
-                <Power className="w-3.5 h-3.5" />
-                <span>Install Ollama</span>
+                <Power className="w-3.5 h-3.5 text-black" />
+                <span>Start Local AI</span>
               </>
             )}
           </PrimaryButton>
         </div>
       </div>
 
-      {/* Polling indicator */}
+      {/* Live Polling Status */}
       {pollActive && (
-        <p className="text-[11px] text-zinc-500 font-mono text-center animate-pulse">
-          Waiting for Ollama on localhost:11434… (install it, then we'll detect it automatically)
-        </p>
+        <div className="flex items-center justify-center gap-2 p-2 bg-zinc-900/80 rounded-lg border border-zinc-800 text-[11px] text-zinc-400 font-mono">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+          <span>Polling 127.0.0.1:11434 — waiting for Ollama to become active...</span>
+        </div>
       )}
     </OverlayWrapper>
   );

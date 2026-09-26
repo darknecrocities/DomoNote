@@ -108,36 +108,46 @@ export const ScreenHudLauncher: React.FC = () => {
       return;
     }
 
-    if (isDocumentPipSupported()) {
-      try {
-        const container = await openPipHudWindow({
-          width: 420,
-          height: 220,
-          onClose: () => {
-            setPipContainer(null);
-            setIsActive(false);
-          },
-        });
+    const isDesktopApp = typeof window !== 'undefined' && (
+      !!(window as any).chrome?.webview ||
+      !!(window as any).webkit?.messageHandlers?.domonoteDesktop ||
+      window.location.port === '5892'
+    );
 
-        if (container) {
-          setPipContainer(container);
-          setIsActive(true);
-          playPop();
-          addToast('🖥️ Quick Bar activated.', 'success');
-        } else {
-          throw new Error('Could not obtain PiP container.');
-        }
-      } catch (err: any) {
-        console.warn('[DomoNote] PiP error, falling back to overlay:', err);
-        setIsOverlayFallback(true);
-        setIsActive(true);
-        addToast('🖥️ Quick Bar activated.', 'success');
-      }
-    } else {
-      // In-browser floating overlay fallback for WKWebView / Safari
+    // In desktop environments (WebView2 / WKWebView), use the in-app floating glassmorphic overlay
+    // to prevent unwanted separate about:blank OS windows
+    if (isDesktopApp || !isDocumentPipSupported()) {
       setIsOverlayFallback(true);
       setIsActive(true);
-      addToast('🖥️ Quick Bar activated.', 'success');
+      playPop();
+      addToast('🖥️ Floating Quick Bar activated.', 'success');
+      return;
+    }
+
+    try {
+      const container = await openPipHudWindow({
+        width: 420,
+        height: 220,
+        onClose: () => {
+          setPipContainer(null);
+          setIsActive(false);
+        },
+      });
+
+      if (container) {
+        setPipContainer(container);
+        setIsActive(true);
+        playPop();
+        addToast('🖥️ Quick Bar activated.', 'success');
+      } else {
+        throw new Error('Could not obtain PiP container.');
+      }
+    } catch (err: any) {
+      console.warn('[DomoNote] PiP error, falling back to overlay:', err);
+      setIsOverlayFallback(true);
+      setIsActive(true);
+      playPop();
+      addToast('🖥️ Floating Quick Bar activated.', 'success');
     }
   };
 

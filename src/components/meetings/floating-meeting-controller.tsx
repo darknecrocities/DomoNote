@@ -153,6 +153,22 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
     };
   }, [isDragging]);
 
+  // Keep HUD within bounds when window is resized, minimized, or adjusted
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => {
+        const maxX = Math.max(10, window.innerWidth - 320);
+        const maxY = Math.max(10, window.innerHeight - 80);
+        return {
+          x: Math.max(10, Math.min(prev.x, maxX)),
+          y: Math.max(10, Math.min(prev.y, maxY)),
+        };
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Copy transcript so far
   const handleCopyTranscript = () => {
     const text = transcript.map((s) => `[${formatSecondsToTime(s.timestampSeconds)}] ${s.speaker}: ${s.text}`).join('\n');
@@ -487,11 +503,11 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
     >
       {/* Main Glassmorphic HUD Bar */}
       <div
-        className="flex items-center gap-2 p-2 rounded-2xl border shadow-2xl backdrop-blur-3xl transition-all duration-300"
+        className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl border shadow-2xl backdrop-blur-2xl transition-all duration-300 max-w-[calc(100vw-24px)] overflow-x-auto"
         style={{
-          backgroundColor: 'rgba(15, 15, 18, 0.78)',
-          borderColor: 'rgba(255, 255, 255, 0.20)',
-          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'rgba(10, 10, 14, 0.88)',
+          borderColor: 'rgba(255, 255, 255, 0.22)',
+          boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.15)',
         }}
       >
         {/* Draggable Grip Handle */}

@@ -87,13 +87,47 @@ namespace DomoNote
             var req = context.Request;
             var res = context.Response;
 
-            res.Headers.Add("Access-Control-Allow-Origin", "*");
-            res.Headers.Add("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
-            res.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Range");
+            // Security: Restrict CORS to local origins only (reject wildcard '*')
+            string? origin = req.Headers["Origin"];
+            if (!string.IsNullOrEmpty(origin))
+            {
+                try
+                {
+                    var originUri = new Uri(origin);
+                    if (originUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+                        originUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                    {
+                        res.Headers.Add("Access-Control-Allow-Origin", origin);
+                        res.Headers.Add("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+                        res.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Range");
+                    }
+                }
+                catch { }
+            }
+
+            // Security Response Headers
+            res.Headers.Add("X-Content-Type-Options", "nosniff");
+            res.Headers.Add("X-Frame-Options", "DENY");
 
             if (req.HttpMethod == "OPTIONS")
             {
                 res.StatusCode = 204;
+                res.Close();
+                return;
+            }
+
+            // Automated Local AI launcher endpoint for Windows
+            if (req.HttpMethod == "POST" && (req.Url?.AbsolutePath.Equals("/api/ollama/start", StringComparison.OrdinalIgnoreCase) ?? false))
+            {
+                bool started = TryStartOllama();
+                res.StatusCode = started ? 200 : 500;
+                res.ContentType = "application/json; charset=utf-8";
+                string json = started
+                    ? "{\"status\":\"started\",\"message\":\"Ollama service started successfully\"}"
+                    : "{\"status\":\"failed\",\"message\":\"Ollama binary not found on this system\"}";
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                res.ContentLength64 = bytes.Length;
+                res.OutputStream.Write(bytes, 0, bytes.Length);
                 res.Close();
                 return;
             }
@@ -106,8 +140,26 @@ namespace DomoNote
                     rawPath = "index.html";
                 }
 
-                string filePath = Path.Combine(_rootDirectory, rawPath.Replace('/', Path.DirectorySeparatorChar));
+                // Security: Resolve full path and prevent path traversal beyond root directory
+                string combinedPath = Path.Combine(_rootDirectory, rawPath.Replace('/', Path.DirectorySeparatorChar));
+                string fullPath = Path.GetFullPath(combinedPath);
 
+                string normalizedRoot = _rootDirectory.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? _rootDirectory
+                    : _rootDirectory + Path.DirectorySeparatorChar;
+
+                if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(fullPath, _rootDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    res.StatusCode = 403;
+                    byte[] forbidden = "Forbidden: Access Denied"u8.ToArray();
+                    res.ContentLength64 = forbidden.Length;
+                    res.OutputStream.Write(forbidden, 0, forbidden.Length);
+                    res.Close();
+                    return;
+                }
+
+                string filePath = fullPath;
                 if (Directory.Exists(filePath))
                 {
                     filePath = Path.Combine(filePath, "index.html");
@@ -153,6 +205,71 @@ namespace DomoNote
                     res.Close();
                 }
                 catch { }
+            }
+        public static bool TryStartOllama()
+        {
+            try
+            {
+                // 1. Check if Ollama is already responding
+                using (var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(1) })
+                {
+                    try
+                    {
+                        var task = http.GetAsync("http://127.0.0.1:11434/api/tags");
+                        if (task.Wait(1000) && task.Result.IsSuccessStatusCode)
+                        {
+                            return true;
+                        }
+                    }
+                    catch { }
+                }
+
+                // 2. Search common Windows installation paths for Ollama
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+
+                string[] candidates = {
+                    Path.Combine(localAppData, "Programs", "Ollama", "ollama app.exe"),
+                    Path.Combine(localAppData, "Programs", "Ollama", "ollama.exe"),
+                    Path.Combine(programFiles, "Ollama", "ollama.exe"),
+                    Path.Combine(programFiles, "Ollama", "ollama app.exe")
+                };
+
+                foreach (var path in candidates)
+                {
+                    if (File.Exists(path))
+                    {
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = path,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        };
+                        if (path.EndsWith("ollama.exe", StringComparison.OrdinalIgnoreCase))
+                        {
+                            psi.Arguments = "serve";
+                        }
+                        psi.Environment["OLLAMA_ORIGINS"] = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5892,http://127.0.0.1:5892,https://domonote.vercel.app";
+                        System.Diagnostics.Process.Start(psi);
+                        return true;
+                    }
+                }
+
+                // 3. Fallback: try running "ollama serve" via PATH
+                var pathPsi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "ollama",
+                    Arguments = "serve",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                pathPsi.Environment["OLLAMA_ORIGINS"] = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5892,http://127.0.0.1:5892,https://domonote.vercel.app";
+                System.Diagnostics.Process.Start(pathPsi);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 

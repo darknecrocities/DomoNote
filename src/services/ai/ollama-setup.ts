@@ -110,22 +110,54 @@ export async function isModelAvailable(modelTag: string = DEFAULT_MODEL): Promis
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Auto-start via companion
+// Auto-start via Native Shells (Windows WebView2, macOS WKWebView), Desktop Server, or Companion
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function tryAutoStartOllama(): Promise<boolean> {
-  try {
-    const res = await fetch(`${COMPANION_BASE}/ollama/start`, {
-      method: 'POST',
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return false;
-    // Give the service a few seconds to come up
-    await new Promise((r) => setTimeout(r, 3500));
-    return isOllamaReachable();
-  } catch {
-    return false;
+  // Check if already reachable
+  if (await isOllamaReachable()) {
+    return true;
   }
+
+  // 1. Native Windows WebView2 IPC
+  try {
+    if (typeof window !== 'undefined' && (window as any).chrome?.webview?.postMessage) {
+      (window as any).chrome.webview.postMessage({ type: 'START_OLLAMA', action: 'startOllama' });
+    }
+  } catch {}
+
+  // 2. Native macOS WKWebView IPC
+  try {
+    if (typeof window !== 'undefined' && (window as any).webkit?.messageHandlers?.domonoteDesktop?.postMessage) {
+      (window as any).webkit.messageHandlers.domonoteDesktop.postMessage({ action: 'startOllama' });
+    }
+  } catch {}
+
+  // 3. Embedded Desktop Static Server endpoint (:5892)
+  try {
+    fetch('http://127.0.0.1:5892/api/ollama/start', {
+      method: 'POST',
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+  } catch {}
+
+  // 4. Local Python Companion (:8765)
+  try {
+    fetch(`${COMPANION_BASE}/ollama/start`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+  } catch {}
+
+  // 5. Poll Ollama port 11434 with fast retry up to 6 times (total ~3.6s)
+  for (let i = 0; i < 6; i++) {
+    await new Promise((r) => setTimeout(r, 600));
+    if (await isOllamaReachable()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -143,15 +175,15 @@ export function getOllamaDownloadUrl(os: OllamaOS): string {
   }
 }
 
-/** Terminal install command shown to the user for reference */
+/** Terminal install and start commands per OS */
 export function getManualInstallCommand(os: OllamaOS): string {
   switch (os) {
     case 'windows':
-      return '# Download OllamaSetup.exe from https://ollama.com/download\n# Then run it and restart DomoNote.';
+      return 'winget install Ollama.Ollama\n# Then launch from Start Menu or run:\nollama serve';
     case 'macos':
-      return 'curl -fsSL https://ollama.com/install.sh | sh\n# Or: brew install ollama';
+      return 'brew install ollama\n# Then run:\nollama serve\n# Or open installed app:\nopen -a Ollama';
     default:
-      return 'curl -fsSL https://ollama.com/install.sh | sh';
+      return 'curl -fsSL https://ollama.com/install.sh | sh\n# Then run:\nollama serve';
   }
 }
 

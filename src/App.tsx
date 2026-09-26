@@ -150,12 +150,12 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('domonote:repair-ai', handleRepair);
   }, []);
 
-  // ── Update check on startup (non-blocking) ──────────────────────────────────
+  // ── Update check on startup and periodic polling (non-blocking) ────────────
   useEffect(() => {
     let cancelled = false;
-    async function runUpdateCheck() {
+    async function runUpdateCheck(force = false) {
       try {
-        const info = await checkForUpdates(APP_VERSION);
+        const info = await checkForUpdates(APP_VERSION, force);
         if (!cancelled && info && shouldShowUpdateBanner(info)) {
           setUpdateInfo(info);
         }
@@ -163,9 +163,25 @@ export const App: React.FC = () => {
         // silently ignore — update check is non-critical
       }
     }
+
     runUpdateCheck();
+
+    // Check periodically every 20 minutes
+    const interval = setInterval(() => {
+      runUpdateCheck();
+    }, 20 * 60 * 1000);
+
+    const onManualCheck = () => runUpdateCheck(true);
+    const onOnline = () => runUpdateCheck(false);
+
+    window.addEventListener('domonote:check-updates', onManualCheck);
+    window.addEventListener('online', onOnline);
+
     return () => {
       cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener('domonote:check-updates', onManualCheck);
+      window.removeEventListener('online', onOnline);
     };
   }, []);
 

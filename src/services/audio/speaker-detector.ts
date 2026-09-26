@@ -379,6 +379,10 @@ export class MeetingSpeakerHook {
   private initWindowListener() {
     if (typeof window !== 'undefined') {
       window.addEventListener('message', (event) => {
+        // Security: Prevent untrusted cross-origin frame or popup message injection
+        if (event.origin !== window.location.origin && !event.origin.startsWith('chrome-extension://')) {
+          return;
+        }
         if (event.data?.type === 'DOMONOTE_MEETING_PARTICIPANTS' || event.data?.type === 'DOMONOTE_ACTIVE_SPEAKER') {
           this.handleIncomingPayload(event.data);
         }

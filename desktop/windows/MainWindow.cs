@@ -140,15 +140,80 @@ namespace DomoNote
                 _webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 
-                // Grant microphone and screen capture permissions automatically
+                // Grant microphone and screen capture permissions ONLY to local DomoNote origins
                 _webView.CoreWebView2.PermissionRequested += (s, e) =>
                 {
-                    if (e.PermissionKind == CoreWebView2PermissionKind.Microphone ||
-                        e.PermissionKind == CoreWebView2PermissionKind.Camera ||
-                        e.PermissionKind == CoreWebView2PermissionKind.ClipboardRead)
+                    try
                     {
-                        e.State = CoreWebView2PermissionState.Allow;
+                        var reqUri = new Uri(e.Uri);
+                        bool isLocal = reqUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+                                       reqUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
+
+                        if (isLocal && (e.PermissionKind == CoreWebView2PermissionKind.Microphone ||
+                                        e.PermissionKind == CoreWebView2PermissionKind.Camera ||
+                                        e.PermissionKind == CoreWebView2PermissionKind.ClipboardRead))
+                        {
+                            e.State = CoreWebView2PermissionState.Allow;
+                            return;
+                        }
                     }
+                    catch { }
+
+                    e.State = CoreWebView2PermissionState.Deny;
+                };
+
+                // Security: Trap external navigation and open in default OS browser
+                _webView.CoreWebView2.NavigationStarting += (s, e) =>
+                {
+                    if (string.IsNullOrEmpty(e.Uri)) return;
+                    try
+                    {
+                        var uri = new Uri(e.Uri);
+                        if (!uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) &&
+                            !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                        {
+                            e.Cancel = true;
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = e.Uri,
+                                UseShellExecute = true
+                            });
+                        }
+                    }
+                    catch { }
+                };
+
+                // Security: Handle window.open by delegating to default OS browser
+                _webView.CoreWebView2.NewWindowRequested += (s, e) =>
+                {
+                    e.Handled = true;
+                    if (!string.IsNullOrEmpty(e.Uri))
+                    {
+                        try
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = e.Uri,
+                                UseShellExecute = true
+                            });
+                        }
+                        catch { }
+                    }
+                };
+
+                // Native WebMessage IPC handler to launch Local AI (Ollama) on demand
+                _webView.CoreWebView2.WebMessageReceived += (s, e) =>
+                {
+                    try
+                    {
+                        string raw = e.TryGetWebMessageAsString();
+                        if (raw.Contains("startOllama", StringComparison.OrdinalIgnoreCase) ||
+                            raw.Contains("START_OLLAMA", StringComparison.OrdinalIgnoreCase))
+                        {
+                            StaticServer.TryStartOllama();
+                        }
+                    }
+                    catch { }
                 };
 
                 string targetUrl = await DetermineTargetUrlAsync();

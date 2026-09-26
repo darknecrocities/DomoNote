@@ -28,11 +28,23 @@
         },
         {
           "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
+          "value": "DENY"
         },
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(self), display-capture=(self), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' http://localhost:11434 http://127.0.0.1:11434 http://localhost:8765 http://127.0.0.1:8765 http://localhost:5892 http://127.0.0.1:5892 https://*.googleapis.com https://*.firebaseio.com https://*.firebasestorage.app https://api.github.com https://img.shields.io; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
         }
       ]
     }

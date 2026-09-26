@@ -1,9 +1,10 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { ExtractedPage } from '../../types';
 
-// Configure PDF.js worker in Vite environment
+// Configure PDF.js worker in Vite environment using locally bundled worker
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 }
 
 export async function extractTextFromPDF(arrayBuffer: ArrayBuffer): Promise<{

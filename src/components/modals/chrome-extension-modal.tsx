@@ -58,6 +58,10 @@ export const ChromeExtensionModal: React.FC<ChromeExtensionModalProps> = ({
     const interval = setInterval(checkExtension, 1200);
 
     const handleMessage = (e: MessageEvent) => {
+      // Security: Validate message origin to prevent spoofed connection status
+      if (e.origin !== window.location.origin && !e.origin.startsWith('chrome-extension://')) {
+        return;
+      }
       if (e.data?.type === 'DOMONOTE_PONG' || e.data?.source === 'domonote-extension') {
         setIsConnected(true);
       }

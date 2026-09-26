@@ -86,8 +86,8 @@ export const Topbar: React.FC = () => {
         </h1>
       </div>
 
-      {/* Center: Mode Switcher Dropdown */}
-      <div className="flex items-center justify-center shrink-0 z-30 [app-region:no-drag] [-webkit-app-region:no-drag]">
+      {/* Center: Mode Switcher Dropdown (Responsive: Hidden on small mobile to prevent collision) */}
+      <div className="hidden md:flex items-center justify-center shrink-0 z-30 [app-region:no-drag] [-webkit-app-region:no-drag]">
         <ModeSwitcher />
       </div>
 
@@ -110,26 +110,26 @@ export const Topbar: React.FC = () => {
           <ThemeToggle />
         </div>
 
-        {/* Chrome Extension 1-Click Integration */}
+        {/* Chrome Extension 1-Click Integration (Visible on lg+) */}
         <button
           onClick={() => setIsExtensionModalOpen(true)}
-          className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-zinc-700 transition-all text-xs font-semibold shadow-xs group"
+          className="hidden lg:flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-black border border-slate-300 dark:border-zinc-800 text-slate-800 dark:text-zinc-200 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-zinc-700 transition-all text-xs font-semibold shadow-xs group"
           title="DomoNote Chrome Extension (1-Click Automated Setup)"
           aria-label="Open Chrome Extension setup"
         >
           <ChromeIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
-          <span className="hidden xl:inline">Chrome Extension</span>
+          <span className="hidden 2xl:inline">Chrome Extension</span>
         </button>
 
-        {/* Search / Command Palette Trigger */}
+        {/* Search / Command Palette Trigger (Hidden on very small screens) */}
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900/90 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20 transition-colors text-xs shadow-sm"
+          className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-900/90 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-zinc-300 hover:text-black dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20 transition-colors text-xs shadow-sm"
           title={`${t('common.search')} (Cmd+K)`}
         >
           <Search className="w-3.5 h-3.5 shrink-0 text-slate-600 dark:text-zinc-400" />
           <span className="hidden 2xl:inline text-slate-700 dark:text-zinc-400 font-medium">{t('common.search')}</span>
-          <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-700 dark:text-zinc-400 bg-white dark:bg-black border border-slate-300 dark:border-white/10 rounded font-semibold">
+          <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-700 dark:text-zinc-400 bg-white dark:bg-black border border-slate-300 dark:border-white/10 rounded font-semibold">
             Cmd+K
           </kbd>
         </button>

@@ -531,7 +531,8 @@ export const MeetingRecorder: React.FC<MeetingRecorderProps> = ({ onMeetingSaved
       else if (trackLabel.includes('slack')) appName = 'Slack Huddle';
       else if (trackLabel.includes('discord')) appName = 'Discord';
       setDetectedMeetingApp(appName);
-      setShouldAutoOpenPiP(true);
+      // Keep floating HUD attached directly to meeting tab/screen (no separate about:blank window)
+      setShouldAutoOpenPiP(false);
 
       // Initialize speaker roster with actual host participant (no dummy names)
       setSpeakerRoster((prev) => {
