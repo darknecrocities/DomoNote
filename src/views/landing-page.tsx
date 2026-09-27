@@ -44,7 +44,7 @@ import { StarfieldBackground } from '../components/landing/starfield-background'
 import { InteractiveFeatureDemo } from '../components/landing/interactive-feature-demo';
 import { BrandCarouselBelts } from '../components/landing/brand-carousel-belts';
 import { StatsBelt } from '../components/landing/stats-belt';
-import { recordAppDownload } from '../services/firebase/stats';
+import { recordAppDownload } from '../services/stats';
 import { TiltCard } from '../components/ui/tilt-card';
 import { useGitHubStars } from '../services/github/stars';
 import pandaImg from '../assets/panda-mascot.png';

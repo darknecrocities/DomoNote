@@ -2817,15 +2817,6 @@
     "link": "https://developers.google.com/docs/api/reference/rest"
   },
   {
-    "name": "Google Firebase",
-    "description": "Google's mobile application development platform that helps build, improve, and grow app",
-    "category": "Development",
-    "auth": "apiKey",
-    "https": true,
-    "cors": "yes",
-    "link": "https://firebase.google.com/docs"
-  },
-  {
     "name": "Google Fonts",
     "description": "Metadata for all families served by Google Fonts",
     "category": "Development",

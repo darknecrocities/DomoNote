@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { subscribeToStats, recordSiteVisit, recordAppDownload, SiteStats, BASELINE_VISITORS, BASELINE_DOWNLOADS } from '../../services/firebase/stats';
+import { subscribeToStats, recordSiteVisit, recordAppDownload, SiteStats, BASELINE_VISITORS, BASELINE_DOWNLOADS } from '../../services/stats';
 import { useWorkspace } from '../../context/workspace-context';
 
 // Smooth cubic ease-out function for clean count animation

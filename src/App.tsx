@@ -32,7 +32,7 @@ import {
   probeOllamaSetup,
   markSetupComplete,
 } from './services/ai/ollama-setup';
-import { recordSiteVisit } from './services/firebase/stats';
+import { recordSiteVisit } from './services/stats';
 
 // ── New: Update banner ────────────────────────────────────────────────────────
 import { UpdateBanner } from './components/updates/update-banner';

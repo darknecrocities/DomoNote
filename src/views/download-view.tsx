@@ -21,7 +21,7 @@ import {
 import { GithubIcon } from '../components/ui/github-icon';
 import { ChromeIcon } from '../components/ui/chrome-icon';
 import { ChromeExtensionModal } from '../components/modals/chrome-extension-modal';
-import { recordAppDownload } from '../services/firebase/stats';
+import { recordAppDownload } from '../services/stats';
 
 export type SupportedOS = 'macos' | 'windows' | 'linux';
 
@@ -85,7 +85,7 @@ export const DownloadView: React.FC = () => {
 
   const handleDownload = async (filename: string, osName: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    // Record download event to Firebase and local telemetry
+    // Record download event to local telemetry
     recordAppDownload(osName);
 
     // ─── Binary Package Downloads (.dmg, .exe, .zip, .AppImage, .deb) ────────
