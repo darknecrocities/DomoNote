@@ -142,6 +142,8 @@ export async function checkForUpdates(
 
   try {
     const res = await fetch(API_URL, {
+      method: 'GET',
+      credentials: 'omit',
       headers: { Accept: 'application/vnd.github+json' },
       signal: AbortSignal.timeout(8000),
     });
