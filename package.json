@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "postbuild": "node scripts/audit-client-bundles.js",
     "preview": "vite preview",
     "test": "vitest run",
     "setup:ollama": "bash scripts/setup-ollama.sh",
