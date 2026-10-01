@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { TranscriptSegment, MeetingScreenshot } from '../../types';
 import { formatSecondsToTime } from '../../services/audio/transcriber';
+import DOMPurify from 'dompurify';
 import {
   Mic,
   MicOff,
@@ -204,16 +205,17 @@ export const FloatingMeetingController: React.FC<FloatingMeetingControllerProps>
       // Live transcript drawer update inside PiP
       const drawer = doc.getElementById('pip-drawer');
       if (drawer && drawer.style.display !== 'none') {
-        drawer.innerHTML =
+        const rawContent =
           transcript.length === 0
             ? '<span style="color:#71717a">Listening for meeting speech...</span>'
             : transcript
                 .slice(-10)
                 .map(
                   (s) =>
-                    `<div style="margin-bottom:6px;"><span style="color:#10b981;font-weight:600;font-size:10px;">${s.speaker}</span> <span style="color:#71717a;font-size:9px;">${formatSecondsToTime(s.timestampSeconds)}</span><br/><span style="color:#f4f4f5;">${s.text}</span></div>`
+                    `<div style="margin-bottom:6px;"><span style="color:#10b981;font-weight:600;font-size:10px;">${DOMPurify.sanitize(s.speaker)}</span> <span style="color:#71717a;font-size:9px;">${formatSecondsToTime(s.timestampSeconds)}</span><br/><span style="color:#f4f4f5;">${DOMPurify.sanitize(s.text)}</span></div>`
                 )
                 .join('');
+        drawer.innerHTML = DOMPurify.sanitize(rawContent);
         drawer.scrollTop = drawer.scrollHeight;
       }
 
