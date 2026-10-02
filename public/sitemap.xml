@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+                            http://www.google.com/schemas/sitemap-image/1.1
+                            http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+  <!-- Homepage / Landing Page -->
+  <url>
+    <loc>https://domonote.vercel.app/</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote — Your Personal AI Secretary</image:title>
+      <image:caption>DomoNote Logo - Privacy-First Local AI Workspace</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/og-image.png</image:loc>
+      <image:title>DomoNote Personal AI Secretary Preview</image:title>
+      <image:caption>DomoNote features offline transcription, meeting intelligence, and local LLMs</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Download Page -->
+  <url>
+    <loc>https://domonote.vercel.app/download</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Download DomoNote for Windows, macOS, and Linux</image:title>
+      <image:caption>Download the free, open-source DomoNote installer or portable package</image:caption>
+    </image:image>
+  </url>
+
+  <!-- About Page -->
+  <url>
+    <loc>https://domonote.vercel.app/about</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>About DomoNote — Privacy-First AI Architecture</image:title>
+      <image:caption>Learn how DomoNote runs AI entirely on your local machine</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Changelog & Release Notes -->
+  <url>
+    <loc>https://domonote.vercel.app/changelog</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Privacy Policy & Guarantee -->
+  <url>
+    <loc>https://domonote.vercel.app/privacy</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>

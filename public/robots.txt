@@ -1,0 +1,41 @@
+# ==========================================
+# DomoNote - Robots.txt
+# Website: https://domonote.vercel.app
+# ==========================================
+
+User-agent: *
+Allow: /
+Allow: /download
+Allow: /about
+Allow: /changelog
+Allow: /privacy
+Allow: /downloads/
+Allow: /assets/
+Allow: /brands/
+Allow: /official_domonote.png
+Allow: /og-image.png
+
+# Prevent indexing of internal update manifests and source maps
+Disallow: /updates.json
+Disallow: /*.ts$
+Disallow: /*.tsx$
+Disallow: /*.map$
+
+# Search Engines Specific Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Sitemap Location
+Sitemap: https://domonote.vercel.app/sitemap.xml

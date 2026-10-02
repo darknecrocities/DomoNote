@@ -2,14 +2,167 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/official_domonote.png" />
-    <link rel="apple-touch-icon" href="/official_domonote.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="DomoNote - Your Personal AI Secretary for meetings, documents, and notes. Capture it. Understand it. Keep it." />
-    <title>DomoNote — Your Personal AI Secretary</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>DomoNote — Your Personal AI Secretary | Privacy-First Local AI Workspace</title>
+    <meta name="title" content="DomoNote — Your Personal AI Secretary | Privacy-First Local AI Workspace" />
+    <meta name="description" content="DomoNote is a privacy-first, 100% offline personal AI secretary. Transcribe meetings, summarize documents, capture screen workflows, and organize notes using local AI (Ollama). Zero cloud leaks, zero subscriptions." />
+    <meta name="keywords" content="DomoNote, AI secretary, personal AI assistant, local AI workspace, offline transcription, meeting notes AI, Ollama desktop app, private AI notes, AI document summarizer, screen capture AI, local LLM, private meeting assistant, open source AI secretary, speech to text offline" />
+    <meta name="author" content="DomoNote" />
+    <meta name="creator" content="darknecrocities" />
+    <meta name="publisher" content="DomoNote" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <link rel="canonical" href="https://domonote.vercel.app/" />
+
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="google265fea273f067470" />
+    <meta name="google-site-verification" content="google265fea273f067470.html" />
+
+    <!-- Mobile & PWA Configuration -->
+    <meta name="theme-color" content="#09090b" />
+    <meta name="application-name" content="DomoNote" />
+    <meta name="apple-mobile-web-app-title" content="DomoNote" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/official_domonote.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/official_domonote.png" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DomoNote" />
+    <meta property="og:url" content="https://domonote.vercel.app/" />
+    <meta property="og:title" content="DomoNote — Your Personal AI Secretary | Privacy-First Local AI Workspace" />
+    <meta property="og:description" content="Capture meetings, transcribe audio offline, summarize PDFs, and organize thoughts with local AI running on your device. 100% private, zero data leaves your hardware." />
+    <meta property="og:image" content="https://domonote.vercel.app/og-image.png" />
+    <meta property="og:image:secure_url" content="https://domonote.vercel.app/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DomoNote — Your Personal AI Secretary" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@darknecrocities" />
+    <meta name="twitter:creator" content="@darknecrocities" />
+    <meta name="twitter:url" content="https://domonote.vercel.app/" />
+    <meta name="twitter:title" content="DomoNote — Your Personal AI Secretary" />
+    <meta name="twitter:description" content="Privacy-first, 100% offline personal AI secretary. Meeting transcription, document analysis, and smart notes powered by local AI." />
+    <meta name="twitter:image" content="https://domonote.vercel.app/og-image.png" />
+    <meta name="twitter:image:alt" content="DomoNote — Your Personal AI Secretary" />
+
+    <!-- Font Preconnect & Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data (Schema.org) for Rich SERP Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://domonote.vercel.app/#website",
+          "url": "https://domonote.vercel.app/",
+          "name": "DomoNote",
+          "description": "Your Personal AI Secretary - Privacy-first, local-first meeting notes and document intelligence.",
+          "inLanguage": ["en", "zh", "ja", "fr"],
+          "publisher": {
+            "@id": "https://domonote.vercel.app/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://domonote.vercel.app/#organization",
+          "name": "DomoNote",
+          "url": "https://domonote.vercel.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://domonote.vercel.app/official_domonote.png",
+            "width": 1254,
+            "height": 1254
+          },
+          "sameAs": [
+            "https://github.com/darknecrocities/DomoNote"
+          ]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://domonote.vercel.app/#software",
+          "name": "DomoNote",
+          "applicationCategory": "ProductivityApplication",
+          "operatingSystem": "Windows 10+, macOS 12+, Linux, Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "description": "Privacy-first, 100% offline personal AI secretary. Offline meeting transcription, interactive screen workflow capture, and document summarization with local Ollama models.",
+          "downloadUrl": "https://domonote.vercel.app/download",
+          "featureList": [
+            "100% Offline Speech-to-Text Transcription",
+            "Local Ollama Model AI Intelligence",
+            "Automatic Speaker Identification & Diarization",
+            "Live Screen Workflow Recording & Step Annotation",
+            "Multi-Document PDF Semantic Search (RAG)",
+            "Zero Cloud Leak Privacy Guarantee"
+          ],
+          "image": "https://domonote.vercel.app/official_domonote.png",
+          "screenshot": "https://domonote.vercel.app/domonote-demo.webp"
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://domonote.vercel.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is DomoNote?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "DomoNote is a privacy-first, local AI workspace for knowledge workers. It transcribes meetings, summarizes documents, captures screen operations, and organizes notes using local AI models (via Ollama) running directly on your device."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does DomoNote upload my audio or documents to the cloud?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. DomoNote runs completely offline and does not send any audio, transcripts, documents, or personal data to remote cloud servers. All processing is executed on your local hardware."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which operating systems are supported by DomoNote?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "DomoNote is available as native desktop builds for Windows (Setup.exe & Portable ZIP), macOS (Apple Silicon M-series & Intel Universal DMG), and Linux (AppImage & Debian .deb), as well as a Chrome browser extension."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is DomoNote free and open source?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, DomoNote is open source and free to download and use with your own local models."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-black text-zinc-100 antialiased selection:bg-zinc-800 selection:text-white min-h-screen">
     <div id="root"></div>

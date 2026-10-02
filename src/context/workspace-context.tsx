@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { isCloudDeployment } from '../services/environment';
+import { useSEO } from '../services/seo';
 
 export type ViewType =
   | 'landing'
@@ -87,16 +88,29 @@ const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
   'settings',
 ];
 
+function getRequestedViewFromLocation(): ViewType | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const paramView = params.get('view') as ViewType;
+  if (paramView && ALL_VALID_VIEWS.includes(paramView)) {
+    return paramView;
+  }
+  const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '') as ViewType;
+  if (cleanPath && ALL_VALID_VIEWS.includes(cleanPath)) {
+    return cleanPath;
+  }
+  return null;
+}
+
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isCloudHost = useMemo(() => isCloudDeployment(), []);
   const [isCloudModalOpen, setIsCloudModalOpen] = useState<boolean>(false);
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState<boolean>(false);
 
-  // Check URL query parameters for initial view or defaults to landing
+  // Check URL query parameters or clean path for initial view or defaults to landing
   const [activeView, setActiveViewState] = useState<ViewType>(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const requestedView = params.get('view') as ViewType;
+      const requestedView = getRequestedViewFromLocation();
 
       // On Cloud (e.g. Vercel, Netlify):
       if (isCloudDeployment()) {
@@ -118,11 +132,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return 'dashboard';
   });
 
+  // Dynamically update document title, canonical link, and open graph tags for SEO
+  useSEO(activeView);
+
   // If on cloud and navigated directly to workspace param, prompt modal
   useEffect(() => {
     if (typeof window !== 'undefined' && isCloudHost) {
-      const params = new URLSearchParams(window.location.search);
-      const requestedView = params.get('view') as ViewType;
+      const requestedView = getRequestedViewFromLocation();
       if (requestedView && LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
         setIsCloudModalOpen(true);
       }
@@ -133,16 +149,15 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       if (typeof window === 'undefined') return;
-      const params = new URLSearchParams(window.location.search);
-      const viewParam = (e.state?.view || params.get('view')) as ViewType;
+      const requestedView = (e.state?.view || getRequestedViewFromLocation()) as ViewType;
 
       if (isCloudHost) {
-        if (!viewParam || viewParam === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(viewParam)) {
+        if (!requestedView || requestedView === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
           setActiveViewState('landing');
           return;
         }
-        if (ALL_VALID_VIEWS.includes(viewParam)) {
-          setActiveViewState(viewParam);
+        if (ALL_VALID_VIEWS.includes(requestedView)) {
+          setActiveViewState(requestedView);
           return;
         }
         setActiveViewState('landing');
@@ -150,8 +165,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       // Local environment
-      if (viewParam && ALL_VALID_VIEWS.includes(viewParam)) {
-        setActiveViewState(viewParam);
+      if (requestedView && ALL_VALID_VIEWS.includes(requestedView)) {
+        setActiveViewState(requestedView);
       } else {
         setActiveViewState('dashboard');
       }
@@ -193,14 +208,19 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setActiveViewState(view);
       setIsMobileSidebarOpen(false);
       if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        if (view === 'landing') {
-          // On cloud root can be clean or ?view=landing, ensure consistency
-          url.searchParams.set('view', 'landing');
+        const publicCleanPaths: ViewType[] = ['landing', 'download', 'about', 'changelog', 'privacy'];
+        if (isCloudHost && publicCleanPaths.includes(view)) {
+          const targetUrl = view === 'landing' ? '/' : `/${view}`;
+          window.history.pushState({ view }, '', targetUrl);
         } else {
-          url.searchParams.set('view', view);
+          const url = new URL(window.location.href);
+          if (view === 'landing') {
+            url.searchParams.set('view', 'landing');
+          } else {
+            url.searchParams.set('view', view);
+          }
+          window.history.pushState({ view }, '', url.toString());
         }
-        window.history.pushState({ view }, '', url.toString());
       }
     },
     [isCloudHost]
