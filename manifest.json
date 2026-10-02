@@ -1,8 +1,6 @@
 {
   "schema": 2,
-  "required_executas": [
-    { "tool_id": "web_search" }
-  ],
+  "required_executas": [],
   "optional_executas": [],
   "permissions": [
     "storage.read",
