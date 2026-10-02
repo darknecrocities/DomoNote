@@ -93,7 +93,7 @@ describe('Support & Privacy Policy Feature Suite', () => {
       });
 
       const mailto = generateMailtoUrl(submission);
-      expect(mailto).toContain('mailto:support@domonote.dev');
+      expect(mailto).toContain('mailto:parejasarronkian@gmail.com');
       expect(mailto).toContain('subject=');
       expect(mailto).toContain(encodeURIComponent(submission.id));
       expect(mailto).toContain(encodeURIComponent('Where are notes saved?'));

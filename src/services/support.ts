@@ -26,13 +26,13 @@ export interface SupportSubmission {
 
 const STORAGE_KEY = 'domonote_support_submissions_v1';
 const GITHUB_REPO_URL = 'https://github.com/darknecrocities/DomoNote';
-const SUPPORT_EMAIL = 'support@domonote.dev';
+export const SUPPORT_EMAIL = 'parejasarronkian@gmail.com';
 
-export const CATEGORY_LABELS: Record<SubmissionCategory, { label: string; icon: string; emoji: string }> = {
-  feedback: { label: 'General Feedback', icon: 'MessageSquare', emoji: '💬' },
-  bug: { label: 'Bug Report', icon: 'Bug', emoji: '🐛' },
-  feature: { label: 'Feature Request', icon: 'Sparkles', emoji: '✨' },
-  question: { label: 'Help & Inquiry', icon: 'HelpCircle', emoji: '❓' },
+export const CATEGORY_LABELS: Record<SubmissionCategory, { label: string; icon: string }> = {
+  feedback: { label: 'General Feedback', icon: 'MessageSquare' },
+  bug: { label: 'Bug Report', icon: 'Bug' },
+  feature: { label: 'Feature Request', icon: 'Sparkles' },
+  question: { label: 'Help & Inquiry', icon: 'HelpCircle' },
 };
 
 /**

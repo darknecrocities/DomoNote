@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield,
   Lock,
   EyeOff,
   Server,
   LifeBuoy,
-  MessageSquare,
-  Bug,
-  Sparkles,
-  HelpCircle,
   Send,
   CheckCircle2,
   Copy,
@@ -16,7 +12,6 @@ import {
   ExternalLink,
   Mail,
   X,
-  Share2,
   Cpu,
   ArrowRight,
   RotateCcw,
@@ -27,8 +22,8 @@ import {
   recordSupportSubmission,
   generateMailtoUrl,
   generateGitHubIssueUrl,
-  getDirectPathUrl,
   CATEGORY_LABELS,
+  SUPPORT_EMAIL,
   type SubmissionCategory,
   type SupportSubmission,
 } from '../../services/support';
@@ -61,7 +56,6 @@ export const FooterPopupCard: React.FC<FooterPopupCardProps> = ({
   const [submittedRecord, setSubmittedRecord] = useState<SupportSubmission | null>(null);
 
   // Copy Feedback State
-  const [copiedPath, setCopiedPath] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
 
   // Synchronize initialTab when prop changes
@@ -94,7 +88,6 @@ export const FooterPopupCard: React.FC<FooterPopupCardProps> = ({
     };
 
     const handlePopState = () => {
-      // If user navigates back via browser button, close modal
       handleClose(false);
     };
 
@@ -122,30 +115,6 @@ export const FooterPopupCard: React.FC<FooterPopupCardProps> = ({
     setValidationError(null);
   };
 
-  const handleCopyPath = async () => {
-    playPop();
-    const pathSlug = activeTab === 'privacy' ? 'privacy-policy' : 'support';
-    const fullUrl = getDirectPathUrl(pathSlug);
-
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(fullUrl);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = fullUrl;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-      setCopiedPath(true);
-      addToast(`📋 Direct path copied: /${pathSlug}`, 'success');
-      setTimeout(() => setCopiedPath(false), 2500);
-    } catch {
-      addToast('Could not copy link to clipboard', 'warning');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError(null);
@@ -163,8 +132,7 @@ export const FooterPopupCard: React.FC<FooterPopupCardProps> = ({
     setIsSubmitting(true);
     playPop();
 
-    // Emulate smooth submission feel
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     try {
       const record = recordSupportSubmission({
@@ -179,10 +147,10 @@ export const FooterPopupCard: React.FC<FooterPopupCardProps> = ({
       setSubmittedRecord(record);
       setIsSubmitting(false);
       playPop();
-      addToast(`🎉 Support submission recorded! (ID: ${record.id})`, 'success');
-    } catch (err) {
+      addToast(`Support submission recorded (ID: ${record.id})`, 'success');
+    } catch {
       setIsSubmitting(false);
-      setValidationError('Failed to record submission. Please try again or use direct email.');
+      setValidationError('Failed to record submission. Please write directly via email.');
     }
   };
 
@@ -206,7 +174,7 @@ Date: ${submittedRecord.createdAt}`;
     try {
       await navigator.clipboard.writeText(summary);
       setCopiedSummary(true);
-      addToast('📋 Submission details copied to clipboard!', 'success');
+      addToast('Submission details copied to clipboard', 'success');
       setTimeout(() => setCopiedSummary(false), 2500);
     } catch {
       addToast('Failed to copy to clipboard', 'warning');
@@ -214,8 +182,6 @@ Date: ${submittedRecord.createdAt}`;
   };
 
   if (!isOpen) return null;
-
-  const currentPathLabel = activeTab === 'privacy' ? '/privacy-policy' : '/support';
 
   return (
     <div
@@ -233,7 +199,7 @@ Date: ${submittedRecord.createdAt}`;
         <div className="px-5 sm:px-6 py-3.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-900/60 backdrop-blur flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5">
             <img src={logoImg} alt="DomoNote" className="w-6 h-6 rounded-md object-contain shadow-xs" />
-            
+
             {/* Tabs */}
             <div className="flex items-center bg-slate-200/80 dark:bg-zinc-800/80 p-0.5 rounded-lg border border-slate-300/50 dark:border-zinc-700/50">
               <button
@@ -245,7 +211,7 @@ Date: ${submittedRecord.createdAt}`;
                     : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                <Shield className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300" />
                 <span>Privacy Policy</span>
               </button>
 
@@ -258,29 +224,13 @@ Date: ${submittedRecord.createdAt}`;
                     : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <LifeBuoy className="w-3.5 h-3.5 text-sky-500" />
+                <LifeBuoy className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300" />
                 <span>Support & Help</span>
               </button>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Direct Path Pill with Copy Link */}
-            <button
-              type="button"
-              onClick={handleCopyPath}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-xs font-mono text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-zinc-600 transition-colors shadow-xs"
-              title="Copy direct shareable path URL"
-            >
-              <span className="text-slate-400 dark:text-zinc-500 text-[10px]">path:</span>
-              <span className="font-semibold text-slate-800 dark:text-zinc-200">{currentPathLabel}</span>
-              {copiedPath ? (
-                <Check className="w-3 h-3 text-emerald-500" />
-              ) : (
-                <Copy className="w-3 h-3 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200" />
-              )}
-            </button>
-
             {/* Close Button */}
             <button
               type="button"
@@ -301,9 +251,9 @@ Date: ${submittedRecord.createdAt}`;
           {activeTab === 'privacy' && (
             <div className="space-y-6 animate-fade-in text-xs">
               <div className="border-b border-slate-200 dark:border-zinc-800 pb-4">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
-                  <Shield className="w-3 h-3" />
-                  <span>100% Local-First & Zero Cloud Leaks</span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+                  <Shield className="w-3 h-3 text-slate-600 dark:text-zinc-400" />
+                  <span>Local-First & On-Device</span>
                 </div>
                 <h2 id="footer-popup-title" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                   Privacy Policy & Data Sovereignty
@@ -317,11 +267,11 @@ Date: ${submittedRecord.createdAt}`;
                 {/* 1. On-Device Storage */}
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900/40 space-y-2">
                   <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-xs">
-                    <Lock className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <Lock className="w-4 h-4 text-slate-700 dark:text-zinc-300 shrink-0" />
                     <span>100% On-Device IndexedDB Storage</span>
                   </div>
                   <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">
-                    All notes, audio minutes, meeting transcripts, uploaded PDFs, and step screenshots reside strictly inside your browser's local IndexedDB database. There are no remote sync databases or user accounts.
+                    All notes, audio minutes, meeting transcripts, uploaded PDFs, and step screenshots reside strictly inside your browser local IndexedDB database. There are no remote sync databases or user accounts.
                   </p>
                 </div>
 
@@ -367,20 +317,8 @@ Date: ${submittedRecord.createdAt}`;
                 </p>
               </div>
 
-              {/* Path & Switch Actions */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-zinc-850">
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-zinc-500">
-                  <span>Direct Path Link:</span>
-                  <button
-                    type="button"
-                    onClick={handleCopyPath}
-                    className="font-mono text-slate-800 dark:text-zinc-200 underline decoration-dotted hover:text-slate-950 dark:hover:text-white flex items-center gap-1"
-                  >
-                    <span>/privacy-policy</span>
-                    <Copy className="w-3 h-3" />
-                  </button>
-                </div>
-
+              {/* Switch Action */}
+              <div className="pt-2 flex items-center justify-end border-t border-slate-200 dark:border-zinc-850">
                 <button
                   type="button"
                   onClick={() => handleTabChange('support')}
@@ -399,9 +337,9 @@ Date: ${submittedRecord.createdAt}`;
           {activeTab === 'support' && (
             <div className="space-y-6 animate-fade-in text-xs">
               <div className="border-b border-slate-200 dark:border-zinc-800 pb-4">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/80 text-[11px] font-semibold text-sky-700 dark:text-sky-400 mb-2">
-                  <LifeBuoy className="w-3 h-3" />
-                  <span>Direct Help & Community Submissions</span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+                  <LifeBuoy className="w-3 h-3 text-slate-600 dark:text-zinc-400" />
+                  <span>Support & Inquiries</span>
                 </div>
                 <h2 id="footer-popup-title" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                   Support & Feedback Submission
@@ -413,18 +351,18 @@ Date: ${submittedRecord.createdAt}`;
 
               {submittedRecord ? (
                 /* Success Card View */
-                <div className="p-6 rounded-2xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-5 text-center sm:text-left">
+                <div className="p-6 rounded-2xl border border-slate-300 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 space-y-5 text-center sm:text-left">
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md">
-                      <CheckCircle2 className="w-6 h-6" />
+                    <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-sm">
+                      <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                        Submission Successfully Recorded!
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        Submission Recorded Successfully
                       </h3>
                       <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
-                        Your reference identifier is{' '}
-                        <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                        Reference identifier:{' '}
+                        <span className="font-mono font-bold text-slate-900 dark:text-white">
                           {submittedRecord.id}
                         </span>
                       </p>
@@ -432,7 +370,7 @@ Date: ${submittedRecord.createdAt}`;
                   </div>
 
                   <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-                    Because DomoNote operates 100% client-side without third-party tracking databases, your submission has been saved locally on this machine. You can also forward it directly with one click:
+                    Because DomoNote operates client-side without third-party tracking databases, your submission has been saved locally on this machine. You can also send it directly via email or GitHub:
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
@@ -444,7 +382,7 @@ Date: ${submittedRecord.createdAt}`;
                       className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-semibold text-xs hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
                     >
                       <Mail className="w-3.5 h-3.5" />
-                      <span>Send via Email Client</span>
+                      <span>Send to {SUPPORT_EMAIL}</span>
                     </a>
 
                     {/* GitHub issue link */}
@@ -459,13 +397,13 @@ Date: ${submittedRecord.createdAt}`;
                     </a>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-emerald-500/20 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-zinc-800 text-xs">
                     <button
                       type="button"
                       onClick={handleCopySubmissionSummary}
                       className="inline-flex items-center gap-1.5 text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white transition-colors"
                     >
-                      {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedSummary ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedSummary ? 'Copied to Clipboard' : 'Copy Submission Summary'}</span>
                     </button>
 
@@ -499,13 +437,12 @@ Date: ${submittedRecord.createdAt}`;
                               playThock();
                               setCategory(cat);
                             }}
-                            className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border text-xs font-medium transition-all ${
+                            className={`flex items-center justify-center p-2 rounded-xl border text-xs font-medium transition-all ${
                               isSelected
                                 ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white shadow-xs'
                                 : 'bg-slate-50 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700'
                             }`}
                           >
-                            <span>{info.emoji}</span>
                             <span>{info.label}</span>
                           </button>
                         );
@@ -523,7 +460,7 @@ Date: ${submittedRecord.createdAt}`;
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Alex or GitHub handle"
+                        placeholder="Name or GitHub handle"
                         className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all"
                       />
                     </div>
@@ -545,14 +482,14 @@ Date: ${submittedRecord.createdAt}`;
                   {/* Subject Input */}
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                      Subject / Title <span className="text-red-500">*</span>
+                      Subject / Title <span className="text-slate-900 dark:text-white font-bold">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      placeholder="e.g. Issue connecting to local Ollama on Windows or Feature request"
+                      placeholder="Brief summary of your question, issue, or suggestion"
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all"
                     />
                   </div>
@@ -560,14 +497,14 @@ Date: ${submittedRecord.createdAt}`;
                   {/* Message Input */}
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                      Message & Details <span className="text-red-500">*</span>
+                      Message & Details <span className="text-slate-900 dark:text-white font-bold">*</span>
                     </label>
                     <textarea
                       required
                       rows={4}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Please describe what happened, steps to reproduce, or the feature you'd love to see..."
+                      placeholder="Please describe what happened, steps to reproduce, or details about your request..."
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all resize-y"
                     />
                   </div>
@@ -585,31 +522,19 @@ Date: ${submittedRecord.createdAt}`;
                       htmlFor="diag-checkbox"
                       className="text-xs text-slate-600 dark:text-zinc-400 cursor-pointer select-none"
                     >
-                      Attach anonymous client diagnostics (DomoNote v1.0.3, OS platform, Browser type)
+                      Attach client environment details (DomoNote v1.0.3, OS platform, Browser type)
                     </label>
                   </div>
 
                   {/* Validation Error Banner */}
                   {validationError && (
-                    <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs font-medium animate-fade-in">
+                    <div className="p-3 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-400 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 text-xs font-medium animate-fade-in">
                       {validationError}
                     </div>
                   )}
 
-                  {/* Submit Button & Direct Links Strip */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-200 dark:border-zinc-850">
-                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
-                      <span>Direct Path:</span>
-                      <button
-                        type="button"
-                        onClick={handleCopyPath}
-                        className="font-mono text-slate-900 dark:text-white font-medium underline decoration-dotted hover:text-emerald-500 flex items-center gap-1"
-                      >
-                        <span>/support</span>
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </div>
-
+                  {/* Submit Button */}
+                  <div className="pt-2 flex items-center justify-end border-t border-slate-200 dark:border-zinc-850">
                     <button
                       type="submit"
                       disabled={isSubmitting}
@@ -634,17 +559,17 @@ Date: ${submittedRecord.createdAt}`;
               {/* Direct Reach Strip */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-850 bg-slate-50 dark:bg-zinc-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
-                  <div className="font-semibold text-slate-900 dark:text-white">Prefer email or GitHub?</div>
-                  <div className="text-slate-500 dark:text-zinc-400">You can also write directly to our developer team:</div>
+                  <div className="font-semibold text-slate-900 dark:text-white">Direct Contact Options</div>
+                  <div className="text-slate-500 dark:text-zinc-400">You can also write directly via email or GitHub:</div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <a
-                    href="mailto:support@domonote.dev"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 hover:text-slate-950 dark:hover:text-white text-xs font-medium transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5" />
-                    <span>support@domonote.dev</span>
+                    <span>{SUPPORT_EMAIL}</span>
                   </a>
 
                   <a
