@@ -12,6 +12,7 @@
     "setup:ollama": "bash scripts/setup-ollama.sh",
     "setup:windows": "scripts\\setup-windows.bat",
     "build:windows": "node scripts/build-windows.js",
+    "build:anna": "npm run build && node -e \"const fs = require('fs'); fs.rmSync('bundle', { recursive: true, force: true }); fs.cpSync('dist', 'bundle', { recursive: true }); console.log('✅ Prepared bundle/ directory for anna-app push.');\"",
     "start": "node scripts/start.js"
   },
   "dependencies": {

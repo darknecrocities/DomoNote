@@ -1,0 +1,48 @@
+{
+  "schema": 2,
+  "required_executas": [
+    { "tool_id": "web_search" }
+  ],
+  "optional_executas": [],
+  "permissions": [
+    "storage.read",
+    "storage.write",
+    "chat.append_artifact",
+    "llm.complete"
+  ],
+  "system_prompt_addendum": "You are DomoNote Assistant. When the user wants to take notes, structure meetings, organize thoughts, or create summaries, open or update the DomoNote workspace via open_app_view('main'). Help synthesize ideas and draft clear Markdown notes.",
+  "user_message_prefix_template": "[DomoNote] {user_message}",
+  "tags": ["productivity", "notes", "ai-workspace", "meetings"],
+  "ui": {
+    "bundle": {
+      "format": "static-spa",
+      "entry": "index.html",
+      "external_origins": [
+        "https://fonts.googleapis.com",
+        "https://fonts.gstatic.com"
+      ]
+    },
+    "views": [
+      {
+        "name": "main",
+        "title": "DomoNote - AI Notes & Workspace",
+        "default": true,
+        "entry": "index.html",
+        "min_size": { "w": 480, "h": 360 },
+        "default_size": { "w": 1024, "h": 720 },
+        "max_size": { "w": 2560, "h": 1440 },
+        "single_instance": true,
+        "summary_template": "DomoNote Workspace"
+      }
+    ],
+    "host_api": {
+      "chat": ["append_artifact"],
+      "storage": ["get", "set", "delete", "list"],
+      "window": ["set_title", "open_view", "close"],
+      "llm": ["complete", "stream"]
+    },
+    "csp_overrides": {
+      "font-src": ["https://fonts.gstatic.com", "'self'", "data:"]
+    }
+  }
+}

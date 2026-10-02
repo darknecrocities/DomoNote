@@ -1,0 +1,10 @@
+{
+  "name": "DomoNote",
+  "slug": "domonote",
+  "category": "productivity",
+  "tagline": "Your Personal AI Secretary | Privacy-first local AI workspace for notes and meetings.",
+  "description": "DomoNote is a privacy-first, on-device personal AI secretary and workspace. Capture meeting minutes, transcribe audio, organize notes in rich Markdown, visualize thoughts with mind maps, and chat with your knowledge base. Designed for complete privacy, speed, and focus.",
+  "homepage_url": "https://domonote.vercel.app",
+  "support_url": "mailto:parejasarronkian@gmail.com",
+  "privacy_url": "https://domonote.vercel.app/privacy-policy"
+}
