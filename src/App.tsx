@@ -132,8 +132,8 @@ export const App: React.FC = () => {
 
   // ── Ollama first-run check (Workspace only, silent auto-connect if running) ─
   useEffect(() => {
-    // NEVER pop up on landing page or download page
-    if (activeView === 'landing' || activeView === 'download') {
+    // NEVER pop up on landing page, download page, or support page
+    if (activeView === 'landing' || activeView === 'download' || activeView === 'support') {
       setShowSetupFlow(false);
       return;
     }
@@ -264,6 +264,8 @@ export const App: React.FC = () => {
         return <ChangelogView />;
       case 'privacy':
         return <PrivacyView />;
+      case 'support':
+        return <LandingPage initialPopup="support" />;
       default:
         return <DashboardView />;
     }
@@ -293,7 +295,7 @@ export const App: React.FC = () => {
       </AppLayout>
 
       {/* Ollama first-run / repair setup flow (Workspace only) */}
-      {activeView !== 'landing' && activeView !== 'download' && (
+      {activeView !== 'landing' && activeView !== 'download' && activeView !== 'support' && (
         <OllamaSetupFlow
           isOpen={showSetupFlow}
           onDismiss={handleSetupDismiss}

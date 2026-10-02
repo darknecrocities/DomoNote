@@ -49,6 +49,14 @@ export const SEO_PAGE_DATA: Record<string, PageSEOMetadata> = {
     keywords:
       'DomoNote privacy policy, offline data guarantee, private AI, GDPR compliant AI, HIPAA local meeting recorder',
   },
+  support: {
+    title: 'DomoNote Support & Submissions — Help, Feedback & Inquiries',
+    description:
+      'Need help with DomoNote, have questions regarding local Ollama setup, or want to submit feedback? Send a submission directly or get assistance from the community.',
+    canonicalPath: '/support',
+    keywords:
+      'DomoNote support, DomoNote help, submit feedback, bug report, feature request, offline AI assistant help',
+  },
 };
 
 const BASE_URL = 'https://domonote.vercel.app';

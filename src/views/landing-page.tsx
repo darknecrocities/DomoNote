@@ -26,7 +26,9 @@ import {
   Star,
   Menu,
   X,
+  LifeBuoy,
 } from 'lucide-react';
+import { FooterPopupCard } from '../components/landing/footer-popup-card';
 import { GithubIcon } from '../components/ui/github-icon';
 import { ChromeIcon } from '../components/ui/chrome-icon';
 import { NoiseTexture } from '../components/ui/noise-texture';
@@ -81,7 +83,11 @@ const TYPEWRITER_PHRASES: Record<string, string[]> = {
   ],
 };
 
-export const LandingPage: React.FC = () => {
+export interface LandingPageProps {
+  initialPopup?: 'privacy' | 'support' | null;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ initialPopup = null }) => {
   const { setActiveView, isCloudHost, setIsCloudModalOpen, setIsExtensionModalOpen, addToast } = useWorkspace();
   const { playPop, playThock } = useSound();
   const { t, language } = useLanguage();
@@ -91,6 +97,30 @@ export const LandingPage: React.FC = () => {
   const [demoMode, setDemoMode] = useState<'interactive' | 'video'>('interactive');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { starCount, refreshStars } = useGitHubStars();
+
+  // Footer Popup Card State (Privacy Policy & Support)
+  const [isFooterPopupOpen, setIsFooterPopupOpen] = useState(false);
+  const [footerPopupTab, setFooterPopupTab] = useState<'privacy' | 'support'>('privacy');
+
+  // Detect URL path or initialPopup prop on boot
+  useEffect(() => {
+    if (initialPopup) {
+      setFooterPopupTab(initialPopup);
+      setIsFooterPopupOpen(true);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const cleanPath = window.location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
+      if (cleanPath === 'privacy-policy' || cleanPath === 'privacy') {
+        setFooterPopupTab('privacy');
+        setIsFooterPopupOpen(true);
+      } else if (cleanPath === 'support' || cleanPath === 'contact') {
+        setFooterPopupTab('support');
+        setIsFooterPopupOpen(true);
+      }
+    }
+  }, [initialPopup]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1115,10 +1145,24 @@ cd DomoNote
               {t('nav.localWorkspace', 'Workspace')}
             </button>
             <button
-              onClick={() => setActiveView('privacy')}
-              className="hover:text-slate-900 dark:hover:text-white transition-colors"
+              onClick={() => {
+                setFooterPopupTab('privacy');
+                setIsFooterPopupOpen(true);
+              }}
+              className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              {t('nav.privacy', 'Privacy')}
+              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+              <span>{t('nav.privacyPolicy', 'Privacy Policy')}</span>
+            </button>
+            <button
+              onClick={() => {
+                setFooterPopupTab('support');
+                setIsFooterPopupOpen(true);
+              }}
+              className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              <LifeBuoy className="w-3.5 h-3.5 text-sky-500" />
+              <span>{t('nav.support', 'Support')}</span>
             </button>
             <button
               onClick={() => setActiveView('about')}
@@ -1150,11 +1194,82 @@ cd DomoNote
           </div>
         </div>
 
+        {/* Footer Quick Interactive Cards for Privacy Policy and Support Submissions */}
+        <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-slate-200/80 dark:border-zinc-850/80 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {/* Privacy Policy Quick Popup Card */}
+          <div
+            onClick={() => {
+              setFooterPopupTab('privacy');
+              setIsFooterPopupOpen(true);
+            }}
+            className="cursor-pointer group p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 hover:bg-white dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-xs flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+                <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Privacy Policy
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
+                    /privacy-policy
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  100% on-device storage • Zero telemetry • Local AI execution
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+          </div>
+
+          {/* Support & Submission Quick Popup Card */}
+          <div
+            onClick={() => {
+              setFooterPopupTab('support');
+              setIsFooterPopupOpen(true);
+            }}
+            className="cursor-pointer group p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 hover:bg-white dark:hover:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-xs flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center shrink-0">
+                <LifeBuoy className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    Support & Help
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-300 dark:border-emerald-800">
+                    Send Submission
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
+                    /support
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  Submit questions, bug reports, or feature ideas directly
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-slate-200 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-zinc-600">
           <span>{t('landing.footer.licenseNotice', 'MIT License • Open Source • Runs on Your Device')}</span>
           <span className="mt-2 sm:mt-0">{t('landing.footer.privateByDefault', 'Private by Default')}</span>
         </div>
       </footer>
+
+      {/* Footer Popup Card Modal (Privacy Policy & Support Submission Form) */}
+      <FooterPopupCard
+        isOpen={isFooterPopupOpen}
+        onClose={() => setIsFooterPopupOpen(false)}
+        initialTab={footerPopupTab}
+      />
     </div>
   );
 };

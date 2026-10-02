@@ -18,7 +18,8 @@ export type ViewType =
   | 'settings'
   | 'about'
   | 'changelog'
-  | 'privacy';
+  | 'privacy'
+  | 'support';
 
 export interface ToastItem {
   id: string;
@@ -72,6 +73,7 @@ const ALL_VALID_VIEWS: ViewType[] = [
   'about',
   'changelog',
   'privacy',
+  'support',
 ];
 
 const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
@@ -95,9 +97,15 @@ function getRequestedViewFromLocation(): ViewType | null {
   if (paramView && ALL_VALID_VIEWS.includes(paramView)) {
     return paramView;
   }
-  const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '') as ViewType;
-  if (cleanPath && ALL_VALID_VIEWS.includes(cleanPath)) {
-    return cleanPath;
+  const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '');
+  if (cleanPath === 'privacy-policy') {
+    return 'privacy';
+  }
+  if (cleanPath === 'support' || cleanPath === 'contact') {
+    return 'support';
+  }
+  if (cleanPath && ALL_VALID_VIEWS.includes(cleanPath as ViewType)) {
+    return cleanPath as ViewType;
   }
   return null;
 }
@@ -208,7 +216,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setActiveViewState(view);
       setIsMobileSidebarOpen(false);
       if (typeof window !== 'undefined') {
-        const publicCleanPaths: ViewType[] = ['landing', 'download', 'about', 'changelog', 'privacy'];
+        const publicCleanPaths: ViewType[] = ['landing', 'download', 'about', 'changelog', 'privacy', 'support'];
         if (isCloudHost && publicCleanPaths.includes(view)) {
           const targetUrl = view === 'landing' ? '/' : `/${view}`;
           window.history.pushState({ view }, '', targetUrl);

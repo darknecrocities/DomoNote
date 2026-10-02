@@ -9,6 +9,8 @@ Allow: /download
 Allow: /about
 Allow: /changelog
 Allow: /privacy
+Allow: /privacy-policy
+Allow: /support
 Allow: /downloads/
 Allow: /assets/
 Allow: /brands/
