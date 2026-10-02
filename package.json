@@ -30,6 +30,7 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@anna-ai/cli": "^0.1.57",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^22.13.10",
     "@types/react": "^18.3.18",
