@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { ViewType } from '../context/workspace-context';
+import type { SEOPageItem } from '../data/seo-catalog';
 
 export interface PageSEOMetadata {
   title: string;
@@ -62,16 +63,33 @@ export const SEO_PAGE_DATA: Record<string, PageSEOMetadata> = {
 const BASE_URL = 'https://domonote.vercel.app';
 
 /**
- * Updates head metadata dynamically based on the current active view.
+ * Updates head metadata dynamically based on the current active view or specific SEO catalog item.
  */
-export function updateSEOMetadata(view: ViewType): void {
+export function updateSEOMetadata(view: ViewType, seoPage?: SEOPageItem | null): void {
   if (typeof document === 'undefined') return;
 
-  const data = SEO_PAGE_DATA[view] || SEO_PAGE_DATA.landing;
-  const canonicalUrl = `${BASE_URL}${data.canonicalPath === '/' ? '' : data.canonicalPath}`;
+  let title: string;
+  let description: string;
+  let canonicalPath: string;
+  let keywords: string | undefined;
+
+  if (view === 'seo-page' && seoPage) {
+    title = seoPage.title;
+    description = seoPage.description;
+    canonicalPath = seoPage.path;
+    keywords = seoPage.keywords;
+  } else {
+    const data = SEO_PAGE_DATA[view] || SEO_PAGE_DATA.landing;
+    title = data.title;
+    description = data.description;
+    canonicalPath = data.canonicalPath;
+    keywords = data.keywords;
+  }
+
+  const canonicalUrl = `${BASE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
 
   // Document Title
-  document.title = data.title;
+  document.title = title;
 
   // Helper to update or create meta tags
   const setMeta = (selector: string, attr: string, value: string, propAttr = 'name') => {
@@ -85,20 +103,20 @@ export function updateSEOMetadata(view: ViewType): void {
   };
 
   // Primary Meta
-  setMeta('meta[name="title"]', 'content', data.title);
-  setMeta('meta[name="description"]', 'content', data.description);
-  if (data.keywords) {
-    setMeta('meta[name="keywords"]', 'content', data.keywords);
+  setMeta('meta[name="title"]', 'content', title);
+  setMeta('meta[name="description"]', 'content', description);
+  if (keywords) {
+    setMeta('meta[name="keywords"]', 'content', keywords);
   }
 
   // Open Graph
-  setMeta('meta[property="og:title"]', 'content', data.title, 'property');
-  setMeta('meta[property="og:description"]', 'content', data.description, 'property');
+  setMeta('meta[property="og:title"]', 'content', title, 'property');
+  setMeta('meta[property="og:description"]', 'content', description, 'property');
   setMeta('meta[property="og:url"]', 'content', canonicalUrl, 'property');
 
   // Twitter
-  setMeta('meta[name="twitter:title"]', 'content', data.title);
-  setMeta('meta[name="twitter:description"]', 'content', data.description);
+  setMeta('meta[name="twitter:title"]', 'content', title);
+  setMeta('meta[name="twitter:description"]', 'content', description);
   setMeta('meta[name="twitter:url"]', 'content', canonicalUrl);
 
   // Canonical Link
@@ -114,8 +132,8 @@ export function updateSEOMetadata(view: ViewType): void {
 /**
  * React hook to synchronize SEO metadata with the current view.
  */
-export function useSEO(activeView: ViewType): void {
+export function useSEO(activeView: ViewType, activeSeoPage?: SEOPageItem | null): void {
   useEffect(() => {
-    updateSEOMetadata(activeView);
-  }, [activeView]);
+    updateSEOMetadata(activeView, activeSeoPage);
+  }, [activeView, activeSeoPage]);
 }

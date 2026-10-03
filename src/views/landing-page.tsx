@@ -51,6 +51,7 @@ import { TiltCard } from '../components/ui/tilt-card';
 import { useGitHubStars } from '../services/github/stars';
 import pandaImg from '../assets/panda-mascot.png';
 import logoImg from '../assets/official_domonote.png';
+import { SEO_GROUPS } from '../data/seo-catalog';
 
 const TYPEWRITER_PHRASES: Record<string, string[]> = {
   en: [
@@ -1189,6 +1190,45 @@ cd DomoNote
                 </span>
               )}
             </a>
+          </div>
+        </div>
+
+        {/* SEO Knowledge & Capabilities Directory Hub */}
+        <div className="max-w-7xl mx-auto pt-10 mt-10 border-t border-slate-200 dark:border-zinc-850">
+          <div className="mb-4">
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-zinc-200">
+              Explore DomoNote Local AI Ecosystem
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-500 mt-0.5">
+              100% offline, privacy-first meeting intelligence, document parsing, and local LLM workflows.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 pt-2">
+            {SEO_GROUPS.map((group) => (
+              <div key={group.id} className="space-y-2">
+                <span className="text-[11px] font-mono font-semibold text-slate-800 dark:text-zinc-300 uppercase tracking-tight block">
+                  {group.label}
+                </span>
+                <ul className="space-y-1.5 text-[11px]">
+                  {group.items.slice(0, 6).map((item) => (
+                    <li key={item.slug}>
+                      <a
+                        href={item.path}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.history.pushState({ view: item.path }, '', item.path);
+                          window.dispatchEvent(new PopStateEvent('popstate', { state: { view: item.path } }));
+                        }}
+                        className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors block truncate"
+                        title={item.name}
+                      >
+                        {item.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 

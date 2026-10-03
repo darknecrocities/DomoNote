@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { isCloudDeployment } from '../services/environment';
 import { useSEO } from '../services/seo';
+import { getSEOPageByPath, SEOPageItem } from '../data/seo-catalog';
 
 export type ViewType =
   | 'landing'
@@ -19,7 +20,8 @@ export type ViewType =
   | 'about'
   | 'changelog'
   | 'privacy'
-  | 'support';
+  | 'support'
+  | 'seo-page';
 
 export interface ToastItem {
   id: string;
@@ -30,6 +32,8 @@ export interface ToastItem {
 interface WorkspaceContextType {
   activeView: ViewType;
   setActiveView: (view: ViewType) => void;
+  activeSeoPage: SEOPageItem | null;
+  setActiveSeoPage: (page: SEOPageItem | null) => void;
   activeNoteId: string | null;
   setActiveNoteId: (id: string | null) => void;
   activeMeetingId: string | null;
@@ -74,6 +78,7 @@ const ALL_VALID_VIEWS: ViewType[] = [
   'changelog',
   'privacy',
   'support',
+  'seo-page',
 ];
 
 const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
@@ -90,22 +95,26 @@ const LOCAL_WORKSPACE_VIEWS: ViewType[] = [
   'settings',
 ];
 
-function getRequestedViewFromLocation(): ViewType | null {
+function getRequestedLocation(): { view: ViewType; seoPage?: SEOPageItem } | null {
   if (typeof window === 'undefined') return null;
   const params = new URLSearchParams(window.location.search);
   const paramView = params.get('view') as ViewType;
   if (paramView && ALL_VALID_VIEWS.includes(paramView)) {
-    return paramView;
+    return { view: paramView };
   }
   const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '');
   if (cleanPath === 'privacy-policy') {
-    return 'privacy';
+    return { view: 'privacy' };
   }
   if (cleanPath === 'support' || cleanPath === 'contact') {
-    return 'support';
+    return { view: 'support' };
   }
   if (cleanPath && ALL_VALID_VIEWS.includes(cleanPath as ViewType)) {
-    return cleanPath as ViewType;
+    return { view: cleanPath as ViewType };
+  }
+  const foundSeo = getSEOPageByPath(window.location.pathname);
+  if (foundSeo) {
+    return { view: 'seo-page', seoPage: foundSeo };
   }
   return null;
 }
@@ -116,38 +125,43 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState<boolean>(false);
 
   // Check URL query parameters or clean path for initial view or defaults to landing
+  const [initialLoc] = useState(() => (typeof window !== 'undefined' ? getRequestedLocation() : null));
+
   const [activeView, setActiveViewState] = useState<ViewType>(() => {
     if (typeof window !== 'undefined') {
-      const requestedView = getRequestedViewFromLocation();
+      const requested = initialLoc;
 
       // On Cloud (e.g. Vercel, Netlify):
       if (isCloudDeployment()) {
-        if (!requestedView || requestedView === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
+        if (!requested || requested.view === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(requested.view)) {
           return 'landing';
         }
-        if (ALL_VALID_VIEWS.includes(requestedView)) {
-          return requestedView;
+        if (ALL_VALID_VIEWS.includes(requested.view)) {
+          return requested.view;
         }
         return 'landing';
       }
 
       // On Local (localhost, 127.0.0.1, desktop companion):
-      if (requestedView && ALL_VALID_VIEWS.includes(requestedView)) {
-        return requestedView;
+      if (requested && ALL_VALID_VIEWS.includes(requested.view)) {
+        return requested.view;
       }
       return 'dashboard';
     }
     return 'dashboard';
   });
 
+  const [activeSeoPage, setActiveSeoPage] = useState<SEOPageItem | null>(() => initialLoc?.seoPage || null);
+
   // Dynamically update document title, canonical link, and open graph tags for SEO
-  useSEO(activeView);
+  useSEO(activeView, activeSeoPage);
+
 
   // If on cloud and navigated directly to workspace param, prompt modal
   useEffect(() => {
     if (typeof window !== 'undefined' && isCloudHost) {
-      const requestedView = getRequestedViewFromLocation();
-      if (requestedView && LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
+      const requested = getRequestedLocation();
+      if (requested && LOCAL_WORKSPACE_VIEWS.includes(requested.view)) {
         setIsCloudModalOpen(true);
       }
     }
@@ -157,32 +171,45 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       if (typeof window === 'undefined') return;
-      const requestedView = (e.state?.view || getRequestedViewFromLocation()) as ViewType;
+      const requested = getRequestedLocation();
+      const requestedView = (e.state?.view || requested?.view || 'landing') as ViewType;
+
+      if (requested?.seoPage) {
+        setActiveSeoPage(requested.seoPage);
+        setActiveViewState('seo-page');
+        return;
+      }
 
       if (isCloudHost) {
         if (!requestedView || requestedView === 'landing' || LOCAL_WORKSPACE_VIEWS.includes(requestedView)) {
           setActiveViewState('landing');
+          setActiveSeoPage(null);
           return;
         }
         if (ALL_VALID_VIEWS.includes(requestedView)) {
           setActiveViewState(requestedView);
+          setActiveSeoPage(null);
           return;
         }
         setActiveViewState('landing');
+        setActiveSeoPage(null);
         return;
       }
 
       // Local environment
       if (requestedView && ALL_VALID_VIEWS.includes(requestedView)) {
         setActiveViewState(requestedView);
+        setActiveSeoPage(null);
       } else {
         setActiveViewState('dashboard');
+        setActiveSeoPage(null);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isCloudHost]);
+
 
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [activeMeetingId, setActiveMeetingId] = useState<string | null>(null);
@@ -268,6 +295,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         activeView,
         setActiveView,
+        activeSeoPage,
+        setActiveSeoPage,
         activeNoteId,
         setActiveNoteId,
         activeMeetingId,

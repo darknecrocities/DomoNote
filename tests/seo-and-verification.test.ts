@@ -52,7 +52,22 @@ describe('SEO, Sitemaps, and Google Verification Suite', () => {
       expect(xml).toContain('<priority>1.0</priority>');
       expect(xml).toContain('<priority>0.9</priority>');
       expect(xml).toContain('image:image');
+
+      // Verify expanded SEO routes exist in sitemap
+      expect(xml).toContain('https://domonote.vercel.app/features/offline-meeting-transcription</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/compare/domonote-vs-otter-ai</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/models/qwen2.5-3b</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/templates/executive-meeting-minutes</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/guides/how-to-setup-ollama-for-domonote</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/solutions/legal-attorneys-confidential-meetings</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/tools/meeting-transcription/google-meet</loc>');
+      expect(xml).toContain('https://domonote.vercel.app/tools/document-summarizer/pdf</loc>');
+
+      // Verify page count in sitemap is 114
+      const locMatches = xml.match(/<loc>/g) || [];
+      expect(locMatches.length).toBe(114);
     });
+
   });
 
   describe('Metadata, Social Cards & PWA Manifest', () => {
@@ -160,5 +175,20 @@ describe('SEO, Sitemaps, and Google Verification Suite', () => {
       expect((globalThis as any).document.title).toBe(SEO_PAGE_DATA.about.title);
       expect((globalThis as any).document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://domonote.vercel.app/about');
     });
+
+    it('verifies prerendered static snapshots exist with valid HTML and schema', () => {
+      const distDir = path.resolve(__dirname, '../dist');
+      if (!fs.existsSync(distDir)) return;
+
+      const samplePrerenderPath = path.join(distDir, 'features', 'offline-meeting-transcription', 'index.html');
+      expect(fs.existsSync(samplePrerenderPath)).toBe(true);
+
+      const html = fs.readFileSync(samplePrerenderPath, 'utf-8');
+      expect(html).toContain('<title>Offline Meeting Transcription');
+      expect(html).toContain('application/ld+json');
+      expect(html).toContain('id="seo-prerender"');
+      expect(html).toContain('DomoNote transcribes your meetings directly');
+    });
   });
 });
+

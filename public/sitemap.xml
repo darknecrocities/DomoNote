@@ -7,10 +7,10 @@
                             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
                             http://www.google.com/schemas/sitemap-image/1.1
                             http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
-  <!-- Homepage / Landing Page -->
+  <!-- Core Static Base Pages -->
   <url>
     <loc>https://domonote.vercel.app/</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -18,17 +18,10 @@
       <image:title>DomoNote — Your Personal AI Secretary</image:title>
       <image:caption>DomoNote Logo - Privacy-First Local AI Workspace</image:caption>
     </image:image>
-    <image:image>
-      <image:loc>https://domonote.vercel.app/og-image.png</image:loc>
-      <image:title>DomoNote Personal AI Secretary Preview</image:title>
-      <image:caption>DomoNote features offline transcription, meeting intelligence, and local LLMs</image:caption>
-    </image:image>
   </url>
-
-  <!-- Download Page -->
   <url>
     <loc>https://domonote.vercel.app/download</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <image:image>
@@ -37,11 +30,9 @@
       <image:caption>Download the free, open-source DomoNote installer or portable package</image:caption>
     </image:image>
   </url>
-
-  <!-- About Page -->
   <url>
     <loc>https://domonote.vercel.app/about</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image>
@@ -50,28 +41,1227 @@
       <image:caption>Learn how DomoNote runs AI entirely on your local machine</image:caption>
     </image:image>
   </url>
-
-  <!-- Changelog & Release Notes -->
   <url>
     <loc>https://domonote.vercel.app/changelog</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote Changelog &amp; Release Notes</image:title>
+      <image:caption>Latest features, improvements, and updates in DomoNote</image:caption>
+    </image:image>
   </url>
-
-  <!-- Privacy Policy & Guarantee -->
   <url>
     <loc>https://domonote.vercel.app/privacy</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote Privacy Guarantee &amp; Policy</image:title>
+      <image:caption>100% offline, zero cloud leaks guarantee</image:caption>
+    </image:image>
   </url>
-
-  <!-- Support, Help & Submissions -->
   <url>
     <loc>https://domonote.vercel.app/support</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote Support &amp; Submissions</image:title>
+      <image:caption>Help, feedback, and issue submissions</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Programmatic Feature, Model, Compare, Template, Guide, and Solution Pages -->
+  <url>
+    <loc>https://domonote.vercel.app/features/offline-meeting-transcription</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Offline Meeting Transcription &amp; Local Speech-to-Text | DomoNote</image:title>
+      <image:caption>Transcribe meetings, calls, and audio files 100% offline with zero cloud leaks. High-accuracy local speech-to-text powered by Faster-Whisper and Web Audio.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/local-ai-secretary</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Personal AI Secretary — Privacy-First On-Device Executive Assistant | DomoNote</image:title>
+      <image:caption>Your autonomous personal AI secretary for meetings, documents, action items, and knowledge capture. Runs locally with Ollama and zero cloud telemetry.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/speaker-identification-diarization</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Speaker Diarization &amp; Participant Detection | DomoNote</image:title>
+      <image:caption>Automatically distinguish and identify speakers in meetings without cloud processing. Visual participant scanner and acoustic voice activity detection.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/meeting-minutes-generator</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Meeting Minutes &amp; Summary Generator | DomoNote</image:title>
+      <image:caption>Transform raw meeting transcripts into executive minutes, key decisions, and formatted action item lists instantly using local AI models.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/action-items-extractor</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>AI Action Items &amp; Task Extractor for Meetings | DomoNote</image:title>
+      <image:caption>Automatically extract assignees, deadlines, deliverables, and follow-ups from meeting audio. Seamlessly export to task boards and calendars.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/google-meet-transcription</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Google Meet Transcriber — No Cloud Bots | DomoNote</image:title>
+      <image:caption>Capture Google Meet audio directly with the DomoNote Chrome Extension. No awkward third-party recording bots joining your call.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/zoom-teams-meeting-recorder</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Zoom &amp; Microsoft Teams Local Meeting Recorder | DomoNote</image:title>
+      <image:caption>Record and transcribe Zoom, Microsoft Teams, Webex, and Discord audio locally. Completely private, offline speech-to-text without cloud subscriptions.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/document-pdf-intelligence</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Document AI &amp; PDF Intelligence Parser | DomoNote</image:title>
+      <image:caption>Analyze, search, and summarize PDFs, DOCX, and PPTX documents locally. In-browser viewer with visual annotations, key takeaways, and offline extraction.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/local-rag-vector-search</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local RAG &amp; Semantic Vector Search for Documents | DomoNote</image:title>
+      <image:caption>Query your personal knowledge base using local Retrieval-Augmented Generation (RAG). Search across notes, transcripts, and documents with Ollama embeddings.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/screen-recording-sop-builder</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Screen Recording &amp; SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Record screen workflows and automatically generate step-by-step Standard Operating Procedure (SOP) manuals with annotated screenshots and instructions.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/multilingual-audio-translation</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Real-Time Multilingual Speech Translation | DomoNote</image:title>
+      <image:caption>Transcribe and translate meetings across 10+ languages in real time. Powered by local multilingual LLMs and speech recognition engines.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/zen-focus-markdown-editor</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Zen Focus Markdown Editor &amp; Note Workspace | DomoNote</image:title>
+      <image:caption>Distraction-free markdown writing environment with local autosave, version history snapshots, bidirectional linking, and AI drafting assistance.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/calendar-event-sync</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Smart Meeting Detection &amp; Google Calendar Sync | DomoNote</image:title>
+      <image:caption>Detect upcoming calls, schedule meetings, and generate standard ICS calendar invitations directly from meeting notes and action items.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/local-llm-workspace</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Multi-Context Local AI Workspace &amp; Chat | DomoNote</image:title>
+      <image:caption>Chat with your notes, meetings, and documents simultaneously using local Ollama models. Select multiple active context items for holistic AI synthesis.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/features/zero-cloud-privacy-guarantee</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>100% Offline Privacy Guarantee — Zero Cloud Leaks | DomoNote</image:title>
+      <image:caption>Learn how DomoNote safeguards your privacy: zero cloud storage, zero tracking pixels, no telemetry, and air-gapped local AI computation.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/qwen2.5-3b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Qwen 2.5 3B for Meeting Notes &amp; Transcription AI | DomoNote</image:title>
+      <image:caption>Discover how DomoNote uses Qwen 2.5 3B as its default ultra-fast local secretary model. High instruction-following speed on laptops with 4 GB RAM.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/llama-3.2-3b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Meta Llama 3.2 3B for Local Meeting Summaries | DomoNote</image:title>
+      <image:caption>Use Meta Llama 3.2 3B inside DomoNote for fast on-device summarization, note organization, and document parsing with Ollama.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/llama-3.1-8b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Meta Llama 3.1 8B for In-Depth Executive Minutes | DomoNote</image:title>
+      <image:caption>Power your personal AI secretary with Meta Llama 3.1 8B for deep analytical synthesis, complex contract reviews, and nuance-heavy meeting minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/gemma-2-9b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Google Gemma 2 9B for Advanced Document Synthesis | DomoNote</image:title>
+      <image:caption>Harness Google’s flagship lightweight model Gemma 2 9B inside DomoNote for academic paper summaries, technical specs, and meeting intelligence.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/codegemma-7b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Google CodeGemma 7B for Technical Architecture &amp; Code Notes | DomoNote</image:title>
+      <image:caption>Synthesize engineering standups, API design reviews, and technical RFC documents with Google CodeGemma 7B running locally in DomoNote.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/mistral-7b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Mistral 7B Instruct for Structured Minutes &amp; Action Items | DomoNote</image:title>
+      <image:caption>Use Mistral 7B Instruct with DomoNote for concise bullet points, crisp meeting agendas, and high-efficiency task extraction.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/deepseek-r1-7b</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DeepSeek R1 7B for Deep Logical Reasoning &amp; Synthesis | DomoNote</image:title>
+      <image:caption>Bring reasoning model power to your personal notes. DeepSeek R1 7B utilizes chain-of-thought verification to analyze complex business decisions.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/phi-3-mini</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Microsoft Phi-3 Mini for Low-Power On-Device AI | DomoNote</image:title>
+      <image:caption>Microsoft Phi-3 Mini delivers surprising cognitive power with minimal battery drain. Perfect for laptops, ultrabooks, and on-the-go offline work.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/models/faster-whisper</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Faster-Whisper Local Speech Recognition Engine | DomoNote</image:title>
+      <image:caption>Accelerated CTranslate2 implementation of OpenAI Whisper. Achieve human-level offline transcription accuracy on your desktop with DomoNote.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-otter-ai</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Otter.ai — Free Local Privacy vs Cloud Subscriptions</image:title>
+      <image:caption>Compare DomoNote and Otter.ai. Discover why privacy-conscious professionals are switching from cloud meeting bots to 100% offline, on-device AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-fireflies-ai</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Fireflies.ai — Private Local Notes vs Cloud Meeting Bots</image:title>
+      <image:caption>Comparing DomoNote and Fireflies.ai. Learn why enterprises, lawyers, and executives choose local meeting transcription over cloud bot recorders.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-notion-ai</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Notion AI — Local AI Secretary vs Cloud SaaS Workspace</image:title>
+      <image:caption>Compare DomoNote and Notion AI. See why local offline AI, native audio capture, and zero subscription fees beat cloud-tethered note tools.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-granola</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Granola — Open Source Multi-OS vs Closed macOS App</image:title>
+      <image:caption>Comparison between DomoNote and Granola. Open-source, multi-platform (Windows, Mac, Linux), and self-hosted local AI vs proprietary closed software.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-fathom</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Fathom — Private Local Processing vs Cloud Zoom Integrations</image:title>
+      <image:caption>Compare DomoNote and Fathom. Eliminate cloud storage vulnerabilities with DomoNote’s client-side meeting minutes and on-device speech processing.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-scribe-how</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Scribe — Free Local Screen SOP Manuals vs Cloud Screenshots</image:title>
+      <image:caption>Compare DomoNote and Scribe (ScribeHow). Create step-by-step SOP guides and training manuals locally without cloud uploads or monthly fees.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/compare/domonote-vs-supernormal</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote vs Supernormal — Zero-Knowledge Meeting Intelligence</image:title>
+      <image:caption>Compare DomoNote and Supernormal. Learn how DomoNote delivers executive meeting notes with zero knowledge architecture and complete hardware privacy.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/executive-meeting-minutes</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Executive Meeting Minutes &amp; Board Summary Template | DomoNote</image:title>
+      <image:caption>Free executive meeting minutes template for DomoNote. Capture attendees, strategic decisions, financial votes, and key deliverables with AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/sprint-planning-retro</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Agile Sprint Planning &amp; Retrospective Template | DomoNote</image:title>
+      <image:caption>Streamline Agile ceremonies with DomoNote. Capture sprint goals, velocity estimates, what went well, what can improve, and action commitments.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/client-discovery-call</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Sales &amp; Client Discovery Call Briefing Template | DomoNote</image:title>
+      <image:caption>Capture prospect pain points, budget, authority, timeline, and next steps with DomoNote’s automated client discovery notes template.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/one-on-one-manager-meeting</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>1-on-1 Manager &amp; Direct Report Sync Template | DomoNote</image:title>
+      <image:caption>Foster career growth, track ongoing roadblocks, and maintain psychological safety with DomoNote’s private 1-on-1 meeting template.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/all-hands-company-brief</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Company All-Hands &amp; Town Hall Notes Template | DomoNote</image:title>
+      <image:caption>Summarize quarterly town halls, executive vision updates, and AMA Q&amp;A sessions into concise company-wide briefings with DomoNote.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/brainstorming-ideation-session</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Creative Brainstorming &amp; Whiteboard Synthesis Template | DomoNote</image:title>
+      <image:caption>Transform free-flowing creative workshops and whiteboard sessions into structured action vectors, feasibility matrices, and innovation themes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/software-qa-sop-manual</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Software QA &amp; Bug Reproduction SOP Manual Template | DomoNote</image:title>
+      <image:caption>Standardize bug reproduction and QA test runs. Screen recordings auto-generate numbered steps, screenshots, expected vs actual behavior, and environment data.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/employee-onboarding-workflow</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>New Employee Onboarding &amp; Systems SOP Template | DomoNote</image:title>
+      <image:caption>Build step-by-step IT setup and systems onboarding guides for new team members using DomoNote’s screen operation capture.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/customer-support-playbook</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Customer Support Escalation &amp; Helpdesk SOP Template | DomoNote</image:title>
+      <image:caption>Document standard operating procedures for resolving common customer tickets, processing refunds, and handling technical escalations.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/research-paper-literature-review</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Academic Research &amp; Literature Review Note Template | DomoNote</image:title>
+      <image:caption>Synthesize academic papers, citations, hypotheses, methodologies, and findings with DomoNote’s document intelligence template.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/legal-contract-analysis</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Legal Contract Review &amp; Clause Analysis Template | DomoNote</image:title>
+      <image:caption>Analyze NDAs, vendor agreements, and employment contracts locally with DomoNote. Zero confidential contract text leaves your machine.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/templates/product-requirements-document</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Product Requirements Document (PRD) Note Template | DomoNote</image:title>
+      <image:caption>Synthesize user interviews, stakeholder meetings, and technical constraints into comprehensive PRD specifications ready for engineering sprint kickoff.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/getting-started-with-domonote</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Getting Started with DomoNote — Quickstart Guide | DomoNote Docs</image:title>
+      <image:caption>Learn how to set up DomoNote, connect local Ollama models, record your first meeting, and summarize PDF documents in 5 minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/how-to-setup-ollama-for-domonote</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Setup Ollama for DomoNote on Windows, Mac &amp; Linux</image:title>
+      <image:caption>Comprehensive walkthrough on installing and configuring Ollama for DomoNote. Covers CORS origins, model pulling, and background service setup.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/transcribe-google-meet-without-cloud-bot</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Transcribe Google Meet Privately Without Cloud Bots | DomoNote</image:title>
+      <image:caption>Learn how to capture Google Meet audio silently using the DomoNote Chrome Extension. No awkward recording bots in your conference calls.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/how-to-generate-sop-manuals-from-screen-recordings</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Generate SOP Manuals from Screen Recordings | DomoNote</image:title>
+      <image:caption>Discover how to turn recorded screen workflows into annotated, step-by-step Standard Operating Procedure (SOP) manuals with DomoNote.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/best-local-llm-models-for-meeting-notes</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Best Local AI Models for Meeting Notes &amp; Audio Summaries (2026)</image:title>
+      <image:caption>Benchmarking the best open-source models for meeting notes. Compare Qwen 2.5, Llama 3.2, Gemma 2, and DeepSeek R1 for speed, accuracy, and RAM usage.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/offline-pdf-chat-with-local-rag</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Chat with PDF Documents 100% Offline using Local RAG | DomoNote</image:title>
+      <image:caption>Learn how to chat with confidential PDFs and large documents completely offline. Ingest files with local vector search and query without internet access.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/install-domonote-windows-macos-linux</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Install DomoNote on Windows, macOS, and Linux | DomoNote Docs</image:title>
+      <image:caption>Detailed installation steps for DomoNote on Windows 10/11, macOS Apple Silicon/Intel, and Linux distributions. Get up and running in minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/exporting-meeting-minutes-to-markdown-pdf</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Export Meeting Minutes to Markdown, PDF &amp; JSON | DomoNote</image:title>
+      <image:caption>Learn how to export your meeting minutes, transcripts, and action items to Markdown, formatted PDF, and structured JSON for team distribution.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/troubleshooting-ollama-cors-and-connection</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>How to Fix Ollama Connection and CORS Errors in DomoNote</image:title>
+      <image:caption>Step-by-step troubleshooting guide for resolving &quot;Local AI Offline&quot; and CORS errors when connecting browser-based DomoNote to Ollama.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/guides/data-privacy-security-architecture</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>DomoNote Security Architecture — How 100% Local-First Software Works</image:title>
+      <image:caption>Technical deep-dive into DomoNote’s security architecture: client-side IndexedDB persistence, local audio buffer management, and air-gapped LLM inference.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/legal-attorneys-confidential-meetings</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private AI Meeting Secretary for Legal Firms &amp; Attorneys | DomoNote</image:title>
+      <image:caption>Maintain strict attorney-client privilege. Transcribe depositions, client discovery, and partner meetings 100% locally with zero cloud disclosure.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/healthcare-hipaa-clinical-notes</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Confidential Meeting &amp; Clinical Documentation Assistant | DomoNote</image:title>
+      <image:caption>Document patient case discussions, clinical trials, and medical administrative meetings on air-gapped hardware with zero cloud exposure.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/software-engineers-tech-leads</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Engineering Design Notes &amp; Architecture Meeting Synthesis | DomoNote</image:title>
+      <image:caption>Keep your engineering syncs sharp. Capture architecture reviews, sprint planning, and post-mortems with AI that understands code and technical RFCs.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/finance-banking-board-meetings</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Air-Gapped Financial Meeting Minutes &amp; Board Intelligence | DomoNote</image:title>
+      <image:caption>Protect material non-public information (MNPI) and financial strategies. Transcribe earnings discussions, M&amp;A due diligence, and board votes locally.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/academic-researchers-students</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Lecture Transcription &amp; Research Paper Knowledge Base | DomoNote</image:title>
+      <image:caption>Transcribe university lectures, summarize dense journal articles, and build your personal academic knowledge base with DomoNote.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/solutions/startup-founders-executives</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Executive AI Secretary for Fast-Moving Startup Founders | DomoNote</image:title>
+      <image:caption>Maximize founder leverage. Offload meeting synthesis, investor call notes, and team action tracking to a personal AI that runs locally on your Mac or PC.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/download/windows</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Download DomoNote for Windows 10 &amp; 11 (.EXE &amp; Portable) | DomoNote</image:title>
+      <image:caption>Download DomoNote for Windows 10 &amp; 11. Native .NET 9 desktop application with Microsoft WebView2, dark mode, and local Ollama companion.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/download/macos</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Download DomoNote for macOS (Apple Silicon &amp; Intel DMG) | DomoNote</image:title>
+      <image:caption>Download DomoNote for macOS. Native Swift application with Apple Silicon M1/M2/M3 optimization, menu bar companion, and local Whisper.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/download/linux</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Download DomoNote for Linux (AppImage &amp; Debian .deb) | DomoNote</image:title>
+      <image:caption>Download DomoNote for Linux. Universal AppImage, native Debian/Ubuntu .deb package, and standalone portable tarball for privacy purists.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/download/chrome-extension</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Download DomoNote Chrome Extension — Google Meet Audio Capture</image:title>
+      <image:caption>Download the DomoNote Chrome Extension (Manifest V3). Capture Google Meet and browser tab audio directly into your local offline workspace.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/google-meet</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Google Meet Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Google Meet Calls 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/zoom</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Zoom Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Zoom Conferences 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/microsoft-teams</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Microsoft Teams Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Microsoft Teams Calls 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/cisco-webex</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Cisco Webex Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Cisco Webex Meetings 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/slack-huddles</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Slack Huddles Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Slack Huddles 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/discord-calls</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Discord Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Discord Voice Calls 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/interviews</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Interviews Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Job &amp; User Interviews 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/board-meetings</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Board Meetings Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Executive Board Meetings 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/investor-pitches</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Investor Pitches Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Investor &amp; Fundraising Calls 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/doctor-consultations</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Clinical Consultations Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Medical &amp; Clinical Consults 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/podcasts-interviews</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Podcasts Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Podcast &amp; Audio Shows 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/meeting-transcription/webinars-lectures</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Private Webinars Transcription &amp; Meeting Notes AI | DomoNote</image:title>
+      <image:caption>Transcribe and summarize Webinars &amp; Online Keynotes 100% offline with DomoNote. Zero cloud uploads, no intrusive meeting bots, and instant local executive minutes.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/pdf</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local PDF Documents AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize PDF Documents 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/docx</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Microsoft Word Files AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Microsoft Word Files 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/pptx</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local PowerPoint Slide Decks AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize PowerPoint Slide Decks 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/research-papers</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Academic Research Papers AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Academic Research Papers 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/financial-reports</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local 10-K &amp; Financial Statements AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize 10-K &amp; Financial Statements 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/legal-contracts</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local NDAs &amp; Service Agreements AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize NDAs &amp; Service Agreements 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/technical-specs</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Technical Specs &amp; RFCs AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Technical Specs &amp; RFCs 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/medical-records</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Clinical Case Records AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Clinical Case Records 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/meeting-transcripts</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Historical Transcripts AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Historical Transcripts 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/document-summarizer/hardware-manuals</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Local Equipment &amp; User Manuals AI Summarizer &amp; Semantic Parser | DomoNote</image:title>
+      <image:caption>Read, annotate, and summarize Equipment &amp; User Manuals 100% offline with DomoNote. Private local RAG vector search with zero document uploads.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-spanish</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Spanish Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Spanish. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/spanish-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Spanish to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from Spanish to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-japanese</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Japanese Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Japanese. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/japanese-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Japanese to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from Japanese to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-chinese</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Chinese Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Chinese. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/chinese-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Chinese to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from Chinese to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-french</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to French Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to French. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/french-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>French to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from French to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-german</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to German Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to German. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/german-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>German to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from German to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-tagalog</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Tagalog Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Tagalog. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/tagalog-to-english</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Tagalog to English Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from Tagalog to English. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-portuguese</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Portuguese Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Portuguese. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-italian</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Italian Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Italian. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/speech-translation/english-to-korean</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>English to Korean Meeting Speech Translator (Offline) | DomoNote</image:title>
+      <image:caption>Real-time offline speech translation from English to Korean. Transcribe live conference calls and translate subtitles simultaneously with local AI.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/software-qa-testing</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Software QA Testing SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for software qa testing from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/employee-it-onboarding</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Employee IT Onboarding SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for employee it onboarding from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/customer-support-escalation</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Customer Support Escalations SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for customer support escalations from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/devops-ci-cd-deployment</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated DevOps &amp; CI/CD Deployment SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for devops &amp; ci/cd deployment from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/finance-payroll-processing</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Payroll &amp; Expense Processing SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for payroll &amp; expense processing from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/crm-sales-data-entry</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Salesforce &amp; CRM Opportunity Entry SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for salesforce &amp; crm opportunity entry from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/inventory-management</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Warehouse &amp; Inventory Intake SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for warehouse &amp; inventory intake from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://domonote.vercel.app/tools/sop-generator/marketing-campaign-launch</loc>
+    <lastmod>2026-10-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://domonote.vercel.app/official_domonote.png</image:loc>
+      <image:title>Automated Marketing Campaign Launch SOP Manual Generator | DomoNote</image:title>
+      <image:caption>Create visual, step-by-step SOP manuals for marketing campaign launch from screen recordings. Annotate screenshots and export to PDF/Markdown.</image:caption>
+    </image:image>
   </url>
 </urlset>

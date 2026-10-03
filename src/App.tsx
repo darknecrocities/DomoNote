@@ -19,6 +19,7 @@ import { AboutView } from './views/about-view';
 import { ChangelogView } from './views/changelog-view';
 import { PrivacyView } from './views/privacy-view';
 import { DownloadView } from './views/download-view';
+import { SEOContentView } from './views/seo-content-view';
 import { CloudEnvironmentModal } from './components/modals/cloud-environment-modal';
 import { ChromeExtensionModal } from './components/modals/chrome-extension-modal';
 import { handleGoogleAuthCallback } from './services/calendar/google-calendar';
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
   const {
     activeView,
     setActiveView,
+    activeSeoPage,
     isCloudModalOpen,
     setIsCloudModalOpen,
     isExtensionModalOpen,
@@ -132,8 +134,8 @@ export const App: React.FC = () => {
 
   // ── Ollama first-run check (Workspace only, silent auto-connect if running) ─
   useEffect(() => {
-    // NEVER pop up on landing page, download page, or support page
-    if (activeView === 'landing' || activeView === 'download' || activeView === 'support') {
+    // NEVER pop up on landing page, download page, support page, or public SEO pages
+    if (activeView === 'landing' || activeView === 'download' || activeView === 'support' || activeView === 'seo-page') {
       setShowSetupFlow(false);
       return;
     }
@@ -266,6 +268,8 @@ export const App: React.FC = () => {
         return <PrivacyView />;
       case 'support':
         return <LandingPage initialPopup="support" />;
+      case 'seo-page':
+        return activeSeoPage ? <SEOContentView page={activeSeoPage} /> : <LandingPage />;
       default:
         return <DashboardView />;
     }
@@ -295,7 +299,7 @@ export const App: React.FC = () => {
       </AppLayout>
 
       {/* Ollama first-run / repair setup flow (Workspace only) */}
-      {activeView !== 'landing' && activeView !== 'download' && activeView !== 'support' && (
+      {activeView !== 'landing' && activeView !== 'download' && activeView !== 'support' && activeView !== 'seo-page' && (
         <OllamaSetupFlow
           isOpen={showSetupFlow}
           onDismiss={handleSetupDismiss}
@@ -303,6 +307,7 @@ export const App: React.FC = () => {
           silentIfReady
         />
       )}
+
     </>
   );
 };
